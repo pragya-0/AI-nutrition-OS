@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pandas
+numpy
+pydantic
+ollama
+python-multipart
+pillow
+opencv-python
+scikit-learn
+python-dotenv
