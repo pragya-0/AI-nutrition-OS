@@ -3,9 +3,11 @@ uvicorn
 pandas
 numpy
 pydantic
-ollama
 python-multipart
 pillow
-opencv-python
+opencv-python-headless
 scikit-learn
 python-dotenv
+groq
+python-dateutil
+requests

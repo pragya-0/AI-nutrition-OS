@@ -25,17 +25,8 @@ from nutrition.analytics import (
 )
 
 from nutrition.avoidance_engine import generate_avoid_foods
+from nutrition.ai_engine import generate_ai_tip
 from services.nutrition_service import generate_nutrition_plan
-
-from services.meal_quality_engine import (
-    sanitize_meal_days,
-    calculate_plan_quality_scores,
-)
-
-try:
-    from services.groq_service import generate_groq_coach_tip
-except Exception:
-    generate_groq_coach_tip = None
 
 from routes.nutrition_routes import router as nutrition_router
 from routes.scanner_routes import router as scanner_router
@@ -50,14 +41,12 @@ except Exception:
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
 client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 
 app = FastAPI(
     title="AI Nutrition OS",
-    version="2.5.0",
+    version="2.2.0",
     description="AI-powered nutrition planning, analytics, food intelligence, and meal generation system",
 )
 
@@ -126,6 +115,7 @@ def safe_json_parse(text: str):
 
         if cleaned.startswith("```json"):
             cleaned = cleaned.replace("```json", "").replace("```", "").strip()
+
         elif cleaned.startswith("```"):
             cleaned = cleaned.replace("```", "").strip()
 
@@ -171,25 +161,158 @@ def filename_food_scan(filename: str):
     name = filename.lower()
 
     foods = {
-        "dal": {"food": "Dal", "calories": 180, "protein": 10, "carbs": 28, "fats": 4, "health_score": 82},
-        "daal": {"food": "Dal", "calories": 180, "protein": 10, "carbs": 28, "fats": 4, "health_score": 82},
-        "rice": {"food": "Rice", "calories": 250, "protein": 5, "carbs": 55, "fats": 1, "health_score": 72},
-        "roti": {"food": "Roti", "calories": 120, "protein": 4, "carbs": 22, "fats": 3, "health_score": 78},
-        "chapati": {"food": "Chapati", "calories": 120, "protein": 4, "carbs": 22, "fats": 3, "health_score": 78},
-        "paneer": {"food": "Paneer Curry", "calories": 310, "protein": 18, "carbs": 12, "fats": 20, "health_score": 75},
-        "biryani": {"food": "Biryani", "calories": 450, "protein": 18, "carbs": 55, "fats": 18, "health_score": 65},
-        "salad": {"food": "Salad", "calories": 120, "protein": 5, "carbs": 10, "fats": 4, "health_score": 90},
-        "pizza": {"food": "Pizza", "calories": 420, "protein": 14, "carbs": 48, "fats": 18, "health_score": 62},
-        "burger": {"food": "Burger", "calories": 520, "protein": 20, "carbs": 45, "fats": 28, "health_score": 55},
-        "chicken": {"food": "Chicken Curry", "calories": 320, "protein": 26, "carbs": 10, "fats": 18, "health_score": 70},
-        "fish": {"food": "Fish Curry", "calories": 280, "protein": 24, "carbs": 8, "fats": 16, "health_score": 74},
-        "momo": {"food": "Momo", "calories": 300, "protein": 12, "carbs": 42, "fats": 9, "health_score": 68},
-        "idli": {"food": "Idli", "calories": 160, "protein": 6, "carbs": 32, "fats": 1, "health_score": 86},
-        "dosa": {"food": "Dosa", "calories": 220, "protein": 6, "carbs": 38, "fats": 6, "health_score": 78},
-        "poha": {"food": "Poha", "calories": 250, "protein": 6, "carbs": 45, "fats": 7, "health_score": 76},
-        "khichdi": {"food": "Khichdi", "calories": 280, "protein": 10, "carbs": 48, "fats": 6, "health_score": 84},
-        "rajma": {"food": "Rajma", "calories": 280, "protein": 14, "carbs": 42, "fats": 6, "health_score": 82},
-        "chole": {"food": "Chole", "calories": 300, "protein": 13, "carbs": 45, "fats": 8, "health_score": 78},
+        "dal": {
+            "food": "Dal",
+            "calories": 180,
+            "protein": 10,
+            "carbs": 28,
+            "fats": 4,
+            "health_score": 82,
+        },
+        "daal": {
+            "food": "Dal",
+            "calories": 180,
+            "protein": 10,
+            "carbs": 28,
+            "fats": 4,
+            "health_score": 82,
+        },
+        "rice": {
+            "food": "Rice",
+            "calories": 250,
+            "protein": 5,
+            "carbs": 55,
+            "fats": 1,
+            "health_score": 72,
+        },
+        "roti": {
+            "food": "Roti",
+            "calories": 120,
+            "protein": 4,
+            "carbs": 22,
+            "fats": 3,
+            "health_score": 78,
+        },
+        "chapati": {
+            "food": "Chapati",
+            "calories": 120,
+            "protein": 4,
+            "carbs": 22,
+            "fats": 3,
+            "health_score": 78,
+        },
+        "paneer": {
+            "food": "Paneer Curry",
+            "calories": 310,
+            "protein": 18,
+            "carbs": 12,
+            "fats": 20,
+            "health_score": 75,
+        },
+        "biryani": {
+            "food": "Biryani",
+            "calories": 450,
+            "protein": 18,
+            "carbs": 55,
+            "fats": 18,
+            "health_score": 65,
+        },
+        "salad": {
+            "food": "Salad",
+            "calories": 120,
+            "protein": 5,
+            "carbs": 10,
+            "fats": 4,
+            "health_score": 90,
+        },
+        "pizza": {
+            "food": "Pizza",
+            "calories": 420,
+            "protein": 14,
+            "carbs": 48,
+            "fats": 18,
+            "health_score": 62,
+        },
+        "burger": {
+            "food": "Burger",
+            "calories": 520,
+            "protein": 20,
+            "carbs": 45,
+            "fats": 28,
+            "health_score": 55,
+        },
+        "chicken": {
+            "food": "Chicken Curry",
+            "calories": 320,
+            "protein": 26,
+            "carbs": 10,
+            "fats": 18,
+            "health_score": 70,
+        },
+        "fish": {
+            "food": "Fish Curry",
+            "calories": 280,
+            "protein": 24,
+            "carbs": 8,
+            "fats": 16,
+            "health_score": 74,
+        },
+        "momo": {
+            "food": "Momo",
+            "calories": 300,
+            "protein": 12,
+            "carbs": 42,
+            "fats": 9,
+            "health_score": 68,
+        },
+        "idli": {
+            "food": "Idli",
+            "calories": 160,
+            "protein": 6,
+            "carbs": 32,
+            "fats": 1,
+            "health_score": 86,
+        },
+        "dosa": {
+            "food": "Dosa",
+            "calories": 220,
+            "protein": 6,
+            "carbs": 38,
+            "fats": 6,
+            "health_score": 78,
+        },
+        "poha": {
+            "food": "Poha",
+            "calories": 250,
+            "protein": 6,
+            "carbs": 45,
+            "fats": 7,
+            "health_score": 76,
+        },
+        "khichdi": {
+            "food": "Khichdi",
+            "calories": 280,
+            "protein": 10,
+            "carbs": 48,
+            "fats": 6,
+            "health_score": 84,
+        },
+        "rajma": {
+            "food": "Rajma",
+            "calories": 280,
+            "protein": 14,
+            "carbs": 42,
+            "fats": 6,
+            "health_score": 82,
+        },
+        "chole": {
+            "food": "Chole",
+            "calories": 300,
+            "protein": 13,
+            "carbs": 45,
+            "fats": 8,
+            "health_score": 78,
+        },
     }
 
     for key, item in foods.items():
@@ -242,16 +365,24 @@ def run_local_ai_scan(file_path: str, filename: str, reason: str):
         )
 
         confidence = float(local_result.get("confidence", 0.75))
+
         nutrition = local_result.get("estimated_nutrition", {})
+
+        calories = int(nutrition.get("calories", 320))
+        protein = int(nutrition.get("protein", 12))
+        carbs = int(nutrition.get("carbs", 42))
+        fats = int(nutrition.get("fats", 10))
+
+        health_score = int(local_result.get("health_score", 75))
 
         return build_scan_response(
             filename=filename,
             detected_food=detected_food,
-            calories=int(nutrition.get("calories", 320)),
-            protein=int(nutrition.get("protein", 12)),
-            carbs=int(nutrition.get("carbs", 42)),
-            fats=int(nutrition.get("fats", 10)),
-            health_score=int(local_result.get("health_score", 75)),
+            calories=calories,
+            protein=protein,
+            carbs=carbs,
+            fats=fats,
+            health_score=health_score,
             confidence=confidence,
             scanner_mode="local_ai_vision",
             message="Food scanned successfully.",
@@ -264,50 +395,12 @@ def run_local_ai_scan(file_path: str, filename: str, reason: str):
         )
 
 
-def create_safe_fallback_coach_message(
-    user: UserData,
-    bmi: float,
-    calories: int,
-    protein: int,
-    carbs: int,
-    fats: int,
-):
-    diet_text = user.diet.replace("_", " ")
-
-    if user.goal == "fat_loss":
-        return (
-            f"Your plan is optimized for fat loss using a {diet_text} diet style. "
-            f"Target around {calories} kcal with {protein}g protein, {carbs}g carbs, and {fats}g fats. "
-            "Focus on a controlled calorie deficit, walking, strength training, hydration, and consistency."
-        )
-
-    if user.goal == "muscle_gain":
-        if bmi >= 30:
-            return (
-                f"Your plan is optimized for lean muscle gain using a {diet_text} diet style. "
-                f"Target around {calories} kcal with {protein}g protein daily. "
-                "Focus on progressive overload, controlled calorie surplus, recovery, hydration, and sleep."
-            )
-
-        return (
-            f"Your plan is optimized for muscle gain using a {diet_text} diet style. "
-            f"Target around {calories} kcal with {protein}g protein daily. "
-            "Focus on progressive overload, calorie surplus, recovery, hydration, and sleep."
-        )
-
-    return (
-        f"Your plan is optimized for maintenance using a {diet_text} diet style. "
-        f"Target around {calories} kcal with balanced macros. "
-        "Focus on consistent meals, movement, hydration, and recovery."
-    )
-
-
 @app.get("/")
 def home():
     return {
         "message": "AI Nutrition OS Running 🚀",
         "status": "active",
-        "version": "2.5.0",
+        "version": "2.2.0",
     }
 
 
@@ -319,27 +412,12 @@ def health_check():
         "dataset_loaded": dataset_loaded,
         "dataset_rows": len(df),
         "gemini_connected": GEMINI_API_KEY is not None,
-        "groq_connected": GROQ_API_KEY is not None,
-        "groq_service_available": generate_groq_coach_tip is not None,
         "local_scanner_available": local_food_scan is not None,
         "scanner_priority": [
             "filename_food_match",
             "gemini_vision",
             "local_ai_vision",
             "generic_fallback",
-        ],
-        "coach_priority": [
-            "groq_ai_coach",
-            "rule_based_fallback_coach",
-        ],
-        "quality_gate": [
-            "diet_filter",
-            "goal_filter",
-            "duplicate_check",
-            "meal_replacement",
-            "safe_alternatives",
-            "dynamic_workout_tip",
-            "quality_scores",
         ],
         "detected_columns": {
             "food": food_col,
@@ -457,6 +535,7 @@ def scan_food(file: UploadFile = File(...)):
 
 @app.post("/generate-plan")
 def generate_plan(user: UserData):
+
     bmi = calculate_bmi(user.weight, user.height)
 
     calories = calculate_calories(
@@ -530,52 +609,11 @@ def generate_plan(user: UserData):
         medical_conditions=user.medical_conditions,
     )
 
-    fallback_coach_message = create_safe_fallback_coach_message(
-        user=user,
-        bmi=bmi,
-        calories=calories,
-        protein=protein,
-        carbs=carbs,
-        fats=fats,
+    coach_message = generate_ai_tip(
+        bmi,
+        user.goal,
+        user.diet,
     )
-
-    user_profile_for_ai = {
-        "weight": user.weight,
-        "height": user.height,
-        "age": user.age,
-        "gender": user.gender,
-        "goal": user.goal,
-        "diet": user.diet,
-        "activity": user.activity,
-        "days": user.days,
-    }
-
-    analytics_for_ai = {
-        "bmi": bmi,
-        "bmr": bmr,
-        "tdee": tdee,
-        "body_fat": body_fat,
-        "hydration_score": hydration_score,
-    }
-
-    targets_for_ai = {
-        "calories": calories,
-        "protein": protein,
-        "carbs": carbs,
-        "fats": fats,
-    }
-
-    groq_message = None
-
-    if generate_groq_coach_tip is not None:
-        groq_message = generate_groq_coach_tip(
-            user_profile=user_profile_for_ai,
-            analytics=analytics_for_ai,
-            targets=targets_for_ai,
-        )
-
-    coach_message = groq_message or fallback_coach_message
-    coach_mode = "groq_ai" if groq_message else "rule_based_fallback"
 
     health_score = 85
 
@@ -602,22 +640,8 @@ def generate_plan(user: UserData):
     else:
         meal_days = []
 
-    clean_meal_days = sanitize_meal_days(
-        meal_days=meal_days,
-        user=user,
-        bmi=bmi,
-    )
-
-    quality_scores = calculate_plan_quality_scores(
-        meal_days=clean_meal_days,
-        user=user,
-        bmi=bmi,
-    )
-
     return {
         "success": True,
-        "ai_mode": coach_mode,
-        "quality_scores": quality_scores,
         "user_profile": {
             "weight": user.weight,
             "height": user.height,
@@ -648,7 +672,7 @@ def generate_plan(user: UserData):
             "fats": fats,
         },
         "meal_plan": {
-            "days": clean_meal_days,
+            "days": meal_days,
         },
         "avoid_foods": avoid_foods,
         "coach_message": coach_message,
