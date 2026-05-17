@@ -57,13 +57,18 @@ client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 app = FastAPI(
     title="AI Nutrition OS",
-    version="2.5.0",
+    version="2.5.1",
     description="AI-powered nutrition planning, analytics, food intelligence, and meal generation system",
 )
 
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://ai-nutrition-os.vercel.app",
+    ],
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=False,
     allow_methods=["*"],
@@ -282,13 +287,6 @@ def create_safe_fallback_coach_message(
         )
 
     if user.goal == "muscle_gain":
-        if bmi >= 30:
-            return (
-                f"Your plan is optimized for lean muscle gain using a {diet_text} diet style. "
-                f"Target around {calories} kcal with {protein}g protein daily. "
-                "Focus on progressive overload, controlled calorie surplus, recovery, hydration, and sleep."
-            )
-
         return (
             f"Your plan is optimized for muscle gain using a {diet_text} diet style. "
             f"Target around {calories} kcal with {protein}g protein daily. "
@@ -307,7 +305,7 @@ def home():
     return {
         "message": "AI Nutrition OS Running 🚀",
         "status": "active",
-        "version": "2.5.0",
+        "version": "2.5.1",
     }
 
 
@@ -322,31 +320,6 @@ def health_check():
         "groq_connected": GROQ_API_KEY is not None,
         "groq_service_available": generate_groq_coach_tip is not None,
         "local_scanner_available": local_food_scan is not None,
-        "scanner_priority": [
-            "filename_food_match",
-            "gemini_vision",
-            "local_ai_vision",
-            "generic_fallback",
-        ],
-        "coach_priority": [
-            "groq_ai_coach",
-            "rule_based_fallback_coach",
-        ],
-        "quality_gate": [
-            "diet_filter",
-            "goal_filter",
-            "duplicate_check",
-            "meal_replacement",
-            "safe_alternatives",
-            "dynamic_workout_tip",
-            "quality_scores",
-        ],
-        "detected_columns": {
-            "food": food_col,
-            "calories": calorie_col,
-            "protein": protein_col,
-            "type": type_col,
-        },
         "routes": {
             "root": "/",
             "health": "/health",
@@ -407,19 +380,13 @@ def scan_food(file: UploadFile = File(...)):
         Rules:
         - Do not use the filename.
         - Estimate nutrition for one normal serving.
-        - Use numbers only for calories, protein, carbs, fats, health_score.
-        - confidence must be between 0 and 1.
-        - health_score must be between 1 and 100.
-        - If unsure, still give your best estimate.
-        - Return JSON only. No markdown. No explanation outside JSON.
+        - Use numbers only.
+        - Return JSON only.
         """
 
         response = client.models.generate_content(
             model="gemini-2.0-flash",
-            contents=[
-                image,
-                prompt,
-            ],
+            contents=[image, prompt],
         )
 
         raw_text = response.text or ""
@@ -467,48 +434,18 @@ def generate_plan(user: UserData):
         user.activity,
     )
 
-    macros = calculate_macros(
-        calories,
-        user.weight,
-        user.goal,
-    )
+    macros = calculate_macros(calories, user.weight, user.goal)
 
     protein = macros["protein"]
     carbs = macros["carbs"]
     fats = macros["fats"]
 
-    bmr = calculate_bmr(
-        user.weight,
-        user.height,
-        user.age,
-        user.gender,
-    )
-
-    tdee = calculate_tdee(
-        bmr,
-        user.activity,
-    )
-
-    body_fat = calculate_body_fat(
-        bmi,
-        user.age,
-        user.gender,
-    )
-
-    metabolic_age = calculate_metabolic_age(
-        bmr,
-        user.age,
-    )
-
-    hydration_score = calculate_hydration_score(
-        user.water_intake,
-    )
-
-    macro_ratio = calculate_macro_ratio(
-        protein,
-        carbs,
-        fats,
-    )
+    bmr = calculate_bmr(user.weight, user.height, user.age, user.gender)
+    tdee = calculate_tdee(bmr, user.activity)
+    body_fat = calculate_body_fat(bmi, user.age, user.gender)
+    metabolic_age = calculate_metabolic_age(bmr, user.age)
+    hydration_score = calculate_hydration_score(user.water_intake)
+    macro_ratio = calculate_macro_ratio(protein, carbs, fats)
 
     meal_plan = generate_nutrition_plan(
         df=df,
