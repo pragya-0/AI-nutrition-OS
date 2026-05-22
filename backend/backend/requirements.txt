@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pandas
+numpy
+pydantic
+ollama
+python-multipart
+pillow
+opencv-python-headless
+scikit-learn
+python-dotenv
+google-genai
+groq

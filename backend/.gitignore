@@ -1,5 +1,32 @@
+# Python
 __pycache__/
 *.pyc
-.env
+*.pyo
+*.pyd
 venv/
+.env
 uploads/
+
+# Next.js
+node_modules/
+.next/
+out/
+
+# Environment
+.env.local
+.env.production
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Build
+dist/
+build/
