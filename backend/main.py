@@ -51,6 +51,17 @@ try:
 except Exception:
     generate_groq_coach_tip = None
 
+try:
+    from services.ai_orchestrator import (
+        generate_ai_coach,
+        generate_ai_workout_tip,
+        generate_health_insight,
+    )
+except Exception:
+    generate_ai_coach = None
+    generate_ai_workout_tip = None
+    generate_health_insight = None
+
 from routes.nutrition_routes import router as nutrition_router
 from routes.scanner_routes import router as scanner_router
 from routes.analytics_routes import router as analytics_router
@@ -61,6 +72,7 @@ load_dotenv(dotenv_path=env_path)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
@@ -481,7 +493,9 @@ def health_check():
         "dataset_rows": len(df),
         "gemini_connected": GEMINI_API_KEY is not None,
         "groq_connected": GROQ_API_KEY is not None,
+        "openrouter_connected": OPENROUTER_API_KEY is not None,
         "groq_service_available": generate_groq_coach_tip is not None,
+        "ai_orchestrator_available": generate_ai_coach is not None and generate_ai_workout_tip is not None,
         "groq_vision_available": groq_client is not None,
         "scanner_priority": [
             "filename_food_match",
@@ -490,8 +504,9 @@ def health_check():
             "generic_fallback",
         ],
         "coach_priority": [
-            "groq_ai_coach",
-            "rule_based_fallback_coach",
+            "openrouter_ai",
+            "groq_ai",
+            "rule_based_fallback",
         ],
         "quality_gate": [
             "metabolic_strategy",
@@ -800,17 +815,29 @@ def generate_plan(user: UserData):
         "fats": fats,
     }
 
+    ai_coach_message = None
     groq_message = None
 
-    if generate_groq_coach_tip is not None:
+    if generate_ai_coach is not None:
+        ai_coach_message = generate_ai_coach(
+            user,
+            groq_fallback=generate_groq_coach_tip,
+        )
+    elif generate_groq_coach_tip is not None:
         groq_message = generate_groq_coach_tip(
             user_profile=user_profile_for_ai,
             analytics=analytics_for_ai,
             targets=targets_for_ai,
         )
 
-    coach_message = groq_message or fallback_coach_message
-    coach_mode = "groq_ai" if groq_message else "rule_based_fallback"
+    coach_message = ai_coach_message or groq_message or fallback_coach_message
+
+    if ai_coach_message:
+        coach_mode = "openrouter_ai"
+    elif groq_message:
+        coach_mode = "groq_ai"
+    else:
+        coach_mode = "rule_based_fallback"
 
     health_result = calculate_dynamic_health_score(
         bmi=bmi,
@@ -879,8 +906,19 @@ def generate_plan(user: UserData):
     targets = elderly_safety_result["targets"]
     daily_routine = elderly_safety_result["daily_routine"]
 
+    if generate_ai_workout_tip is not None:
+        workout_tip = generate_ai_workout_tip(
+            user,
+            groq_fallback=generate_groq_coach_tip,
+        )
+    else:
+        workout_tip = daily_routine.get(
+            "workout_time",
+            "6:00 PM - Moderate activity: walking, mobility, and light strength training.",
+        )
+
     for day in clean_meal_days:
-        day["workout_tip"] = daily_routine["workout_time"]
+        day["workout_tip"] = workout_tip
 
     calories = targets["calories"]
     protein = targets["protein"]
@@ -932,6 +970,34 @@ def generate_plan(user: UserData):
 
     ai_tip = coach_message
 
+    analytics_data = {
+        "bmi": bmi,
+        "bmr": bmr,
+        "tdee": tdee,
+        "body_fat": body_fat,
+        "metabolic_age": metabolic_age,
+        "hydration_score": hydration_score,
+        "sleep_score": sleep_score,
+        "health_score": health_score,
+        "health_status": health_status,
+        "health_breakdown": health_breakdown,
+        "macro_ratio": macro_ratio,
+        "metabolic_strategy": strategy,
+        "strategy_details": strategy_data,
+    }
+
+    if generate_health_insight is not None:
+        health_insight = generate_health_insight(
+            user,
+            analytics=analytics_data,
+            groq_fallback=generate_groq_coach_tip,
+        )
+    else:
+        health_insight = (
+            f"Your health score is {health_score}/100 ({health_status}). "
+            f"Focus on hydration, sleep consistency, and plan adherence."
+        )
+
     return {
         "success": True,
         "ai_mode": coach_mode,
@@ -970,21 +1036,8 @@ def generate_plan(user: UserData):
             "medical_conditions": user.medical_conditions,
             "pregnancy_status": getattr(user, "pregnancy_status", ""),
         },
-        "analytics": {
-            "bmi": bmi,
-            "bmr": bmr,
-            "tdee": tdee,
-            "body_fat": body_fat,
-            "metabolic_age": metabolic_age,
-            "hydration_score": hydration_score,
-            "sleep_score": sleep_score,
-            "health_score": health_score,
-            "health_status": health_status,
-            "health_breakdown": health_breakdown,
-            "macro_ratio": macro_ratio,
-            "metabolic_strategy": strategy,
-            "strategy_details": strategy_data,
-        },
+        "analytics": analytics_data,
+        "health_insight": health_insight,
         "targets": {
             "calories": calories,
             "protein": protein,
