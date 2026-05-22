@@ -22,6 +22,10 @@ class UserData(BaseModel):
     age: int
     gender: str
 
+    # Pregnancy status:
+    # "not_applicable", "pregnant", or "not_pregnant"
+    pregnancy_status: str = "not_applicable"
+
     # =========================
     # NUTRITION PROFILE
     # =========================
