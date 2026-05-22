@@ -48,6 +48,7 @@ export default function Hero({ onGenerate, loading = false }: HeroProps) {
     water_intake: "2.5",
 
     medical_conditions: "",
+    pregnancy_status: "not_applicable",
     preferred_cuisine: "indian",
     fitness_level: "beginner",
 
@@ -395,6 +396,22 @@ export default function Hero({ onGenerate, loading = false }: HeroProps) {
               disabled={loading}
               className="field-input"
             />
+          </Field>
+
+          <Field label="Pregnancy Status" icon={<HeartPulse size={18} />}>
+            <select
+              name="pregnancy_status"
+              value={formData.pregnancy_status}
+              onChange={handleChange}
+              disabled={loading}
+              className="field-input"
+            >
+              <option value="not_applicable">
+                Not applicable / Prefer not to say
+              </option>
+              <option value="pregnant">Pregnant</option>
+              <option value="not_pregnant">Not pregnant</option>
+            </select>
           </Field>
         </div>
 
