@@ -3,6 +3,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
@@ -594,11 +595,22 @@ def generate_plan(user: UserData):
             "High-intensity activity was adjusted to low-impact movement for elderly safety."
         )
 
-    if pregnancy_status in ["pregnant", "pregnancy"] and user.goal == "fat_loss":
-        raise HTTPException(
-            status_code=400,
-            detail="Fat loss is not recommended during pregnancy. Please select maintenance and consult a healthcare professional.",
+    # =========================
+    # Pregnancy Safety Override
+    # =========================
+
+    if (
+        user.gender.lower() == "female"
+        and pregnancy_status in ["pregnant", "pregnancy"]
+    ):
+        user.goal = "maintenance"
+        safety_warnings.append(
+            "Pregnancy noted: goal was safely changed to maintenance. Fat loss is not recommended during pregnancy."
         )
+
+    # Hydration safety boost
+    if pregnancy_status in ["pregnant", "pregnancy"]:
+        user.water_intake = max(user.water_intake, 3.0)
 
     sleep_hours = getattr(user, "sleep_hours", None)
 
@@ -707,7 +719,7 @@ def generate_plan(user: UserData):
     water_target = max(1.8, min(3.8, water_target))
 
     if pregnancy_status in ["pregnant", "pregnancy"]:
-        water_target = max(water_target, 2.7)
+        water_target = max(water_target, 3.0)
         safety_warnings.append(
             "Pregnancy noted: hydration target was increased to support safer daily intake."
         )
