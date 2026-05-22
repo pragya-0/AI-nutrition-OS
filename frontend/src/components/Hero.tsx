@@ -48,7 +48,7 @@ export default function Hero({ onGenerate, loading = false }: HeroProps) {
     water_intake: "2.5",
 
     medical_conditions: "",
-    pregnancy_status: "not_applicable",
+    pregnancy_status: "",
     preferred_cuisine: "indian",
     fitness_level: "beginner",
 
@@ -59,10 +59,12 @@ export default function Hero({ onGenerate, loading = false }: HeroProps) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleGenerate = () => {
@@ -83,15 +85,71 @@ export default function Hero({ onGenerate, loading = false }: HeroProps) {
       return;
     }
 
-    onGenerate({
+    const weight = Number(formData.weight);
+    const height = Number(formData.height);
+    const age = Number(formData.age);
+    const heightInMeters = height / 100;
+    const bmi =
+      heightInMeters > 0 ? weight / (heightInMeters * heightInMeters) : 0;
+
+    const medicalText = `${formData.medical_conditions} ${formData.pregnancy_status}`.toLowerCase();
+
+    if (!weight || weight < 20 || weight > 250) {
+      alert("Please enter a realistic weight between 20 kg and 250 kg.");
+      return;
+    }
+
+    if (!height || height < 100 || height > 230) {
+      alert("Please enter a realistic height between 100 cm and 230 cm.");
+      return;
+    }
+
+    if (!age || age < 12 || age > 100) {
+      alert(
+        "This app is intended for users 12+ and is not a pediatric medical tool."
+      );
+      return;
+    }
+
+    if (age < 18) {
+      const proceed = window.confirm(
+        "This app is intended for users 12+ and is not a pediatric medical tool. For minors, use this only as general wellness guidance and consult a guardian/health professional. Continue?"
+      );
+
+      if (!proceed) return;
+    }
+
+    if (bmi < 18.5 && formData.goal === "fat_loss") {
+      alert(
+        "Fat loss is not recommended for an underweight BMI. Please select Maintenance or Muscle Gain."
+      );
+      return;
+    }
+
+    if (
+      formData.goal === "fat_loss" &&
+      (medicalText.includes("pregnancy") || medicalText.includes("pregnant"))
+    ) {
+      alert(
+        "Fat loss is not recommended during pregnancy. Please select Maintenance and consult a healthcare professional."
+      );
+      return;
+    }
+
+    const payload = {
       ...formData,
-      medical_conditions: formData.medical_conditions
-        ? formData.medical_conditions
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean)
-        : [],
-    });
+      weight,
+      height,
+      age,
+      days: Number(formData.days),
+      water_intake: Number(formData.water_intake),
+      medical_conditions: formData.medical_conditions,
+      pregnancy_status: formData.pregnancy_status,
+    };
+
+    console.log("FORM DATA SENT TO BACKEND:", payload);
+
+    onGenerate(payload);
   };
 
   return (
@@ -406,11 +464,10 @@ export default function Hero({ onGenerate, loading = false }: HeroProps) {
               disabled={loading}
               className="field-input"
             >
-              <option value="not_applicable">
-                Not applicable / Prefer not to say
-              </option>
+              <option value="">Not applicable / Prefer not to say</option>
               <option value="pregnant">Pregnant</option>
-              <option value="not_pregnant">Not pregnant</option>
+              <option value="planning_pregnancy">Planning pregnancy</option>
+              <option value="postpartum">Postpartum</option>
             </select>
           </Field>
         </div>
