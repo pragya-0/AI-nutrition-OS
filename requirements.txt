@@ -11,3 +11,6 @@ python-dotenv
 groq
 python-dateutil
 requests
+sqlalchemy
+psycopg2-binary
+openai

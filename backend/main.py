@@ -65,9 +65,19 @@ try:
 except Exception:
     analyze_medical_risk = None
 
+try:
+    from services.history_service import save_nutrition_plan
+except Exception:
+    save_nutrition_plan = None
+
 from routes.nutrition_routes import router as nutrition_router
 from routes.scanner_routes import router as scanner_router
 from routes.analytics_routes import router as analytics_router
+
+try:
+    from routes.history_routes import router as history_router
+except Exception:
+    history_router = None
 
 
 env_path = Path(__file__).resolve().parent / ".env"
@@ -148,6 +158,9 @@ print("Type:", type_col)
 app.include_router(nutrition_router)
 app.include_router(scanner_router)
 app.include_router(analytics_router)
+
+if history_router:
+    app.include_router(history_router)
 
 
 def safe_json_parse(text: str):
@@ -984,7 +997,7 @@ def generate_plan(user: UserData):
             f"Focus on hydration, sleep consistency, and plan adherence."
         )
 
-    return {
+    final_response = {
         "success": True,
         "ai_mode": coach_mode,
         "quality_scores": quality_scores,
@@ -1036,3 +1049,16 @@ def generate_plan(user: UserData):
             "endpoint": "/scan-food",
         },
     }
+
+    saved_plan_id = None
+
+    if save_nutrition_plan:
+        try:
+            saved_plan_id = save_nutrition_plan(user, final_response)
+        except Exception as e:
+            print("PLAN HISTORY SAVE ERROR:", e)
+            saved_plan_id = None
+
+    final_response["saved_plan_id"] = saved_plan_id
+
+    return final_response
