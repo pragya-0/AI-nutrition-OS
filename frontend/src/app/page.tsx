@@ -21,8 +21,10 @@ import MacroChart from "@/components/MacroChart";
 import ProgressChart from "@/components/ProgressChart";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://127.0.0.1:8000";
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
+  (process.env.NODE_ENV === "development"
+    ? "http://127.0.0.1:8000"
+    : "https://ai-nutrition-backend-20tf.onrender.com");
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
