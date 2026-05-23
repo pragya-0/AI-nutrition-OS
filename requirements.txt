@@ -8,9 +8,15 @@ pillow
 opencv-python-headless
 scikit-learn
 python-dotenv
-groq
-python-dateutil
 requests
+python-dateutil
+
+# AI Providers
+groq
+google-genai
+openai
+httpx
+
+# Database
 sqlalchemy
 psycopg2-binary
-openai
