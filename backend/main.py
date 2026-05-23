@@ -79,6 +79,12 @@ try:
 except Exception:
     history_router = None
 
+try:
+    from routes.progress_routes import router as progress_router
+except Exception as e:
+    print("PROGRESS ROUTER IMPORT ERROR:", e)
+    progress_router = None
+
 
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -161,6 +167,9 @@ app.include_router(analytics_router)
 
 if history_router:
     app.include_router(history_router)
+
+if progress_router:
+    app.include_router(progress_router)
 
 
 def safe_json_parse(text: str):
