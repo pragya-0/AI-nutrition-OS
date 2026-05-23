@@ -36,8 +36,6 @@ from nutrition.analytics import (
 )
 
 from nutrition.avoidance_engine import generate_avoid_foods
-from nutrition.medical_ai_filter import apply_medical_safety_filter
-from nutrition.elderly_safety_engine import apply_elderly_safety_filter
 from services.nutrition_service import generate_nutrition_plan
 from services.routine_generator import generate_daily_routine
 
@@ -61,6 +59,11 @@ except Exception:
     generate_ai_coach = None
     generate_ai_workout_tip = None
     generate_health_insight = None
+
+try:
+    from services.medical_warning_engine import analyze_medical_risk
+except Exception:
+    analyze_medical_risk = None
 
 from routes.nutrition_routes import router as nutrition_router
 from routes.scanner_routes import router as scanner_router
@@ -573,11 +576,91 @@ def scan_food(file: UploadFile = File(...)):
 
 @app.post("/generate-plan")
 def generate_plan(user: UserData):
-    bmi = calculate_bmi(user.weight, user.height)
+    # =====================================
+    # MEDICAL HARD-BLOCK GATE
+    # Must run BEFORE BMI, calories, macros, meals, AI coach,
+    # dashboard analytics, routines, and workout generation.
+    # =====================================
 
     medical_text = str(getattr(user, "medical_conditions", "") or "").lower()
     pregnancy_status = str(getattr(user, "pregnancy_status", "") or "").lower()
     safety_warnings = []
+
+    medical_safety_warnings = []
+    medical_risk = {
+        "risk_level": "low",
+        "warnings": [],
+        "detected_conditions": [],
+        "restrict_aggressive_fat_loss": False,
+        "restrict_intense_workouts": False,
+        "hard_block": False,
+        "block_reason": "",
+    }
+
+    if analyze_medical_risk:
+        medical_risk = analyze_medical_risk(user)
+
+        if medical_risk.get("hard_block"):
+            return {
+                "success": False,
+                "blocked": True,
+                "message": medical_risk.get("block_reason"),
+                "medical_warnings": medical_risk.get("warnings", []),
+                "medical_risk": medical_risk,
+            }
+    else:
+        # Fail-safe fallback if the medical warning engine import fails.
+        blocked_reasons = []
+
+        if int(getattr(user, "age", 0) or 0) < 18:
+            blocked_reasons.append("users below 18")
+
+        if int(getattr(user, "age", 0) or 0) >= 60:
+            blocked_reasons.append("senior users")
+
+        if pregnancy_status in ["pregnant", "pregnancy"]:
+            blocked_reasons.append("pregnancy")
+
+        if "kidney" in medical_text or "renal" in medical_text or "ckd" in medical_text:
+            blocked_reasons.append("kidney-related conditions")
+
+        if blocked_reasons:
+            medical_risk = {
+                "risk_level": "high",
+                "warnings": [
+                    "A medical safety restriction was detected. Please consult a qualified healthcare professional."
+                ],
+                "detected_conditions": blocked_reasons,
+                "restrict_aggressive_fat_loss": True,
+                "restrict_intense_workouts": True,
+                "hard_block": True,
+                "block_reason": (
+                    "AI Nutrition OS cannot safely generate recommendations for this profile. "
+                    "Please consult a nearby doctor or qualified healthcare professional."
+                ),
+            }
+
+            if medical_risk.get("hard_block"):
+                return {
+                    "success": False,
+                    "blocked": True,
+                    "message": medical_risk.get("block_reason"),
+                    "medical_warnings": medical_risk.get("warnings", []),
+                    "medical_risk": medical_risk,
+                }
+
+    medical_safety_warnings = medical_risk.get("warnings", [])
+
+    if medical_risk.get("hard_block"):
+        return {
+            "success": False,
+            "blocked": True,
+            "message": medical_risk.get("block_reason"),
+            "medical_warnings": medical_risk.get("warnings", []),
+        }
+
+    # After the medical hard-block gate passes, normal plan generation can begin.
+    bmi = calculate_bmi(user.weight, user.height)
 
     # =====================================
     # CONTRADICTION + SAFETY VALIDATION
@@ -597,35 +680,6 @@ def generate_plan(user: UserData):
             status_code=400,
             detail="Fat loss is not recommended for underweight users. Please select maintenance or muscle gain.",
         )
-
-    if user.age < 18 and user.goal == "fat_loss":
-        raise HTTPException(
-            status_code=400,
-            detail="Aggressive fat loss is not recommended for child/adolescent profiles.",
-        )
-
-    if user.age >= 65 and user.activity == "high":
-        user.activity = "low"
-        safety_warnings.append(
-            "High-intensity activity was adjusted to low-impact movement for elderly safety."
-        )
-
-    # =========================
-    # Pregnancy Safety Override
-    # =========================
-
-    if (
-        user.gender.lower() == "female"
-        and pregnancy_status in ["pregnant", "pregnancy"]
-    ):
-        user.goal = "maintenance"
-        safety_warnings.append(
-            "Pregnancy noted: goal was safely changed to maintenance. Fat loss is not recommended during pregnancy."
-        )
-
-    # Hydration safety boost
-    if pregnancy_status in ["pregnant", "pregnancy"]:
-        user.water_intake = max(user.water_intake, 3.0)
 
     sleep_hours = getattr(user, "sleep_hours", None)
 
@@ -696,15 +750,6 @@ def generate_plan(user: UserData):
     # MEDICAL MACRO SAFETY OVERRIDES
     # =====================================
 
-    if "kidney" in medical_text or "renal" in medical_text:
-        safe_kidney_protein = round(user.weight * 0.8)
-        old_protein = protein
-        protein = min(protein, safe_kidney_protein)
-        calories -= max(0, old_protein - protein) * 4
-        safety_warnings.append(
-            "Kidney-related condition noted: protein was conservatively capped."
-        )
-
     if "diabetes" in medical_text or "diabetic" in medical_text:
         carbs = round(carbs * 0.75)
         carbs = max(carbs, 80)
@@ -732,12 +777,6 @@ def generate_plan(user: UserData):
         water_target += 0.2
 
     water_target = max(1.8, min(3.8, water_target))
-
-    if pregnancy_status in ["pregnant", "pregnancy"]:
-        water_target = max(water_target, 3.0)
-        safety_warnings.append(
-            "Pregnancy noted: hydration target was increased to support safer daily intake."
-        )
 
     macro_ratio = calculate_macro_ratio(
         protein,
@@ -866,17 +905,6 @@ def generate_plan(user: UserData):
         bmi=bmi,
     )
 
-    medical_safety_result = apply_medical_safety_filter(
-        meal_days=clean_meal_days,
-        medical_conditions=getattr(user, "medical_conditions", ""),
-        bmi=bmi,
-    )
-
-    clean_meal_days = medical_safety_result["safe_meal_days"]
-    medical_flags = medical_safety_result["medical_flags"]
-    foods_replaced = medical_safety_result["foods_replaced"]
-    medical_safety_score = medical_safety_result["safety_score"]
-
     quality_scores = calculate_plan_quality_scores(
         meal_days=clean_meal_days,
         user=user,
@@ -894,17 +922,6 @@ def generate_plan(user: UserData):
         "carbs": carbs,
         "fats": fats,
     }
-
-    elderly_safety_result = apply_elderly_safety_filter(
-        meal_days=clean_meal_days,
-        user=user,
-        targets=targets,
-        daily_routine=daily_routine,
-    )
-
-    clean_meal_days = elderly_safety_result["meal_days"]
-    targets = elderly_safety_result["targets"]
-    daily_routine = elderly_safety_result["daily_routine"]
 
     if generate_ai_workout_tip is not None:
         workout_tip = generate_ai_workout_tip(
@@ -936,37 +953,6 @@ def generate_plan(user: UserData):
         carbs,
         fats,
     )
-
-    medical_notes = []
-
-    if safety_warnings:
-        medical_notes.extend(safety_warnings)
-
-    if "diabetes" in medical_text or "sugar" in medical_text:
-        medical_notes.append(
-            "Because you mentioned diabetes, this plan avoids refined sugary foods and focuses on high-fiber, low-glycemic meals."
-        )
-
-    if "low bp" in medical_text or "low blood pressure" in medical_text:
-        medical_notes.append(
-            "Because you mentioned low BP, maintain hydration, avoid long fasting gaps, and choose gentle recovery-focused movement."
-        )
-
-    if "thyroid" in medical_text:
-        medical_notes.append(
-            "If taking thyroid medication, keep soy/tofu and calcium-rich foods away from medication timing."
-        )
-
-    if user.age >= 65:
-        medical_notes.append(
-            "Since this is an elderly profile, workouts are kept low-impact with mobility, balance, and recovery focus."
-        )
-
-    if medical_notes:
-        coach_message = (
-            " ".join(medical_notes)
-            + f" Target around {calories} kcal with {protein}g protein, {carbs}g carbs, and {fats}g fats."
-        )
 
     ai_tip = coach_message
 
@@ -1003,16 +989,8 @@ def generate_plan(user: UserData):
         "ai_mode": coach_mode,
         "quality_scores": quality_scores,
         "safety_warnings": list(dict.fromkeys(safety_warnings)),
-        "medical_safety": {
-            "flags": medical_flags,
-            "foods_replaced": foods_replaced,
-            "safety_score": medical_safety_score,
-        },
-        "elderly_safety": {
-            "warnings": elderly_safety_result["warnings"],
-            "changes": elderly_safety_result["changes"],
-            "safety_score": elderly_safety_result["safety_score"],
-        },
+        "medical_risk": medical_risk,
+        "medical_safety_warnings": medical_safety_warnings,
         "user_profile": {
             "name": getattr(user, "name", ""),
             "phone_number": getattr(user, "phone_number", ""),

@@ -92,8 +92,6 @@ export default function Hero({ onGenerate, loading = false }: HeroProps) {
     const bmi =
       heightInMeters > 0 ? weight / (heightInMeters * heightInMeters) : 0;
 
-    const medicalText = `${formData.medical_conditions} ${formData.pregnancy_status}`.toLowerCase();
-
     if (!weight || weight < 20 || weight > 250) {
       alert("Please enter a realistic weight between 20 kg and 250 kg.");
       return;
@@ -104,34 +102,16 @@ export default function Hero({ onGenerate, loading = false }: HeroProps) {
       return;
     }
 
-    if (!age || age < 12 || age > 100) {
+    if (!age || age < 18 || age > 59) {
       alert(
-        "This app is intended for users 12+ and is not a pediatric medical tool."
+        "AI Nutrition OS currently supports only users aged 18 to 59. Please consult a nearby doctor or qualified healthcare professional."
       );
       return;
-    }
-
-    if (age < 18) {
-      const proceed = window.confirm(
-        "This app is intended for users 12+ and is not a pediatric medical tool. For minors, use this only as general wellness guidance and consult a guardian/health professional. Continue?"
-      );
-
-      if (!proceed) return;
     }
 
     if (bmi < 18.5 && formData.goal === "fat_loss") {
       alert(
         "Fat loss is not recommended for an underweight BMI. Please select Maintenance or Muscle Gain."
-      );
-      return;
-    }
-
-    if (
-      formData.goal === "fat_loss" &&
-      (medicalText.includes("pregnancy") || medicalText.includes("pregnant"))
-    ) {
-      alert(
-        "Fat loss is not recommended during pregnancy. Please select Maintenance and consult a healthcare professional."
       );
       return;
     }

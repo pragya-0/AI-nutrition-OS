@@ -22,18 +22,24 @@ import ProgressChart from "@/components/ProgressChart";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://ai-nutrition-backend-20tf.onrender.com";
+  "http://127.0.0.1:8000";
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockedMessage, setBlockedMessage] = useState("");
 
   const generatePlan = async (formData: any) => {
     try {
       setLoading(true);
       setError("");
+
       setResult(null);
+
+      setIsBlocked(false);
+      setBlockedMessage("");
 
       const weight = Number(formData.weight);
       const height = Number(formData.height);
@@ -61,11 +67,6 @@ export default function DashboardPage() {
         return;
       }
 
-      if (!age || age < 12 || age > 100) {
-        setError("Please enter a realistic age between 12 and 100 years.");
-        return;
-      }
-
       if (!days || days < 1 || days > 30) {
         setError("Please select a plan duration between 1 and 30 days.");
         return;
@@ -73,18 +74,6 @@ export default function DashboardPage() {
 
       if (!waterIntake || waterIntake < 0.5 || waterIntake > 8) {
         setError("Please enter water intake between 0.5 and 8 liters.");
-        return;
-      }
-
-      const pregnancyStatus = String(
-        formData.pregnancy_status ?? ""
-      ).toLowerCase();
-
-      if (
-        String(formData.gender ?? "").toLowerCase() === "male" &&
-        (pregnancyStatus === "pregnant" || pregnancyStatus === "pregnancy")
-      ) {
-        setError("Pregnancy status conflicts with selected gender.");
         return;
       }
 
@@ -142,20 +131,28 @@ export default function DashboardPage() {
 
       const data = await response.json();
 
+      if (data?.blocked) {
+        console.log("BLOCKED RESPONSE:", data);
+
+        setResult(null);
+
+        setIsBlocked(true);
+
+        setBlockedMessage(
+          data?.message ||
+            "Medical safety restriction detected."
+        );
+
+        setError("");
+
+        return;
+      }
+
       if (!response.ok || !data.success) {
         const backendMessage =
           typeof data?.detail === "string"
             ? data.detail
             : data?.message || "Backend returned an error. Please try again.";
-
-        if (
-          backendMessage
-            .toLowerCase()
-            .includes("pregnancy status is incompatible with male gender")
-        ) {
-          setError("Pregnancy status conflicts with selected gender.");
-          return;
-        }
 
         setError(backendMessage);
         return;
@@ -164,6 +161,8 @@ export default function DashboardPage() {
       setResult(data);
     } catch (error) {
       console.error("API ERROR:", error);
+      setResult(null);
+      setIsBlocked(false);
       setError(
         "Backend temporarily unavailable. Please try again in a few seconds."
       );
@@ -190,11 +189,25 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {result && <ProfessionalResultSection result={result} />}
+        {isBlocked ? (
+          <MedicalSafetyBlocked
+            message={blockedMessage}
+          />
+        ) : (
+          <>
+            {result && (
+              <ProfessionalResultSection result={result} />
+            )}
 
-        <FeaturesPanel />
-        <ScannerActionSection />
-        <TestimonialsPanel />
+            {!result && (
+              <>
+                <FeaturesPanel />
+                <ScannerActionSection />
+                <TestimonialsPanel />
+              </>
+            )}
+          </>
+        )}
       </div>
     </main>
   );
@@ -214,6 +227,30 @@ function GeneratingPanel() {
       <p className="mt-3 text-zinc-400">
         Building analytics, macros, meal plan, avoid-food intelligence, and AI
         coaching.
+      </p>
+    </section>
+  );
+}
+
+function MedicalSafetyBlocked({
+  message,
+}: {
+  message: string;
+}) {
+  return (
+    <section className="mt-10 rounded-[32px] border border-red-500/30 bg-red-500/10 p-8 text-red-100">
+      <h2 className="text-3xl font-black text-red-300">
+        ⚠️ Medical Safety Restriction
+      </h2>
+
+      <p className="mt-5 text-lg leading-8">
+        {message ||
+          "AI Nutrition OS cannot safely generate recommendations for this profile."}
+      </p>
+
+
+      <p className="mt-6 text-sm text-red-200">
+        Please consult a nearby doctor or qualified healthcare professional.
       </p>
     </section>
   );
@@ -274,37 +311,6 @@ function ProfessionalResultSection({ result }: { result: any }) {
     hydrationScore: Number(result?.analytics?.hydration_score ?? 70),
     protein: Number(result?.targets?.protein ?? 0),
     calories: targetCalories,
-  });
-
-  const medicalWarnings = dedupeStrings(
-    result?.medical_safety?.medical_warnings ?? []
-  );
-
-  const safetyWarnings = dedupeStrings(result?.safety_warnings ?? []);
-
-  const replacementRecords = dedupeReplacementRecords(
-    result?.medical_safety?.foods_replaced ?? []
-  );
-
-  const planAdjustedForSafety =
-    safetyWarnings.length > 0 ||
-    medicalWarnings.length > 0 ||
-    replacementRecords.length > 0 ||
-    Number(result?.medical_safety?.safety_score ?? 100) < 95;
-
-  const medicalText = String(
-    result?.user_profile?.medical_conditions ?? ""
-  ).toLowerCase();
-
-  const pregnancyText = String(
-    result?.user_profile?.pregnancy_status ?? ""
-  ).toLowerCase();
-
-  const safetyTags = getSafetyTags({
-    medicalText,
-    pregnancyText,
-    safetyWarnings,
-    medicalWarnings,
   });
 
   const lowHydration =
@@ -391,105 +397,6 @@ function ProfessionalResultSection({ result }: { result: any }) {
             throughout the day and consider electrolyte balance, especially if
             you have low BP, diabetes, pregnancy, or elderly-risk factors.
           </p>
-        </section>
-      )}
-
-      {planAdjustedForSafety && (
-        <section className="rounded-3xl border border-cyan-400/20 bg-cyan-950/30 p-6 shadow-xl">
-          <h2 className="text-xl font-black text-cyan-300">
-            ✅ Plan Adjusted for Safety
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-cyan-100">
-            Your plan was reviewed through medical, diet, age, routine, and meal-quality
-            safety checks before being shown.
-          </p>
-
-          {safetyTags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {safetyTags.map((tag: string, index: number) => (
-                <span
-                  key={index}
-                  className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-cyan-100"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {safetyWarnings.length > 0 && (
-            <div className="mt-4 text-sm text-cyan-100">
-              <p className="font-bold">Goal / Safety Adjustments:</p>
-
-              <ul className="mt-2 list-disc pl-5">
-                {safetyWarnings.map((warning: string, index: number) => (
-                  <li key={index}>{warning}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
-
-      {result?.medical_safety && (
-        <section className="rounded-3xl border border-emerald-400/20 bg-emerald-950/30 p-6 shadow-xl">
-          <h2 className="text-xl font-black text-emerald-300">
-            🛡️ Medical Safety Shield
-          </h2>
-
-          <p className="mt-2 text-sm text-emerald-100">
-            Safety Score: {result.medical_safety.safety_score}/100
-          </p>
-
-          {result.medical_safety.flags?.length > 0 && (
-            <p className="mt-2 text-sm text-emerald-100">
-              Flags: {dedupeStrings(result.medical_safety.flags).join(", ")}
-            </p>
-          )}
-
-          {medicalWarnings.length > 0 && (
-            <div className="mt-4 text-sm text-emerald-100">
-              <p className="font-bold">Medical Safety Warnings:</p>
-
-              <ul className="mt-2 list-disc pl-5">
-                {medicalWarnings.map((warning: string, index: number) => (
-                  <li key={index}>{warning}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {replacementRecords.length > 0 && (
-            <div className="mt-4 text-sm text-emerald-100">
-              <p className="font-bold">Unsafe Foods Replaced:</p>
-
-              <ul className="mt-2 list-disc pl-5">
-                {replacementRecords.map((item: any, index: number) => (
-                  <li key={index}>
-                    {item.original_meal || item.replaced} →{" "}
-                    {item.updated_meal || item.with}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
-
-      {result?.elderly_safety?.warnings?.length > 0 && (
-        <section className="rounded-3xl border border-amber-400/20 bg-amber-950/30 p-6 shadow-xl">
-          <h2 className="text-xl font-black text-amber-300">
-            👵 Elderly Safety Notes
-          </h2>
-
-          <ul className="mt-3 list-disc pl-5 text-sm text-amber-100">
-            {result.elderly_safety.warnings.map(
-              (warning: string, index: number) => (
-                <li key={index}>{warning}</li>
-              )
-            )}
-          </ul>
         </section>
       )}
 
@@ -801,82 +708,6 @@ function calculateConsistencyScore({
   if (calories >= 1200) score += 5;
 
   return Math.max(1, Math.min(99, Math.round(score)));
-}
-
-function dedupeStrings(items: any[]) {
-  return Array.from(
-    new Set(
-      (items ?? [])
-        .map((item) => String(item ?? "").trim())
-        .filter(Boolean)
-    )
-  );
-}
-
-function dedupeReplacementRecords(items: any[]) {
-  const seen = new Set<string>();
-
-  return (items ?? []).filter((item) => {
-    const original = String(item?.original_meal ?? item?.replaced ?? "").trim();
-    const updated = String(item?.updated_meal ?? item?.with ?? "").trim();
-    const mealType = String(item?.meal_type ?? "").trim();
-
-    const key = `${mealType}|${original}|${updated}`;
-
-    if (!original && !updated) return false;
-    if (seen.has(key)) return false;
-
-    seen.add(key);
-    return true;
-  });
-}
-
-function getSafetyTags({
-  medicalText,
-  pregnancyText,
-  safetyWarnings,
-  medicalWarnings,
-}: {
-  medicalText: string;
-  pregnancyText: string;
-  safetyWarnings: string[];
-  medicalWarnings: string[];
-}) {
-  const combined = `${medicalText} ${pregnancyText} ${safetyWarnings.join(
-    " "
-  )} ${medicalWarnings.join(" ")}`.toLowerCase();
-
-  const tags: string[] = [];
-
-  if (
-    combined.includes("diabetes") ||
-    combined.includes("diabetic") ||
-    combined.includes("glycemic")
-  ) {
-    tags.push("Diabetes Safe");
-  }
-
-  if (
-    combined.includes("low bp") ||
-    combined.includes("low blood pressure") ||
-    combined.includes("hypotension")
-  ) {
-    tags.push("Low BP Aware");
-  }
-
-  if (combined.includes("kidney") || combined.includes("renal")) {
-    tags.push("Kidney Safe");
-  }
-
-  if (
-    combined.includes("pregnant") ||
-    combined.includes("pregnancy") ||
-    pregnancyText === "pregnant"
-  ) {
-    tags.push("Pregnancy Safe");
-  }
-
-  return Array.from(new Set(tags));
 }
 
 function FeaturesPanel() {

@@ -40,18 +40,34 @@ def call_openrouter(system_prompt: str, user_prompt: str, max_tokens: int = 180)
         return None
 
 
+def should_block_ai_generation(user_data):
+    medical_conditions = str(
+        getattr(user_data, "medical_conditions", "")
+    ).lower()
+
+    pregnancy_status = str(
+        getattr(user_data, "pregnancy_status", "")
+    ).lower()
+
+    age = int(getattr(user_data, "age", 0) or 0)
+
+    if (
+        age < 18
+        or age >= 60
+        or "pregnant" in pregnancy_status
+        or "pregnant" in medical_conditions
+        or "kidney" in medical_conditions
+        or "renal" in medical_conditions
+        or "ckd" in medical_conditions
+    ):
+        return True
+
+    return False
+
+
 def rule_based_coach(user_data):
     goal = str(getattr(user_data, "goal", "maintenance")).lower()
     diet = str(getattr(user_data, "diet", "balanced")).lower()
-    pregnancy_status = str(
-        getattr(user_data, "pregnancy_status", "not_applicable")
-    ).lower()
-
-    if pregnancy_status == "pregnant":
-        return (
-            "Pregnancy detected. Fat loss and intense recommendations are disabled. "
-            "Please follow maintenance-focused guidance and consult a qualified healthcare professional."
-        )
 
     if goal == "fat_loss":
         return (
@@ -73,20 +89,6 @@ def rule_based_coach(user_data):
 
 def rule_based_workout_tip(user_data):
     goal = str(getattr(user_data, "goal", "maintenance")).lower()
-    age = int(getattr(user_data, "age", 30))
-    pregnancy_status = str(
-        getattr(user_data, "pregnancy_status", "not_applicable")
-    ).lower()
-    gender = str(getattr(user_data, "gender", "")).lower()
-
-    if gender == "female" and pregnancy_status == "pregnant":
-        return (
-            "Pregnancy detected. Intense workout and fat-loss training are disabled. "
-            "Please consult a qualified healthcare professional."
-        )
-
-    if age >= 60:
-        return "30 minutes light walking + gentle mobility. Avoid high-intensity workouts unless medically cleared."
 
     if goal == "fat_loss":
         return "6:00 PM - 30 minutes brisk walking + beginner strength training."
@@ -105,12 +107,26 @@ def generate_ai_coach(user_data, groq_fallback=None):
     3. Rule-based fallback
     """
 
-    pregnancy_status = str(
-        getattr(user_data, "pregnancy_status", "not_applicable")
+    medical_conditions = str(
+        getattr(user_data, "medical_conditions", "")
     ).lower()
 
-    if pregnancy_status == "pregnant":
-        return rule_based_coach(user_data)
+    pregnancy_status = str(
+        getattr(user_data, "pregnancy_status", "")
+    ).lower()
+
+    age = int(getattr(user_data, "age", 0) or 0)
+
+    if (
+        age < 18
+        or age >= 60
+        or "pregnant" in pregnancy_status
+        or "pregnant" in medical_conditions
+        or "kidney" in medical_conditions
+        or "renal" in medical_conditions
+        or "ckd" in medical_conditions
+    ):
+        return None
 
     system_prompt = (
         "You are a safe AI nutrition coach for an Indian nutrition platform. "
@@ -164,13 +180,26 @@ def generate_ai_workout_tip(user_data, groq_fallback=None):
     3. Rule-based fallback
     """
 
-    pregnancy_status = str(
-        getattr(user_data, "pregnancy_status", "not_applicable")
+    medical_conditions = str(
+        getattr(user_data, "medical_conditions", "")
     ).lower()
-    gender = str(getattr(user_data, "gender", "")).lower()
 
-    if gender == "female" and pregnancy_status == "pregnant":
-        return rule_based_workout_tip(user_data)
+    pregnancy_status = str(
+        getattr(user_data, "pregnancy_status", "")
+    ).lower()
+
+    age = int(getattr(user_data, "age", 0) or 0)
+
+    if (
+        age < 18
+        or age >= 60
+        or "pregnant" in pregnancy_status
+        or "pregnant" in medical_conditions
+        or "kidney" in medical_conditions
+        or "renal" in medical_conditions
+        or "ckd" in medical_conditions
+    ):
+        return None
 
     system_prompt = (
         "You are a safe fitness coach for a nutrition app. "
@@ -223,15 +252,26 @@ def generate_health_insight(user_data, analytics=None, groq_fallback=None):
     3. Rule-based fallback
     """
 
-    pregnancy_status = str(
-        getattr(user_data, "pregnancy_status", "not_applicable")
+    medical_conditions = str(
+        getattr(user_data, "medical_conditions", "")
     ).lower()
 
-    if pregnancy_status == "pregnant":
-        return (
-            "Pregnancy safety mode is active. The app avoids fat-loss and intense recommendations. "
-            "Please consult a qualified healthcare professional for pregnancy-specific guidance."
-        )
+    pregnancy_status = str(
+        getattr(user_data, "pregnancy_status", "")
+    ).lower()
+
+    age = int(getattr(user_data, "age", 0) or 0)
+
+    if (
+        age < 18
+        or age >= 60
+        or "pregnant" in pregnancy_status
+        or "pregnant" in medical_conditions
+        or "kidney" in medical_conditions
+        or "renal" in medical_conditions
+        or "ckd" in medical_conditions
+    ):
+        return None
 
     system_prompt = (
         "You are a safe health insight assistant for a nutrition dashboard. "
