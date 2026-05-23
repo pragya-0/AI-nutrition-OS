@@ -3,12 +3,15 @@ from datetime import datetime
 
 from fastapi import APIRouter
 
+IMPORT_ERROR = None
+
 try:
     from database.database import SessionLocal
     from database.models import UserNutritionPlan
 except Exception as import_error:
     SessionLocal = None
     UserNutritionPlan = None
+    IMPORT_ERROR = str(import_error)
     print("HISTORY ROUTES IMPORT ERROR:", import_error)
 
 
@@ -36,6 +39,7 @@ def get_saved_plans():
         return {
             "success": False,
             "message": "History database dependencies are not available.",
+            "error": IMPORT_ERROR,
             "plans": [],
         }
 
