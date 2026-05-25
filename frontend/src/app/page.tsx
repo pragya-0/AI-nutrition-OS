@@ -12,6 +12,11 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import Navbar from "@/components/landing/Navbar";
+import HeroSection from "@/components/landing/HeroSection";
+
+import BackgroundEffects from "@/components/landing/BackgroundEffects";
+
 import Hero from "@/components/Hero";
 import AnalyticsCard from "@/components/AnalyticsCard";
 import DayTabs from "@/components/DayTabs";
@@ -37,9 +42,7 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       setError("");
-
       setResult(null);
-
       setIsBlocked(false);
       setBlockedMessage("");
 
@@ -78,15 +81,6 @@ export default function DashboardPage() {
         setError("Please enter water intake between 0.5 and 8 liters.");
         return;
       }
-
-      console.log("PAYLOAD SENT TO BACKEND:", {
-        ...formData,
-        weight,
-        height,
-        age,
-        days,
-        water_intake: waterIntake,
-      });
 
       const response = await fetch(`${API_URL}/generate-plan`, {
         method: "POST",
@@ -134,19 +128,12 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (data?.blocked) {
-        console.log("BLOCKED RESPONSE:", data);
-
         setResult(null);
-
         setIsBlocked(true);
-
         setBlockedMessage(
-          data?.message ||
-            "Medical safety restriction detected."
+          data?.message || "Medical safety restriction detected."
         );
-
         setError("");
-
         return;
       }
 
@@ -174,50 +161,61 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute left-[-200px] top-[-200px] h-[500px] w-[500px] rounded-full bg-green-500/10 blur-3xl" />
-        <div className="absolute bottom-[-200px] right-[-200px] h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-3xl" />
-      </div>
+    <main className="min-h-screen overflow-x-hidden bg-[#030805] text-white">
+      <BackgroundEffects />
+      <Navbar />
 
-      <div className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
-        <Hero onGenerate={generatePlan} loading={loading} />
+      <HeroSection />
 
-        {loading && <GeneratingPanel />}
+      {/* ASSESSMENT + RESULTS */}
+      <section
+        id="assessment"
+        className="relative overflow-hidden bg-[#030805] px-4 py-24 lg:px-8"
+      >
+        {/* Background Glow */}
+        <div className="absolute inset-0 -z-0 overflow-hidden">
+          <div className="absolute left-[-200px] top-[-120px] h-[500px] w-[500px] rounded-full bg-[#A6FF4D]/10 blur-3xl" />
 
-        {error && (
-          <div className="mt-10 rounded-[32px] border border-red-500/30 bg-red-500/10 p-6 text-red-300">
-            {error}
-          </div>
-        )}
+          <div className="absolute bottom-[-200px] right-[-200px] h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-3xl" />
 
-        {isBlocked ? (
-          <MedicalSafetyBlocked
-            message={blockedMessage}
-          />
-        ) : (
-          <>
-            {result && (
-              <ProfessionalResultSection result={result} />
-            )}
+          <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#18D3D0]/5 blur-3xl" />
+        </div>
 
-            {!result && (
-              <>
-                <FeaturesPanel />
-                <ScannerActionSection />
-                <TestimonialsPanel />
-              </>
-            )}
-          </>
-        )}
-      </div>
+        <div className="relative z-10 mx-auto w-full max-w-[1440px]">
+          <Hero onGenerate={generatePlan} loading={loading} />
+
+          {loading && <GeneratingPanel />}
+
+          {error && (
+            <div className="mt-10 rounded-[32px] border border-red-500/30 bg-red-500/10 p-6 text-red-300 backdrop-blur-xl">
+              {error}
+            </div>
+          )}
+
+          {isBlocked ? (
+            <MedicalSafetyBlocked message={blockedMessage} />
+          ) : (
+            <>
+              {result && <ProfessionalResultSection result={result} />}
+
+              {!result && (
+                <div className="space-y-24">
+                  <FeaturesPanel />
+                  <ScannerActionSection />
+                  <TestimonialsPanel />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
     </main>
   );
 }
 
 function GeneratingPanel() {
   return (
-    <section className="mt-10 rounded-[36px] border border-green-500/20 bg-zinc-950/90 p-10 text-center shadow-[0_0_60px_rgba(34,197,94,0.12)]">
+    <section className="mt-10 rounded-[36px] border border-green-500/20 bg-[#07110A]/90 p-10 text-center shadow-[0_0_60px_rgba(34,197,94,0.12)]">
       <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-green-500/10 text-5xl">
         🧠
       </div>
@@ -234,11 +232,7 @@ function GeneratingPanel() {
   );
 }
 
-function MedicalSafetyBlocked({
-  message,
-}: {
-  message: string;
-}) {
+function MedicalSafetyBlocked({ message }: { message: string }) {
   return (
     <section className="mt-10 rounded-[32px] border border-red-500/30 bg-red-500/10 p-8 text-red-100">
       <h2 className="text-3xl font-black text-red-300">
@@ -249,7 +243,6 @@ function MedicalSafetyBlocked({
         {message ||
           "AI Nutrition OS cannot safely generate recommendations for this profile."}
       </p>
-
 
       <p className="mt-6 text-sm text-red-200">
         Please consult a nearby doctor or qualified healthcare professional.
@@ -320,8 +313,8 @@ function ProfessionalResultSection({ result }: { result: any }) {
     Number(result?.user_profile?.water_intake ?? 0) < 1.5;
 
   return (
-    <section className="mt-10 space-y-10">
-      <div className="relative overflow-hidden rounded-[44px] border border-green-500/20 bg-gradient-to-br from-zinc-950 via-zinc-950 to-green-950/20 p-8 shadow-[0_0_90px_rgba(34,197,94,0.12)] lg:p-10">
+    <section className="mt-16 space-y-16">
+      <div className="relative overflow-hidden rounded-[36px] border border-green-500/20 bg-gradient-to-br from-[#07110A] via-[#07110A] to-[#0D1B10] p-8 shadow-[0_0_90px_rgba(34,197,94,0.12)] lg:p-10">
         <div className="absolute right-[-160px] top-[-160px] h-[360px] w-[360px] rounded-full bg-green-500/10 blur-3xl" />
 
         <div className="relative z-10 mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -369,7 +362,7 @@ function ProfessionalResultSection({ result }: { result: any }) {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[36px] border border-green-500/15 bg-zinc-950/90 p-6 shadow-[0_0_50px_rgba(34,197,94,0.08)]">
+        <div className="rounded-[36px] border border-green-500/15 bg-[#07110A]/90 p-6 shadow-[0_0_50px_rgba(34,197,94,0.08)]">
           <MacroChart
             protein={result.targets?.protein ?? 0}
             carbs={result.targets?.carbs ?? 0}
@@ -377,7 +370,7 @@ function ProfessionalResultSection({ result }: { result: any }) {
           />
         </div>
 
-        <div className="rounded-[36px] border border-green-500/15 bg-zinc-950/90 p-6 shadow-[0_0_50px_rgba(34,197,94,0.08)]">
+        <div className="rounded-[36px] border border-green-500/15 bg-[#07110A]/90 p-6 shadow-[0_0_50px_rgba(34,197,94,0.08)]">
           <ProgressChart
             goal={goal}
             days={days}
@@ -402,7 +395,7 @@ function ProfessionalResultSection({ result }: { result: any }) {
         </section>
       )}
 
-      <section className="rounded-[40px] border border-green-500/15 bg-zinc-950/90 p-8 shadow-[0_0_60px_rgba(34,197,94,0.08)] lg:p-10">
+      <section className="rounded-[40px] border border-green-500/15 bg-[#07110A]/90 p-8 shadow-[0_0_60px_rgba(34,197,94,0.08)] lg:p-10">
         <div className="mb-8">
           <p className="text-sm font-black uppercase tracking-[0.25em] text-green-400">
             Meal Planning
@@ -422,7 +415,7 @@ function ProfessionalResultSection({ result }: { result: any }) {
       </section>
 
       {result?.daily_routine && (
-        <section className="rounded-[40px] border border-green-500/15 bg-zinc-950/90 p-8 shadow-[0_0_60px_rgba(34,197,94,0.08)] lg:p-10">
+        <section className="rounded-[40px] border border-green-500/15 bg-[#07110A]/90 p-8 shadow-[0_0_60px_rgba(34,197,94,0.08)] lg:p-10">
           <p className="text-sm font-black uppercase tracking-[0.25em] text-green-400">
             Daily Routine
           </p>
@@ -442,12 +435,12 @@ function ProfessionalResultSection({ result }: { result: any }) {
         </section>
       )}
 
-      <div className="rounded-[40px] border border-red-500/10 bg-zinc-950/90 p-8 shadow-[0_0_50px_rgba(239,68,68,0.05)]">
+      <div className="rounded-[40px] border border-red-500/10 bg-[#07110A]/90 p-8 shadow-[0_0_50px_rgba(239,68,68,0.05)]">
         <AvoidFoods foods={result?.avoid_foods ?? []} />
       </div>
 
       <section className="flex justify-center">
-        <div className="w-full max-w-4xl rounded-[40px] border border-green-500/15 bg-zinc-950/90 p-8 text-center shadow-[0_0_60px_rgba(34,197,94,0.1)]">
+        <div className="w-full max-w-4xl rounded-[40px] border border-green-500/15 bg-[#07110A]/90 p-8 text-center shadow-[0_0_60px_rgba(34,197,94,0.1)]">
           <div className="mb-6 text-center">
             <p className="text-sm font-black uppercase tracking-[0.25em] text-green-400">
               AI Nutrition Coach
@@ -714,7 +707,7 @@ function calculateConsistencyScore({
 
 function FeaturesPanel() {
   return (
-    <section className="mt-12">
+    <section className="mt-24">
       <div className="mb-6">
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-green-400">
           Features & Capabilities
@@ -777,7 +770,7 @@ function FeatureCard({
 
 function ScannerActionSection() {
   return (
-    <section className="mt-12 grid gap-8 rounded-[36px] border border-green-500/15 bg-zinc-950/80 p-8 lg:grid-cols-2 lg:p-10">
+    <section className="mt-24 grid gap-8 rounded-[36px] border border-green-500/15 bg-zinc-950/80 p-8 lg:grid-cols-2 lg:p-10">
       <div>
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-green-400">
           THE POWER OF INSTANT ANALYSIS
@@ -821,7 +814,7 @@ function ScannerActionSection() {
 
 function TestimonialsPanel() {
   return (
-    <section className="mt-12 rounded-[36px] border border-green-500/15 bg-zinc-950/80 p-8 lg:p-10">
+    <section className="mt-24 rounded-[36px] border border-green-500/15 bg-zinc-950/80 p-8 lg:p-10">
       <p className="text-sm font-bold uppercase tracking-[0.2em] text-green-400">
         TESTIMONIALS & PROOF
       </p>
