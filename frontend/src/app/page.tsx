@@ -14,6 +14,8 @@ import {
 
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
+import FoodScannerSection from "@/components/landing/FoodScannerSection";
+
 
 import BackgroundEffects from "@/components/landing/BackgroundEffects";
 
@@ -161,11 +163,15 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#030805] text-white">
+    <main className="min-h-screen bg-[#030805] text-white">
       <BackgroundEffects />
       <Navbar />
 
       <HeroSection />
+
+      <section className="relative mt-28 w-full overflow-hidden bg-[#030805]">
+        <FoodScannerSection />
+      </section>
 
       {/* ASSESSMENT + RESULTS */}
       <section
