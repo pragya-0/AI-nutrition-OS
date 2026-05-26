@@ -48,7 +48,7 @@ const macroStats = [
 
 export default function FoodScannerSection() {
   return (
-    <section className="relative overflow-hidden bg-[#030805] py-24 text-[#F5F8F2] lg:py-28">
+<section className="relative overflow-hidden bg-[#030805] pb-52 pt-24 text-[#F5F8F2] lg:pb-60 lg:pt-28">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_43%_50%,rgba(166,255,77,0.08),transparent_34%),radial-gradient(circle_at_82%_20%,rgba(24,211,208,0.045),transparent_28%)]" />
       <div className="absolute left-[31%] top-[24%] h-[560px] w-[560px] rounded-full border border-[#A6FF4D]/[0.03]" />
       <div className="absolute left-[35%] top-[31%] h-[430px] w-[430px] rounded-full border border-[#A6FF4D]/[0.035]" />
@@ -65,7 +65,7 @@ export default function FoodScannerSection() {
    
 
       <div className="relative z-10 mx-auto w-full max-w-[1480px] px-8 sm:px-10 lg:px-12 xl:px-16">
-       <div className="grid items-center gap-10 lg:grid-cols-[36px_380px_320px_minmax(460px,520px)] xl:grid-cols-[48px_395px_335px_minmax(500px,560px)] xl:gap-12">
+       <div className="grid items-center gap-14 pt-24 lg:grid-cols-[36px_380px_320px_minmax(460px,520px)] xl:grid-cols-[48px_395px_335px_minmax(500px,560px)] xl:gap-12">
           <div className="hidden lg:block" />
           {/* LEFT CONTENT */}
        <div className="relative z-20 min-w-0">
@@ -138,7 +138,7 @@ export default function FoodScannerSection() {
               priority
             />
 
-            <div className="absolute bottom-2 z-20 hidden w-[360px] rounded-2xl border border-[#A6FF4D]/15 bg-[#06120B]/82 px-6 py-4 shadow-[0_0_80px_rgba(166,255,77,0.08)] backdrop-blur-xl md:block">
+            <div className="absolute bottom-6 z-20 hidden w-[360px] rounded-2xl border border-[#A6FF4D]/15 bg-[#06120B]/82 px-6 py-4 shadow-[0_0_80px_rgba(166,255,77,0.08)] backdrop-blur-xl md:block">
               <p className="font-black text-[#A6FF4D]">💡 Scanning Tips</p>
               <p className="mt-1 text-sm text-white/68">
                 Good lighting&nbsp; • &nbsp;Clear view&nbsp; • &nbsp;Single dish in frame
