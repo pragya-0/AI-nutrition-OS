@@ -16,6 +16,7 @@ import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import FoodScannerSection from "@/components/landing/FoodScannerSection";
 import AdaptiveEngineSection from "@/components/landing/AdaptiveEngineSection";
+import ProgressTrackingSection from "@/components/landing/progress/ProgressTrackingSection";
 
 import BackgroundEffects from "@/components/landing/BackgroundEffects";
 
@@ -168,18 +169,21 @@ export default function DashboardPage() {
       <Navbar />
 
       <HeroSection />
-
-    <section className="relative mt-28 w-full overflow-hidden bg-[#030805]">
+<section className="relative mt-28 w-full overflow-hidden bg-[#030805]">
   <FoodScannerSection />
 
   <div className="h-20 lg:h-20 xl:h-10" />
 
   <AdaptiveEngineSection />
 </section>
+
+<div className="h-24 lg:h-32 xl:h-15 bg-[#030805]" />
+
+<ProgressTrackingSection />
       {/* ASSESSMENT + RESULTS */}
       <section
         id="assessment"
-        className="relative overflow-hidden bg-[#030805] px-4 py-24 lg:px-8"
+      className="relative mt-28 overflow-hidden bg-[#030805] py-24 text-white lg:mt-36 xl:mt-40"
       >
         {/* Background Glow */}
         <div className="absolute inset-0 -z-0 overflow-hidden">
