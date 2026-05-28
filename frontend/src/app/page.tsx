@@ -19,6 +19,7 @@ import AdaptiveEngineSection from "@/components/landing/AdaptiveEngineSection";
 import ProgressTrackingSection from "@/components/landing/progress/ProgressTrackingSection";
 import AssessmentSection from "@/components/landing/AssessmentSection";
 import AboutSection from "@/components/landing/AboutSection";
+import TestimonialsSection from "@/components/landing/TestimonialsSection";
 
 import BackgroundEffects from "@/components/landing/BackgroundEffects";
 
@@ -199,6 +200,8 @@ return (
 </section>
 <section className="relative w-full overflow-hidden bg-[#030805]">
   <AboutSection />
+  <div className="h-20 bg-[#030805]" />
+  <TestimonialsSection />
 </section>
 <div className="h-20 bg-[#030805]" />
     {/* FUNCTIONAL AI DASHBOARD */}
