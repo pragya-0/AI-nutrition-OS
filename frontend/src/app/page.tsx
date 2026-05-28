@@ -20,6 +20,7 @@ import ProgressTrackingSection from "@/components/landing/progress/ProgressTrack
 import AssessmentSection from "@/components/landing/AssessmentSection";
 import AboutSection from "@/components/landing/AboutSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
+import FooterSection from "@/components/landing/FooterSection";
 
 import BackgroundEffects from "@/components/landing/BackgroundEffects";
 
@@ -166,45 +167,63 @@ export default function DashboardPage() {
     }
   };
 return (
-  <main className="min-h-screen bg-[#030805] text-white">
+  <main className="min-h-screen overflow-x-hidden bg-[#030805] text-white">
     <BackgroundEffects />
     <Navbar />
 
+    {/* HERO */}
     <HeroSection />
 
     <div className="h-14 bg-[#030805]" />
 
+    {/* FOOD SCANNER */}
     <section className="relative w-full overflow-hidden bg-[#030805]">
       <FoodScannerSection />
     </section>
 
     <div className="h-16 bg-[#030805]" />
 
+    {/* ADAPTIVE ENGINE */}
     <section className="relative w-full overflow-hidden bg-[#030805]">
       <AdaptiveEngineSection />
     </section>
 
     <div className="h-16 bg-[#030805]" />
 
+    {/* PROGRESS TRACKING */}
     <section className="relative w-full overflow-hidden bg-[#030805]">
       <ProgressTrackingSection />
     </section>
-<div className="h-20 bg-[#030805]" />
 
+    <div className="h-20 bg-[#030805]" />
 
+    {/* ASSESSMENT */}
+    <section className="relative w-full overflow-hidden bg-[#030805] pb-20">
+      <AssessmentSection />
+    </section>
 
+    {/* ABOUT */}
+    <section className="relative w-full overflow-hidden bg-[#030805]">
+      <AboutSection />
+    </section>
 
+    <div className="h-20 bg-[#030805]" />
 
-<section className="relative w-full overflow-hidden bg-[#030805] pb-20">
-  <AssessmentSection />
-</section>
-<section className="relative w-full overflow-hidden bg-[#030805]">
-  <AboutSection />
-  <div className="h-20 bg-[#030805]" />
-  <TestimonialsSection />
-</section>
-<div className="h-20 bg-[#030805]" />
-    {/* FUNCTIONAL AI DASHBOARD */}
+    {/* TESTIMONIALS */}
+    <section className="relative w-full overflow-hidden bg-[#030805]">
+      <TestimonialsSection />
+    </section>
+
+    <div className="h-20 bg-[#030805]" />
+
+    {/* FOOTER */}
+    <FooterSection />
+
+    {/* ========================================================= */}
+    {/* TEMPORARILY DISABLED AI DASHBOARD DURING LANDING REFINEMENT */}
+    {/* ========================================================= */}
+
+    {/*
     <section
       id="assessment"
       className="relative overflow-hidden bg-[#030805] px-6 pb-24 text-white md:px-10 xl:px-14"
@@ -237,6 +256,7 @@ return (
         )}
       </div>
     </section>
+    */}
   </main>
 );
 }
