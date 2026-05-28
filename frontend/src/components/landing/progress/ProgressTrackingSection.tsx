@@ -3,7 +3,6 @@
 import {
   Activity,
   Bot,
-  ChevronRight,
   Droplets,
   Dumbbell,
   Flame,
@@ -219,7 +218,7 @@ export default function ProgressTrackingSection() {
             </div>
           </div>
 
-          <div className="h-fit max-w-[660px] rounded-[30px] border border-white/5 bg-[#07100A]/78 p-6 backdrop-blur-xl shadow-[0_0_32px_rgba(157,255,22,0.055)] xl:col-start-2 xl:row-start-1 xl:mt-8">
+          <div className="h-fit max-w-[660px] rounded-[30px] border border-white/5 bg-[#07100A]/78 p-6 shadow-[0_0_32px_rgba(157,255,22,0.055)] backdrop-blur-xl xl:col-start-2 xl:row-start-1 xl:mt-8">
             <div className="mb-4 flex items-center justify-between gap-4">
               <h3 className="text-[24px] font-black">
                 Your Progress Overview
@@ -407,9 +406,7 @@ export default function ProgressTrackingSection() {
 
             <div className="mt-4 grid gap-3.5 lg:grid-cols-2">
               <div className="rounded-[22px] border border-white/5 bg-[#08100B]/70 p-4">
-                <h4 className="text-lg font-bold">
-                  Macronutrient Balance
-                </h4>
+                <h4 className="text-lg font-bold">Macronutrient Balance</h4>
 
                 <div className="mt-3 flex items-center gap-4">
                   <div className="h-[96px] w-[96px]">
@@ -485,8 +482,6 @@ export default function ProgressTrackingSection() {
                 Your protein intake is on point. Try increasing your water
                 intake by 0.5L for even better results.
               </p>
-
-             
             </div>
 
             <div className="min-h-[250px] rounded-[28px] border border-white/5 bg-[#07100A]/75 p-5 backdrop-blur-xl">
@@ -502,7 +497,9 @@ export default function ProgressTrackingSection() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <habit.icon className={`h-[18px] w-[18px] ${habit.color}`} />
+                        <habit.icon
+                          className={`h-[18px] w-[18px] ${habit.color}`}
+                        />
                         <span className="text-[21px] font-bold tracking-[-0.02em]">
                           {habit.name}
                         </span>
@@ -571,7 +568,7 @@ export default function ProgressTrackingSection() {
             </div>
           </div>
 
-          <div className="self-end rounded-[28px] border border-white/5 bg-[#07100A]/75 px-5 py-4 backdrop-blur-xl shadow-[0_0_28px_rgba(157,255,22,0.045)] xl:col-span-2 xl:col-start-2 xl:row-start-2 xl:-mt-12 xl:min-h-[125px] xl:translate-x-10">
+          <div className="self-end rounded-[28px] border border-white/5 bg-[#07100A]/75 px-5 py-4 shadow-[0_0_28px_rgba(157,255,22,0.045)] backdrop-blur-xl xl:col-span-2 xl:col-start-2 xl:row-start-2 xl:-mt-12 xl:min-h-[125px] xl:translate-x-10">
             <div className="mb-3 flex items-center gap-2.5">
               <Trophy className="h-5 w-5 text-[#9DFF16]" />
               <h4 className="text-xl font-black">Achievements</h4>

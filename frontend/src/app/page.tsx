@@ -17,6 +17,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import FoodScannerSection from "@/components/landing/FoodScannerSection";
 import AdaptiveEngineSection from "@/components/landing/AdaptiveEngineSection";
 import ProgressTrackingSection from "@/components/landing/progress/ProgressTrackingSection";
+import AssessmentSection from "@/components/landing/AssessmentSection";
 
 import BackgroundEffects from "@/components/landing/BackgroundEffects";
 
@@ -162,68 +163,72 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
+return (
+  <main className="min-h-screen bg-[#030805] text-white">
+    <BackgroundEffects />
+    <Navbar />
 
-  return (
-    <main className="min-h-screen bg-[#030805] text-white">
-      <BackgroundEffects />
-      <Navbar />
+    <HeroSection />
 
-      <HeroSection />
-<section className="relative mt-28 w-full overflow-hidden bg-[#030805]">
-  <FoodScannerSection />
+    <div className="h-14 bg-[#030805]" />
 
-  <div className="h-20 lg:h-20 xl:h-10" />
+    <section className="relative w-full overflow-hidden bg-[#030805]">
+      <FoodScannerSection />
+    </section>
 
-  <AdaptiveEngineSection />
-</section>
+    <div className="h-16 bg-[#030805]" />
 
-<div className="h-24 lg:h-32 xl:h-15 bg-[#030805]" />
+    <section className="relative w-full overflow-hidden bg-[#030805]">
+      <AdaptiveEngineSection />
+    </section>
 
-<ProgressTrackingSection />
-      {/* ASSESSMENT + RESULTS */}
-      <section
-        id="assessment"
-      className="relative mt-28 overflow-hidden bg-[#030805] py-24 text-white lg:mt-36 xl:mt-40"
-      >
-        {/* Background Glow */}
-        <div className="absolute inset-0 -z-0 overflow-hidden">
-          <div className="absolute left-[-200px] top-[-120px] h-[500px] w-[500px] rounded-full bg-[#A6FF4D]/10 blur-3xl" />
+    <div className="h-16 bg-[#030805]" />
 
-          <div className="absolute bottom-[-200px] right-[-200px] h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-3xl" />
+    <section className="relative w-full overflow-hidden bg-[#030805]">
+      <ProgressTrackingSection />
+    </section>
 
-          <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#18D3D0]/5 blur-3xl" />
-        </div>
+    <div className="h-20 bg-[#030805]" />
 
-        <div className="relative z-10 mx-auto w-full max-w-[1440px]">
-          <Hero onGenerate={generatePlan} loading={loading} />
+    <section className="relative w-full overflow-hidden bg-[#030805] pb-20">
+      <AssessmentSection />
+    </section>
 
-          {loading && <GeneratingPanel />}
+    {/* FUNCTIONAL AI DASHBOARD */}
+    <section
+      id="assessment"
+      className="relative overflow-hidden bg-[#030805] px-6 pb-24 text-white md:px-10 xl:px-14"
+    >
+      <div className="mx-auto max-w-[1440px]">
+        <Hero onGenerate={generatePlan} loading={loading} />
 
-          {error && (
-            <div className="mt-10 rounded-[32px] border border-red-500/30 bg-red-500/10 p-6 text-red-300 backdrop-blur-xl">
-              {error}
-            </div>
-          )}
+        {loading && <GeneratingPanel />}
 
-          {isBlocked ? (
-            <MedicalSafetyBlocked message={blockedMessage} />
-          ) : (
-            <>
-              {result && <ProfessionalResultSection result={result} />}
+        {isBlocked && (
+          <MedicalSafetyBlocked message={blockedMessage} />
+        )}
 
-              {!result && (
-                <div className="space-y-24">
-                  <FeaturesPanel />
-                  <ScannerActionSection />
-                  <TestimonialsPanel />
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </section>
-    </main>
-  );
+        {result && !loading && !isBlocked && (
+          <>
+            <ProfessionalResultSection result={result} />
+
+            <FeaturesPanel />
+
+            <ScannerActionSection />
+
+            <TestimonialsPanel />
+          </>
+        )}
+
+        {error && (
+          <div className="mt-8 rounded-3xl border border-red-500/30 bg-red-500/10 p-6 text-red-200">
+            {error}
+          </div>
+        )}
+      </div>
+    </section>
+  </main>
+);
 }
 
 function GeneratingPanel() {
