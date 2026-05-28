@@ -18,6 +18,7 @@ import FoodScannerSection from "@/components/landing/FoodScannerSection";
 import AdaptiveEngineSection from "@/components/landing/AdaptiveEngineSection";
 import ProgressTrackingSection from "@/components/landing/progress/ProgressTrackingSection";
 import AssessmentSection from "@/components/landing/AssessmentSection";
+import AboutSection from "@/components/landing/AboutSection";
 
 import BackgroundEffects from "@/components/landing/BackgroundEffects";
 
@@ -187,13 +188,19 @@ return (
     <section className="relative w-full overflow-hidden bg-[#030805]">
       <ProgressTrackingSection />
     </section>
+<div className="h-20 bg-[#030805]" />
 
-    <div className="h-20 bg-[#030805]" />
 
-    <section className="relative w-full overflow-hidden bg-[#030805] pb-20">
-      <AssessmentSection />
-    </section>
 
+
+
+<section className="relative w-full overflow-hidden bg-[#030805] pb-20">
+  <AssessmentSection />
+</section>
+<section className="relative w-full overflow-hidden bg-[#030805]">
+  <AboutSection />
+</section>
+<div className="h-20 bg-[#030805]" />
     {/* FUNCTIONAL AI DASHBOARD */}
     <section
       id="assessment"
