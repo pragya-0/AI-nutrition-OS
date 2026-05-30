@@ -2,6 +2,7 @@
 
 import Image from "@/compat/NextImage";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import DashboardPreview from "./DashboardPreview";
 import {
   ArrowRight,
@@ -132,13 +133,13 @@ export default function HeroSection() {
               transition={{ delay: 0.22 }}
               className="mt-7 flex flex-wrap items-center gap-3"
             >
-              <a
-                href="#assessment"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#A6FF4D] px-7 py-3.5 text-[15px] font-black text-[#07110A] shadow-[0_0_40px_rgba(166,255,77,0.22)] transition duration-300 hover:scale-[1.02] hover:bg-[#B8FF6C]"
-              >
-                Get Your Plan
-                <ArrowRight size={17} />
-              </a>
+ <Link
+  to="/dashboard"
+  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#A6FF4D] px-7 py-3.5 text-[15px] font-black text-[#07110A] shadow-[0_0_40px_rgba(166,255,77,0.22)] transition duration-300 hover:scale-[1.02] hover:bg-[#B8FF6C]"
+>
+  Get Your Plan
+  <ArrowRight size={17} />
+</Link>
 
               <a
                 href="#dashboard"

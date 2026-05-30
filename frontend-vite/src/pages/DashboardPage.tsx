@@ -1,15 +1,14 @@
-import Hero from "@/components/Hero";
-
+import AIHealthCommandCenter from "@/components/dashboard/AIHealthCommandCenter";
+import AIProfileIntelligence from "@/components/dashboard/AIProfileIntelligence";
+import AINutritionPlan from "@/components/dashboard/AINutritionPlan";
+import ProgressPredictions from "../components/dashboard/ProgressPredictions";
 export default function DashboardPage() {
-  const generatePlan = async () => {
-    console.log("Dashboard API migration next");
-  };
-
   return (
-    <main className="min-h-screen overflow-hidden bg-[#030805] px-6 pb-24 pt-10 text-white md:px-10 xl:px-14">
-      <div className="mx-auto max-w-[1440px]">
-        <Hero onGenerate={generatePlan} loading={false} />
-      </div>
+    <main className="min-h-screen bg-[#030805] text-white">
+     <AIHealthCommandCenter />
+<AIProfileIntelligence />
+<AINutritionPlan />
+<ProgressPredictions />
     </main>
   );
 }
