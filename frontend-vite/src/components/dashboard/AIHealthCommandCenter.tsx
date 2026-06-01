@@ -1,3 +1,5 @@
+import type React from "react";
+import Image from "@/compat/NextImage";
 import {
   Activity,
   Bell,
@@ -56,11 +58,7 @@ type DashboardData = {
 };
 
 const returningUserData: DashboardData = {
-  user: {
-    name: "Isha",
-    avatar: "/assets/avatar-1.png",
-    isNewUser: false,
-  },
+  user: { name: "Isha", avatar: "/assets/avatar-1.png", isNewUser: false },
   health: {
     score: 92,
     recovery: 96,
@@ -91,11 +89,7 @@ const returningUserData: DashboardData = {
 };
 
 const _newUserData: DashboardData = {
-  user: {
-    name: "Isha",
-    avatar: "/assets/avatar-1.png",
-    isNewUser: true,
-  },
+  user: { name: "Isha", avatar: "/assets/avatar-1.png", isNewUser: true },
   health: {
     score: 0,
     recovery: 0,
@@ -126,7 +120,6 @@ const _newUserData: DashboardData = {
 
 void _newUserData;
 const data = returningUserData;
-// const data = newUserData;
 
 export default function AIHealthCommandCenter() {
   const { user, health, trend, insights, recommendation } = data;
@@ -138,13 +131,10 @@ export default function AIHealthCommandCenter() {
     score === 0
       ? "Not analyzed yet"
       : score >= 85
-      ? "Excellent"
-      : score >= 70
-      ? "Good"
-      : "Needs Focus";
-
-  const greeting = getGreeting();
-  const welcomeText = isNewUser ? "Welcome," : "Welcome back,";
+        ? "Excellent"
+        : score >= 70
+          ? "Good"
+          : "Needs Focus";
 
   const metrics: DashboardMetric[] = [
     {
@@ -152,7 +142,7 @@ export default function AIHealthCommandCenter() {
       value: `${health.recovery}%`,
       sub: isNewUser ? "Waiting" : "↑ 8%",
       color: "#A6FF4D",
-      icon: <HeartPulse size={30} />,
+      icon: <HeartPulse size={18} />,
       chart: isNewUser
         ? emptyBars()
         : [10, 15, 14, 22, 19, 28, 18, 23, 20, 25, 30, 34],
@@ -162,7 +152,7 @@ export default function AIHealthCommandCenter() {
       value: health.sleep,
       sub: isNewUser ? "No data" : "Optimal",
       color: "#7657FF",
-      icon: <Moon size={30} />,
+      icon: <Moon size={18} />,
       chart: isNewUser
         ? emptyBars()
         : [8, 12, 22, 13, 18, 26, 15, 14, 24, 30, 18, 34],
@@ -172,7 +162,7 @@ export default function AIHealthCommandCenter() {
       value: `${health.hydration}L`,
       sub: isNewUser ? "No data" : "↑ 93%",
       color: "#18D3D0",
-      icon: <Droplets size={30} />,
+      icon: <Droplets size={18} />,
       chart: isNewUser
         ? emptyBars()
         : [9, 13, 16, 24, 17, 27, 22, 30, 19, 26, 32, 38],
@@ -182,7 +172,7 @@ export default function AIHealthCommandCenter() {
       value: health.steps.toLocaleString(),
       sub: "Steps",
       color: "#FFB347",
-      icon: <Activity size={30} />,
+      icon: <Activity size={18} />,
       chart: isNewUser
         ? emptyBars()
         : [12, 18, 20, 14, 24, 32, 22, 36, 28, 34, 30, 40],
@@ -190,101 +180,91 @@ export default function AIHealthCommandCenter() {
   ];
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#030805] px-0 py-2 text-[#F5F8F2]">
-      <div className="relative mx-auto w-[98vw] max-w-none overflow-hidden rounded-[34px] border border-[#173326] bg-[#020604]/95 shadow-[0_0_80px_rgba(166,255,77,0.08)]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_34%,rgba(166,255,77,0.18),transparent_35%),radial-gradient(circle_at_20%_66%,rgba(24,211,208,0.08),transparent_31%)]" />
-        <div className="pointer-events-none absolute inset-0 opacity-[0.17] [background-image:linear-gradient(rgba(166,255,77,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(166,255,77,.11)_1px,transparent_1px)] [background-size:78px_78px]" />
-        <div className="pointer-events-none absolute right-[70px] top-[90px] h-[560px] w-[1040px] rounded-full border border-[#A6FF4D]/10" />
-        <div className="pointer-events-none absolute right-[110px] top-[130px] h-[460px] w-[860px] rounded-full border border-[#18D3D0]/10" />
+    <section className="relative overflow-x-hidden overflow-y-visible bg-[#030805] px-4 py-4 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <div className="relative mx-auto w-full max-w-[92vw] overflow-visible rounded-[30px] border border-[#173326] bg-[#020604]/95 shadow-[0_0_80px_rgba(166,255,77,0.08)] 2xl:max-w-[1780px]">
+        <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_72%_34%,rgba(166,255,77,0.15),transparent_35%),radial-gradient(circle_at_20%_66%,rgba(24,211,208,0.06),transparent_31%)]" />
+        <div className="pointer-events-none absolute inset-0 rounded-[30px] opacity-[0.13] [background-image:linear-gradient(rgba(166,255,77,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(166,255,77,.11)_1px,transparent_1px)] [background-size:78px_78px]" />
 
-        <nav className="relative z-10 flex h-[148px] items-center justify-between border-b border-white/10 px-10 xl:px-16 2xl:px-20">
-          <div className="flex items-center gap-7">
-            <div className="flex h-[92px] w-[92px] items-center justify-center rounded-[28px] bg-[#A6FF4D]/10 text-[#A6FF4D] shadow-[0_0_36px_rgba(166,255,77,.5)]">
-              <Sparkles size={48} />
-            </div>
+        <nav className="relative z-10 flex min-h-[66px] items-center justify-between border-b border-white/10 px-5 py-3 lg:px-8 xl:px-10">
+          <Image
+            src="/assets/logo.png"
+            alt="NutriAI"
+            width={180}
+            height={64}
+            className="h-auto w-[122px] sm:w-[135px] xl:w-[145px]"
+            priority
+          />
 
-            <p
-              className="font-black tracking-[0.18em]"
-              style={{ fontSize: "34px" }}
-            >
-              AI NUTRITION OS
-            </p>
-          </div>
-
-          <div className="hidden items-center gap-5 lg:flex">
+          <div className="hidden items-center gap-2 lg:flex">
             {["Dashboard", "Nutrition Plan", "Progress", "Coach", "Analytics"].map(
               (item, index) => (
                 <button
                   key={item}
-                  className={`rounded-[24px] px-8 py-5 font-black leading-none tracking-[-0.04em] transition ${
+                  className={`rounded-2xl px-4 py-2 text-[13px] font-bold leading-none transition ${
                     index === 0
-                      ? "bg-[#A6FF4D]/10 text-[#A6FF4D]"
+                      ? "bg-[#A6FF4D]/12 text-[#A6FF4D]"
                       : "text-[#A3B3A3] hover:bg-white/5 hover:text-white"
                   }`}
-                  style={{ fontSize: "34px" }}
                 >
                   {item}
                 </button>
-              )
+              ),
             )}
           </div>
 
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4">
             <div className="relative">
-              <Bell size={38} className="text-white/80" />
-              <span className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-[#A6FF4D]" />
+              <Bell size={23} className="text-white/80" />
+              <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-[#A6FF4D]" />
             </div>
 
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-3">
               <img
                 src={user.avatar || "/assets/avatar-1.png"}
                 alt={user.name}
-                className="h-[76px] w-[76px] rounded-full border border-white/20 object-cover"
+                className="h-10 w-10 rounded-full border border-white/20 object-cover"
               />
 
-              <span
-                className="hidden font-black md:block"
-                style={{ fontSize: "30px" }}
-              >
+              <span className="hidden text-[16px] font-black md:block">
                 {user.name}
               </span>
 
-              <ChevronDown size={28} className="text-white/70" />
+              <ChevronDown size={19} className="text-white/70" />
             </div>
           </div>
         </nav>
 
-        <div className="relative z-10 grid min-h-[800px] gap-10 px-10 py-12 xl:grid-cols-[1.08fr_1.12fr] xl:px-16 2xl:px-20">
-          <div className="relative">
-            <p className="mb-7 text-[24px] font-black uppercase tracking-[0.45em] text-[#18D3D0]">
-              {isNewUser ? "START YOUR AI JOURNEY" : greeting}
+        <div className="relative z-10 grid items-start gap-8 px-5 pb-7 pt-4 lg:px-8 xl:grid-cols-[0.86fr_1.14fr] xl:px-10 xl:pb-8 xl:pt-5">
+          <div className="relative min-w-0">
+            <p className="mb-2 text-[12px] font-black uppercase tracking-[0.34em] text-[#18D3D0] xl:text-[13px]">
+              {isNewUser ? "START YOUR AI JOURNEY" : getGreeting()}
             </p>
 
-            <h1 className="text-[96px] font-black leading-[0.9] tracking-[-0.06em] text-white md:text-[118px] xl:text-[132px]">
-              {welcomeText}
+            <h1 className="-mt-1 text-[40px] font-black leading-[0.92] tracking-[-0.06em] text-white sm:text-[50px] lg:text-[58px] xl:text-[64px] 2xl:text-[70px]">
+              {isNewUser ? "Welcome," : "Welcome back,"}
               <br />
               <span className="text-[#A6FF4D] drop-shadow-[0_0_22px_rgba(166,255,77,.45)]">
                 {user.name}
               </span>
-              <Leaf className="ml-4 inline-block text-[#A6FF4D]" size={52} />
+              <Leaf className="ml-2 inline-block text-[#A6FF4D]" size={30} />
             </h1>
 
-            <div className="mt-12 flex flex-wrap items-center gap-7 text-[26px]">
-              <span className="flex items-center gap-4 font-black text-[#18D3D0]">
-                <span className="h-6 w-6 rounded-full bg-[#18D3D0] shadow-[0_0_18px_rgba(24,211,208,.9)]" />
+            <div className="mt-5 flex flex-wrap items-center gap-4 text-[14px]">
+              <span className="flex items-center gap-3 font-black text-[#18D3D0]">
+                <span className="h-3.5 w-3.5 rounded-full bg-[#18D3D0] shadow-[0_0_18px_rgba(24,211,208,.9)]" />
                 {isNewUser
                   ? "AI Monitoring Not Activated"
                   : "AI Monitoring Active"}
               </span>
 
-              <span className="text-[24px] font-semibold text-[#A3B3A3]">
+              <span className="font-semibold text-[#A3B3A3]">
                 {isNewUser
                   ? "Waiting for first plan"
                   : `Last sync: ${health.lastSync || "Just now"}`}
               </span>
             </div>
 
-            <div className="relative mt-9 min-h-[210px] max-w-[920px] space-y-5 text-[31px] leading-[1.6]">
+            <div className="relative mt-5 max-w-[620px] space-y-2 text-[14px] leading-[1.55] xl:text-[15px]">
               {insights.map((insight, index) => (
                 <p
                   key={insight}
@@ -298,143 +278,134 @@ export default function AIHealthCommandCenter() {
                 </p>
               ))}
 
-              <div className="pointer-events-none absolute -right-72 top-[-20px] hidden h-[480px] w-[790px] opacity-80 lg:block">
+              <div className="pointer-events-none absolute -right-[38%] top-[0px] hidden h-[270px] w-[360px] opacity-75 lg:block">
                 <img
                   src="/assets/meshbody.png"
                   alt=""
-                  className="absolute bottom-10 left-1/2 h-[640px] -translate-x-1/2 object-contain opacity-90 mix-blend-screen drop-shadow-[0_0_46px_rgba(24,211,208,.85)]"
+                  className="absolute bottom-2 left-1/2 h-[310px] -translate-x-1/2 object-contain opacity-90 mix-blend-screen drop-shadow-[0_0_46px_rgba(24,211,208,.85)]"
                 />
               </div>
             </div>
 
-            <div className="mt-7 max-w-[1040px] rounded-[36px] border border-[#A6FF4D]/20 bg-[#07110A]/75 p-10 shadow-[inset_0_0_40px_rgba(166,255,77,.04)]">
-              <div className="flex gap-9">
-                <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-full border border-[#A6FF4D]/20 bg-[#A6FF4D]/10 text-[#A6FF4D] shadow-[0_0_35px_rgba(166,255,77,.25)]">
-                  <Target size={88} />
+            <div className="mt-16 max-w-[640px] rounded-[24px] border border-[#A6FF4D]/20 bg-[#07110A]/75 p-4 shadow-[inset_0_0_40px_rgba(166,255,77,.04)] xl:p-5">
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-full border border-[#A6FF4D]/20 bg-[#A6FF4D]/10 text-[#A6FF4D] shadow-[0_0_35px_rgba(166,255,77,.22)]">
+                  <Target size={38} />
                 </div>
 
                 <div className="relative z-10">
-                  <p className="mb-5 text-[24px] font-black uppercase tracking-[0.35em] text-[#A6FF4D]">
+                  <p className="mb-2 text-[11px] font-black uppercase tracking-[0.26em] text-[#A6FF4D]">
                     Today&apos;s Recommendation
                   </p>
 
-                  <h3 className="text-[60px] font-black leading-tight tracking-[-0.05em] text-white">
+                  <h3 className="text-[20px] font-black leading-tight tracking-[-0.04em] text-white xl:text-[22px]">
                     {recommendation.title}
                   </h3>
 
-                  <p className="mt-5 text-[28px] font-black text-[#A6FF4D]">
+                  <p className="mt-2 text-[13px] font-black text-[#A6FF4D]">
                     Reason:
                   </p>
 
-                  <p className="max-w-3xl text-[30px] leading-[1.55] text-white/85">
+                  <p className="max-w-3xl text-[13px] leading-[1.55] text-white/85 xl:text-[14px]">
                     {recommendation.reason}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 flex flex-nowrap gap-5 pb-2">
-              <button
-                className="group inline-flex min-w-[560px] items-center justify-center gap-6 rounded-[28px] bg-[#A6FF4D] px-14 py-9 font-black leading-none text-black shadow-[0_0_38px_rgba(166,255,77,.35)] transition hover:scale-[1.02]"
-                style={{ fontSize: "40px" }}
-              >
-                <Sparkles size={42} />
-
+            <div className="mt-5 flex flex-wrap gap-3 pb-0">
+              <button className="group inline-flex items-center justify-center gap-3 rounded-[18px] bg-[#A6FF4D] px-5 py-3 text-[14px] font-black leading-none text-black shadow-[0_0_34px_rgba(166,255,77,.28)] transition hover:scale-[1.02]">
+                <Sparkles size={19} />
                 {isNewUser ? "Generate First Plan" : "Generate Today's Plan"}
-
-                <span className="grid h-16 w-16 place-items-center rounded-full bg-black text-[#A6FF4D] transition group-hover:translate-x-1">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-black text-[#A6FF4D] transition group-hover:translate-x-1">
                   →
                 </span>
               </button>
 
               <a
                 href="/scanner"
-                className="inline-flex min-w-[260px] items-center justify-center gap-4 rounded-[24px] border border-white/15 bg-white/[0.03] px-12 py-8 text-[26px] font-black text-white transition hover:border-[#18D3D0]/50 hover:text-[#18D3D0]"
+                className="inline-flex items-center justify-center gap-2.5 rounded-[17px] border border-white/15 bg-white/[0.03] px-4 py-3 text-[13px] font-black text-white transition hover:border-[#18D3D0]/50 hover:text-[#18D3D0]"
               >
-                <ScanLine size={34} />
+                <ScanLine size={18} />
                 Scan Food
               </a>
 
               <a
                 href="/progress"
-                className="inline-flex min-w-[300px] items-center justify-center gap-4 rounded-[24px] border border-white/15 bg-white/[0.03] px-12 py-8 text-[26px] font-black text-white transition hover:border-[#A6FF4D]/50 hover:text-[#A6FF4D]"
+                className="inline-flex items-center justify-center gap-2.5 rounded-[17px] border border-white/15 bg-white/[0.03] px-4 py-3 text-[13px] font-black text-white transition hover:border-[#A6FF4D]/50 hover:text-[#A6FF4D]"
               >
-                <LineChart size={34} />
+                <LineChart size={18} />
                 View Progress
               </a>
             </div>
           </div>
 
-          <div className="relative pt-6 xl:pt-8">
-            <div className="relative mx-auto flex min-h-[550px] max-w-[1040px] items-center justify-center">
-              <div className="absolute inset-x-2 top-0 bottom-4 rounded-full border border-[#A6FF4D]/10" />
-              <div className="absolute h-[560px] w-[560px] rounded-full bg-[#A6FF4D]/10 blur-3xl" />
+          <div className="relative min-w-0 pt-0">
+            <div className="relative mx-auto flex min-h-[clamp(300px,30vw,420px)] w-full max-w-[760px] items-center justify-center">
+              <div className="absolute inset-x-[7%] bottom-4 top-0 rounded-full border border-[#A6FF4D]/10" />
+              <div className="absolute h-[clamp(240px,20vw,340px)] w-[clamp(240px,20vw,340px)] rounded-full bg-[#A6FF4D]/10 blur-3xl" />
 
               <FloatingPill
-                className="left-[0%] top-[74px]"
-                icon={<Droplets size={30} />}
-                value={isNewUser ? "+0g" : `+${health.proteinDelta}g`}
+                className="left-[8%] top-[12%]"
+                icon={<Droplets size={18} />}
+                value={`+${health.proteinDelta}g`}
                 label="Protein"
               />
-
               <FloatingPill
-                className="left-[-6%] top-[235px]"
-                icon={<Activity size={30} />}
-                value={isNewUser ? "0h" : health.sleep}
+                className="left-[4%] top-[39%]"
+                icon={<Activity size={18} />}
+                value={health.sleep}
                 label="Sleep"
               />
-
               <FloatingPill
-                className="left-[2%] top-[400px]"
-                icon={<Droplets size={30} />}
+                className="left-[9%] top-[66%]"
+                icon={<Droplets size={18} />}
                 value={`${health.hydration}L`}
                 label="Water"
               />
 
               <FloatingPill
-                className="right-[0%] top-[74px]"
-                icon={<HeartPulse size={30} />}
+                className="right-[8%] top-[12%]"
+                icon={<HeartPulse size={18} />}
                 value={`${health.recovery}%`}
                 label="Recovery"
               />
-
               <FloatingPill
-                className="right-[-5%] top-[235px]"
-                icon={<Flame size={30} />}
+                className="right-[4%] top-[39%]"
+                icon={<Flame size={18} />}
                 value={health.calories.toLocaleString()}
                 label="kcal"
                 orange
               />
-
               <FloatingPill
-                className="right-[1%] top-[400px]"
-                icon={<Footprints size={30} />}
+                className="right-[9%] top-[66%]"
+                icon={<Footprints size={18} />}
                 value={health.steps.toLocaleString()}
                 label="Steps"
               />
 
-              <div className="relative grid h-[470px] w-[470px] place-items-center rounded-full border-[20px] border-[#A6FF4D] bg-[#07110A]/70 shadow-[0_0_80px_rgba(166,255,77,.45),inset_0_0_86px_rgba(166,255,77,.08)]">
-                <div className="absolute inset-[-36px] rounded-full border border-[#A6FF4D]/40" />
+              <div className="relative grid h-[clamp(220px,17vw,300px)] w-[clamp(220px,17vw,300px)] place-items-center rounded-full border-[11px] border-[#A6FF4D] bg-[#07110A]/70 shadow-[0_0_65px_rgba(166,255,77,.34),inset_0_0_70px_rgba(166,255,77,.08)]">
+                <div className="absolute inset-[-20px] rounded-full border border-[#A6FF4D]/35" />
 
                 <div className="text-center">
-                  <p className="mb-2 text-base font-black uppercase tracking-[0.35em] text-[#A6FF4D]">
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.32em] text-[#A6FF4D]">
                     Health Score
                   </p>
 
-                  <p className="text-[150px] font-black leading-none tracking-[-0.08em] text-white">
+                  <p className="text-[clamp(58px,5vw,82px)] font-black leading-none tracking-[-0.08em] text-white">
                     {score}
                   </p>
 
-                  <p className="mt-4 text-[40px] font-semibold text-[#A6FF4D]">
+                  <p className="mt-2 text-[clamp(16px,1.4vw,22px)] font-semibold text-[#A6FF4D]">
                     {scoreStatus}
                   </p>
 
-                  <p className="mt-2 text-xl text-[#A6FF4D]">☆</p>
+                  <p className="mt-1 text-sm text-[#A6FF4D]">☆</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-5 grid gap-5 md:grid-cols-4">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {metrics.map((metric) => (
                 <MetricCard key={metric.title} metric={metric} />
               ))}
@@ -463,18 +434,18 @@ function FloatingPill({
 }) {
   return (
     <div
-      className={`absolute z-20 rounded-2xl border border-white/10 bg-[#07110A]/80 px-6 py-5 shadow-xl backdrop-blur-xl ${className}`}
+      className={`absolute z-20 rounded-2xl border border-white/10 bg-[#07110A]/80 px-3 py-2.5 shadow-xl backdrop-blur-xl ${className}`}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <span className={orange ? "text-[#FFB347]" : "text-[#18D3D0]"}>
           {icon}
         </span>
 
         <div>
-          <p className="text-[32px] font-black leading-none text-white">
+          <p className="text-[14px] font-black leading-none text-white xl:text-[15px]">
             {value}
           </p>
-          <p className="mt-1 text-[18px] font-semibold text-white/80">
+          <p className="mt-1 text-[10px] font-semibold text-white/80">
             {label}
           </p>
         </div>
@@ -485,27 +456,30 @@ function FloatingPill({
 
 function MetricCard({ metric }: { metric: DashboardMetric }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-[#07110A]/80 p-8 shadow-[inset_0_0_28px_rgba(255,255,255,.02)]">
-      <div className="mb-5 flex items-center gap-3">
+    <div className="rounded-[18px] border border-white/10 bg-[#07110A]/80 p-3 shadow-[inset_0_0_28px_rgba(255,255,255,.02)]">
+      <div className="mb-2 flex items-center gap-2">
         <span style={{ color: metric.color }}>{metric.icon}</span>
-        <p className="text-[22px] font-black text-white">{metric.title}</p>
+        <p className="text-[12px] font-black text-white">{metric.title}</p>
       </div>
 
-      <p className="text-[60px] font-black leading-none tracking-[-0.07em] text-white">
+      <p className="text-[22px] font-black leading-none tracking-[-0.06em] text-white">
         {metric.value}
       </p>
 
-      <p className="mt-3 text-[18px] font-bold" style={{ color: metric.color }}>
+      <p
+        className="mt-1.5 text-[11px] font-bold"
+        style={{ color: metric.color }}
+      >
         {metric.sub}
       </p>
 
-      <div className="mt-7 flex h-12 items-end gap-1.5">
+      <div className="mt-3 flex h-7 items-end gap-1">
         {metric.chart.map((h, i) => (
           <span
             key={i}
             className="flex-1 rounded-t-sm"
             style={{
-              height: h + 6,
+              height: h + 2,
               backgroundColor: metric.color,
               opacity: h <= 4 ? 0.18 : 0.88,
               boxShadow: h > 4 ? `0 0 10px ${metric.color}55` : "none",
@@ -532,19 +506,15 @@ function TrendChart({
 
   const points = trend.map((item, index) => {
     const x =
-      paddingX + (index * (width - paddingX * 2)) /
-        Math.max(trend.length - 1, 1);
+      paddingX +
+      (index * (width - paddingX * 2)) / Math.max(trend.length - 1, 1);
     const normalized = isNewUser ? 0 : (item.score - 70) / 30;
     const y =
       height -
       paddingBottom -
       normalized * (height - paddingTop - paddingBottom);
 
-    return {
-      ...item,
-      x,
-      y,
-    };
+    return { ...item, x, y };
   });
 
   const path = points
@@ -556,18 +526,18 @@ function TrendChart({
   } L ${points[0].x} ${height - paddingBottom} Z`;
 
   return (
-    <div className="mt-8 rounded-[28px] border border-white/10 bg-[#07110A]/70 p-8">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-base font-black uppercase tracking-[0.35em] text-[#18D3D0]">
+    <div className="mt-4 rounded-[18px] border border-white/10 bg-[#07110A]/70 p-3">
+      <div className="mb-2 flex items-center justify-between gap-4">
+        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#18D3D0]">
           Health Score Trend
         </p>
 
-        <button className="rounded-xl border border-white/10 px-5 py-3 text-base font-semibold text-white">
-          This Week <ChevronDown className="ml-2 inline" size={16} />
+        <button className="rounded-xl border border-white/10 px-3 py-1.5 text-[10px] font-semibold text-white">
+          This Week <ChevronDown className="ml-1.5 inline" size={12} />
         </button>
       </div>
 
-      <div className="relative h-[220px] overflow-hidden">
+      <div className="relative h-[120px] overflow-hidden">
         <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full">
           <defs>
             <linearGradient id="trendArea" x1="0" x2="0" y1="0" y2="1">
@@ -616,7 +586,7 @@ function TrendChart({
                 y={isNewUser ? 45 : point.y - 18}
                 textAnchor="middle"
                 fill="#F5F8F2"
-                fontSize="17"
+                fontSize="12"
                 fontWeight="700"
               >
                 {point.score}
@@ -626,10 +596,10 @@ function TrendChart({
                 <circle
                   cx={point.x}
                   cy={point.y}
-                  r={index === points.length - 1 ? 9 : 7}
+                  r={index === points.length - 1 ? 7 : 5}
                   fill="#18D3D0"
                   stroke={index === points.length - 1 ? "#A6FF4D" : "#18D3D0"}
-                  strokeWidth={index === points.length - 1 ? 5 : 2}
+                  strokeWidth={index === points.length - 1 ? 4 : 2}
                   filter="url(#trendGlow)"
                 />
               )}
@@ -648,7 +618,7 @@ function TrendChart({
                 y={height - 6}
                 textAnchor="middle"
                 fill={index === points.length - 1 ? "#A6FF4D" : "#A3B3A3"}
-                fontSize="13"
+                fontSize="10"
                 fontWeight={index === points.length - 1 ? 700 : 500}
               >
                 {point.day}

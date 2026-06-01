@@ -10,8 +10,8 @@ import {
   Moon,
   RotateCcw,
   Settings,
-  Sparkles,
   
+  Sparkles,
 } from "lucide-react";
 
 type Meal = {
@@ -184,7 +184,7 @@ export default function AINutritionPlan() {
   const hydrationPercent = useMemo(() => {
     return Math.min(
       Math.round((data.hydration.consumed / data.hydration.target) * 100),
-      100
+      100,
     );
   }, [data.hydration]);
 
@@ -225,12 +225,12 @@ export default function AINutritionPlan() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#030805] px-0 py-3 text-[#F5F8F2]">
-      <div className="relative mx-auto w-[98vw] overflow-hidden rounded-[34px] border border-[#173326] bg-[#020604]/95 shadow-[0_0_80px_rgba(166,255,77,0.08)]">
+    <section className="relative overflow-x-hidden overflow-y-visible bg-[#030805] px-4 py-4 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <div className="relative mx-auto w-full max-w-[92vw] overflow-visible rounded-[30px] border border-[#173326] bg-[#020604]/95 shadow-[0_0_80px_rgba(166,255,77,0.08)] 2xl:max-w-[1780px]">
         <BackgroundFX />
 
-        <div className="relative z-10 px-6 py-10 xl:px-8 2xl:px-10">
-          <div className="rounded-[34px] border border-white/10 bg-[#020805]/70 p-10">
+        <div className="relative z-10 p-4 sm:p-5 lg:p-6 xl:p-7">
+          <div className="rounded-[28px] border border-white/10 bg-[#020805]/70 p-4 sm:p-5 lg:p-6 xl:p-7">
             <Header
               settingsOpen={settingsOpen}
               onPlanSettings={() => setSettingsOpen((value) => !value)}
@@ -238,20 +238,20 @@ export default function AINutritionPlan() {
             />
 
             {settingsOpen && (
-              <div className="mb-8 rounded-[30px] border border-[#18D3D0]/20 bg-[#07110A]/80 p-8">
-                <p className="text-[32px] font-black text-[#18D3D0]">
+              <div className="mb-5 rounded-[24px] border border-[#18D3D0]/20 bg-[#07110A]/80 p-5">
+                <p className="text-[18px] font-black text-[#18D3D0]">
                   Plan Settings
                 </p>
 
-                <div className="mt-6 flex flex-wrap items-end gap-6">
+                <div className="mt-4 flex flex-wrap items-end gap-4">
                   <label>
-                    <span className="mb-3 block text-[26px] font-bold text-white/75">
+                    <span className="mb-2 block text-[13px] font-bold text-white/75">
                       Goal
                     </span>
                     <select
                       value={goalDraft}
                       onChange={(event) => setGoalDraft(event.target.value)}
-                      className="rounded-2xl border border-white/10 bg-black/30 px-6 py-5 text-[28px] font-bold text-white outline-none"
+                      className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-[14px] font-bold text-white outline-none"
                     >
                       <option>Fat Loss</option>
                       <option>Muscle Gain</option>
@@ -261,7 +261,7 @@ export default function AINutritionPlan() {
 
                   <button
                     onClick={handleSaveSettings}
-                    className="rounded-2xl bg-[#A6FF4D] px-9 py-5 text-[28px] font-black text-black"
+                    className="rounded-xl bg-[#A6FF4D] px-5 py-3 text-[14px] font-black text-black"
                   >
                     Save Settings
                   </button>
@@ -277,7 +277,7 @@ export default function AINutritionPlan() {
               onToggleWeek={() => setWeekOpen((value) => !value)}
             />
 
-            <div className="mt-8 grid gap-7 xl:grid-cols-[0.9fr_0.7fr_0.7fr_1.35fr]">
+            <div className="mt-5 grid gap-4 lg:grid-cols-2 xl:grid-cols-[0.9fr_0.75fr_0.75fr_1.25fr]">
               <MacroDistribution targets={data.targets} />
 
               <HydrationGoal
@@ -316,33 +316,30 @@ function Header({
   onRegenerate: () => void;
 }) {
   return (
-    <div className="mb-9 flex items-center justify-between">
-      <div className="flex items-center gap-8">
-     
-        <div>
-          <h2 className="text-[64px] font-black uppercase leading-none tracking-[0.12em]">
-            AI Nutrition Plan
-          </h2>
-          <p className="mt-4 text-[34px] font-semibold text-[#A3B3A3]">
-            Your personalized plan for today, powered by AI.
-          </p>
-        </div>
+    <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 className="text-[28px] font-black uppercase leading-none tracking-[0.08em] sm:text-[34px] lg:text-[38px] xl:text-[42px]">
+          AI Nutrition Plan
+        </h2>
+        <p className="mt-2 text-[14px] font-semibold leading-6 text-[#A3B3A3] xl:text-[15px]">
+          Your personalized plan for today, powered by AI.
+        </p>
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex flex-wrap gap-3">
         <button
           onClick={onPlanSettings}
-          className="inline-flex items-center gap-5 rounded-2xl border border-white/15 bg-white/[0.03] px-10 py-7 text-[42px] font-black text-white"
+          className="inline-flex items-center gap-2.5 rounded-2xl border border-white/15 bg-white/[0.03] px-4 py-3 text-[13px] font-black text-white"
         >
-          <Settings size={42} />
+          <Settings size={17} />
           {settingsOpen ? "Hide Settings" : "Plan Settings"}
         </button>
 
         <button
           onClick={onRegenerate}
-          className="inline-flex items-center gap-5 rounded-2xl bg-[#A6FF4D] px-10 py-7 text-[42px] font-black text-black shadow-[0_0_34px_rgba(166,255,77,.35)]"
+          className="inline-flex items-center gap-2.5 rounded-2xl bg-[#A6FF4D] px-4 py-3 text-[13px] font-black text-black shadow-[0_0_30px_rgba(166,255,77,.28)]"
         >
-          <RotateCcw size={42} />
+          <RotateCcw size={17} />
           Regenerate Plan
         </button>
       </div>
@@ -352,29 +349,31 @@ function Header({
 
 function TopSummary({ data }: { data: NutritionPlanData }) {
   return (
-    <div className="grid min-h-[360px] overflow-hidden rounded-[34px] border border-white/10 bg-[#07110A]/70 xl:grid-cols-[1.05fr_1fr_1.05fr_1fr]">
-      <div className="flex items-center gap-12 border-r border-white/10 p-10">
+    <div className="grid overflow-hidden rounded-[26px] border border-white/10 bg-[#07110A]/70 lg:grid-cols-[1.05fr_0.95fr] xl:grid-cols-[1.05fr_0.95fr_0.95fr_0.55fr]">
+      <div className="flex items-center gap-5 border-b border-white/10 p-5 lg:border-b-0 lg:border-r xl:p-6">
         <PlanRing value={data.plan.match} />
 
-        <div>
-          <div className="mb-5 flex items-center gap-5">
-            <h3 className="text-[38px] font-black">Plan for Today</h3>
-            <span className="rounded-xl border border-[#A6FF4D]/30 bg-[#A6FF4D]/5 px-5 py-3 text-[24px] font-bold text-[#A6FF4D]">
+        <div className="min-w-0">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <h3 className="text-[20px] font-black xl:text-[24px]">
+              Plan for Today
+            </h3>
+            <span className="rounded-xl border border-[#A6FF4D]/30 bg-[#A6FF4D]/5 px-3 py-1.5 text-[12px] font-bold text-[#A6FF4D]">
               {data.plan.goal}
             </span>
           </div>
 
-          <p className="max-w-[500px] text-[30px] leading-[1.45] text-white/75">
+          <p className="max-w-[420px] text-[14px] leading-6 text-white/70 xl:text-[15px]">
             {data.plan.description}
           </p>
 
-          <div className="mt-8 flex items-center gap-5">
-            <span className="text-[28px] font-black text-[#18D3D0]">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <span className="text-[13px] font-black text-[#18D3D0]">
               AI Confidence: {data.plan.aiConfidence}%
             </span>
-            <div className="h-3 w-[330px] rounded-full bg-white/15">
+            <div className="h-2 w-[180px] rounded-full bg-white/15">
               <div
-                className="h-full rounded-full bg-[#18D3D0] shadow-[0_0_18px_rgba(24,211,208,.6)]"
+                className="h-full rounded-full bg-[#18D3D0] shadow-[0_0_16px_rgba(24,211,208,.6)]"
                 style={{ width: `${data.plan.aiConfidence}%` }}
               />
             </div>
@@ -382,35 +381,35 @@ function TopSummary({ data }: { data: NutritionPlanData }) {
         </div>
       </div>
 
-      <div className="border-r border-white/10 p-10">
-        <p className="text-[28px] font-black uppercase tracking-[0.3em] text-[#A6FF4D]">
+      <div className="border-b border-white/10 p-5 lg:border-b-0 xl:border-r xl:p-6">
+        <p className="text-[13px] font-black uppercase tracking-[0.2em] text-[#A6FF4D]">
           Today&apos;s Targets
         </p>
 
-        <div className="mt-8 grid grid-cols-4 gap-6">
+        <div className="mt-5 grid grid-cols-4 gap-3">
           <TargetMetric
-            icon={<Flame size={34} />}
+            icon={<Flame size={18} />}
             value={data.targets.calories.toLocaleString()}
             label="kcal"
             sub="Calories"
             color="#FFB347"
           />
           <TargetMetric
-            icon={<Activity size={34} />}
+            icon={<Activity size={18} />}
             value={`${data.targets.protein}g`}
             label="Protein"
             sub={`${data.targets.proteinPercent}%`}
             color="#8DB6FF"
           />
           <TargetMetric
-            icon={<Apple size={34} />}
+            icon={<Apple size={18} />}
             value={`${data.targets.carbs}g`}
             label="Carbs"
             sub={`${data.targets.carbsPercent}%`}
             color="#18D3D0"
           />
           <TargetMetric
-            icon={<Droplets size={34} />}
+            icon={<Droplets size={18} />}
             value={`${data.targets.fats}g`}
             label="Fats"
             sub={`${data.targets.fatsPercent}%`}
@@ -418,24 +417,24 @@ function TopSummary({ data }: { data: NutritionPlanData }) {
           />
         </div>
 
-        <div className="mt-8 inline-flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-5 text-[26px] text-white/85">
+        <div className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[12px] text-white/80">
           {data.plan.calorieMode}
-          <Info size={26} className="text-white/45" />
+          <Info size={14} className="text-white/45" />
         </div>
       </div>
 
-      <div className="border-r border-white/10 p-10">
-        <p className="text-[28px] font-black uppercase tracking-[0.3em] text-[#A6FF4D]">
+      <div className="border-b border-white/10 p-5 xl:border-b-0 xl:border-r xl:p-6">
+        <p className="text-[13px] font-black uppercase tracking-[0.2em] text-[#A6FF4D]">
           Why This Plan?
         </p>
 
-        <div className="mt-8 space-y-6">
+        <div className="mt-5 space-y-3">
           {data.whyThisPlan.map((reason) => (
             <p
               key={reason}
-              className="flex items-center gap-4 text-[28px] font-medium text-white/80"
+              className="flex items-center gap-2.5 text-[13px] font-medium leading-5 text-white/78"
             >
-              <span className="grid h-7 w-7 place-items-center rounded-full border border-[#A6FF4D]/40 text-[18px] text-[#A6FF4D]">
+              <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-[#A6FF4D]/40 text-[12px] text-[#A6FF4D]">
                 ✓
               </span>
               {reason}
@@ -444,13 +443,13 @@ function TopSummary({ data }: { data: NutritionPlanData }) {
         </div>
       </div>
 
-      <div className="relative hidden min-h-[360px] items-center justify-center overflow-visible xl:flex">
+      <div className="relative hidden items-center justify-center overflow-visible xl:flex">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgba(24,211,208,.18),transparent_66%)]" />
 
         <img
           src="/assets/iconmesh.png"
           alt="AI nutrition intelligence mesh"
-          className="absolute left-1/2 top-1/2 z-10 h-[620px] w-[620px] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain opacity-100 mix-blend-screen drop-shadow-[0_0_90px_rgba(24,211,208,.8)]"
+          className="absolute left-1/2 top-1/2 z-10 h-[260px] w-[260px] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain opacity-100 mix-blend-screen drop-shadow-[0_0_70px_rgba(24,211,208,.75)]"
         />
       </div>
     </div>
@@ -462,17 +461,17 @@ function PlanRing({ value }: { value: number }) {
 
   return (
     <div
-      className="grid h-[250px] w-[250px] shrink-0 place-items-center rounded-full shadow-[0_0_40px_rgba(166,255,77,.45)]"
+      className="grid h-[116px] w-[116px] shrink-0 place-items-center rounded-full shadow-[0_0_30px_rgba(166,255,77,.35)]"
       style={{
         background: `conic-gradient(#A6FF4D ${
           angle * 0.72
         }deg, #18D3D0 ${angle}deg, rgba(255,255,255,.13) 0deg)`,
       }}
     >
-      <div className="grid h-[190px] w-[190px] place-items-center rounded-full bg-[#07110A]">
+      <div className="grid h-[88px] w-[88px] place-items-center rounded-full bg-[#07110A]">
         <div className="text-center">
-          <p className="text-[68px] font-black leading-none">{value}%</p>
-          <p className="mt-2 text-[24px] font-semibold text-white/85">
+          <p className="text-[28px] font-black leading-none">{value}%</p>
+          <p className="mt-1 text-[9px] font-black uppercase tracking-[0.09em] text-white/85">
             Plan Match
           </p>
         </div>
@@ -496,12 +495,14 @@ function TargetMetric({
 }) {
   return (
     <div className="text-center">
-      <div className="mb-3 flex items-center justify-center" style={{ color }}>
+      <div className="mb-2 flex items-center justify-center" style={{ color }}>
         {icon}
       </div>
-      <p className="text-[30px] font-black text-white">{value}</p>
-      <p className="text-[22px] text-white/70">{label}</p>
-      <p className="mt-4 text-[22px] font-black" style={{ color }}>
+      <p className="text-[14px] font-black text-white xl:text-[15px]">
+        {value}
+      </p>
+      <p className="text-[10px] text-white/65">{label}</p>
+      <p className="mt-1.5 text-[10px] font-black" style={{ color }}>
         {sub}
       </p>
     </div>
@@ -518,54 +519,54 @@ function MealTimeline({
   onToggleWeek: () => void;
 }) {
   return (
-    <div className="mt-8 rounded-[34px] border border-white/10 bg-[#07110A]/70 p-10">
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-7">
-          <p className="text-[32px] font-black uppercase tracking-[0.22em] text-[#A6FF4D]">
+    <div className="mt-5 rounded-[26px] border border-white/10 bg-[#07110A]/70 p-5 xl:p-6">
+      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-[16px] font-black uppercase tracking-[0.16em] text-[#A6FF4D] xl:text-[18px]">
             Today&apos;s Meal Plan
           </p>
 
           <button
             onClick={onToggleWeek}
-            className="inline-flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-6 py-4 text-[24px] font-bold text-white"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-[12px] font-bold text-white"
           >
-            <CalendarDays size={28} />
+            <CalendarDays size={15} />
             {weekOpen ? "Hide Full Week" : "View Full Week"}
           </button>
         </div>
 
-        <p className="flex items-center gap-3 text-[24px] font-medium text-white/60">
-          <Info size={24} />
+        <p className="flex items-center gap-2 text-[12px] font-medium text-white/60">
+          <Info size={14} />
           Times can be adjusted
         </p>
       </div>
 
       {weekOpen && (
-        <div className="mb-8 rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/5 p-6 text-[26px] font-semibold text-[#A6FF4D]">
+        <div className="mb-5 rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/5 p-4 text-[13px] font-semibold text-[#A6FF4D]">
           Weekly plan preview activated. Backend week-plan integration can plug
           into this state.
         </div>
       )}
 
-      <div className="relative mb-8 h-10">
+      <div className="relative mb-5 hidden h-6 sm:block">
         <div className="absolute left-0 right-0 top-1/2 border-t border-dashed border-white/20" />
         <div className="grid grid-cols-5">
           {meals.map((meal) => (
             <div key={meal.id} className="flex justify-center">
-              <span className="relative z-10 h-8 w-8 rounded-full border-4 border-[#07110A] bg-[#18D3D0] shadow-[0_0_18px_rgba(24,211,208,.9)]" />
+              <span className="relative z-10 h-5 w-5 rounded-full border-[3px] border-[#07110A] bg-[#18D3D0] shadow-[0_0_18px_rgba(24,211,208,.9)]" />
             </div>
           ))}
         </div>
       </div>
 
-      <div className="grid gap-7 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {meals.map((meal) => (
           <MealCard key={meal.id} meal={meal} />
         ))}
       </div>
 
-      <div className="mx-auto mt-8 flex w-fit items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] px-8 py-4 text-[24px] font-medium text-white/75">
-        <Activity size={24} />
+      <div className="mx-auto mt-5 flex w-fit flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[12px] font-medium text-white/70">
+        <Activity size={14} />
         <span className="font-black text-white">Evening Workout</span>
         <span>• Plan adjusted for your activity window</span>
       </div>
@@ -575,50 +576,50 @@ function MealTimeline({
 
 function MealCard({ meal }: { meal: Meal }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-[#020604]/55 p-7 shadow-[inset_0_0_28px_rgba(255,255,255,.025)]">
-      <div className="mb-5 flex items-center justify-between">
+    <div className="rounded-[22px] border border-white/10 bg-[#020604]/55 p-4 shadow-[inset_0_0_28px_rgba(255,255,255,.025)] xl:p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <span
-          className="rounded-lg border px-4 py-2 text-[20px] font-black"
+          className="rounded-lg border px-3 py-1.5 text-[11px] font-black"
           style={{ borderColor: `${meal.accent}80`, color: meal.accent }}
         >
           {meal.label}
         </span>
 
-        <span className="flex items-center gap-2 text-[24px] text-white/80">
+        <span className="flex items-center gap-1.5 text-[12px] text-white/78">
           {meal.time}
           {meal.icon === "sun" ? (
-            <Sparkles size={24} className="text-[#FFB347]" />
+            <Sparkles size={13} className="text-[#FFB347]" />
           ) : (
-            <Moon size={24} className="text-[#A875FF]" />
+            <Moon size={13} className="text-[#A875FF]" />
           )}
         </span>
       </div>
 
-      <h3 className="text-[34px] font-black tracking-[-0.04em] text-white">
+      <h3 className="text-[20px] font-black tracking-[-0.04em] text-white">
         {meal.name}
       </h3>
 
-      <div className="mt-6 flex gap-6">
+      <div className="mt-4 flex gap-4">
         <img
           src={meal.image}
           alt={meal.name}
-          className="h-28 w-28 shrink-0 rounded-full border border-white/10 object-contain shadow-[0_0_24px_rgba(255,255,255,.08)]"
+          className="h-16 w-16 shrink-0 rounded-full border border-white/10 object-contain shadow-[0_0_20px_rgba(255,255,255,.08)]"
         />
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           {meal.foods.map((food) => (
             <p
               key={food}
-              className="flex items-center gap-3 text-[23px] font-medium text-white/80"
+              className="flex items-start gap-2 text-[12px] font-medium leading-5 text-white/76"
             >
-              <span className="h-2.5 w-2.5 rounded-full bg-[#A6FF4D]" />
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#A6FF4D]" />
               {food}
             </p>
           ))}
         </div>
       </div>
 
-      <div className="mt-8 flex flex-wrap gap-4 text-[22px] font-black">
+      <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-black">
         <span className="text-[#A6FF4D]">{meal.calories} kcal</span>
         <span className="text-white/35">•</span>
         <span className="text-[#8DB6FF]">{meal.protein}g P</span>
@@ -637,23 +638,23 @@ function MacroDistribution({
   targets: NutritionPlanData["targets"];
 }) {
   return (
-    <div className="rounded-[30px] border border-white/10 bg-[#07110A]/70 p-9">
-      <p className="text-[30px] font-black uppercase tracking-[0.22em] text-[#A6FF4D]">
+    <div className="rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
+      <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
         Macro Distribution
       </p>
 
-      <div className="mt-8 flex items-center gap-9">
+      <div className="mt-5 flex items-center gap-5">
         <div
-          className="h-40 w-40 shrink-0 rounded-full"
+          className="h-24 w-24 shrink-0 rounded-full"
           style={{
             background:
               "conic-gradient(#A6FF4D 0 30%, #A875FF 30% 65%, #FFB347 65% 100%)",
           }}
         >
-          <div className="m-auto mt-7 h-28 w-28 rounded-full bg-[#07110A]" />
+          <div className="m-auto mt-5 h-14 w-14 rounded-full bg-[#07110A]" />
         </div>
 
-        <div className="space-y-5 text-[26px]">
+        <div className="flex-1 space-y-3 text-[13px]">
           <MacroRow
             color="#A6FF4D"
             label="Protein"
@@ -685,9 +686,9 @@ function MacroRow({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-8">
-      <span className="flex items-center gap-3 text-white/75">
-        <span className="h-4 w-4 rounded-full" style={{ background: color }} />
+    <div className="flex items-center justify-between gap-4">
+      <span className="flex items-center gap-2 text-white/70">
+        <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
         {label}
       </span>
       <span className="font-black text-white">{value}</span>
@@ -707,33 +708,32 @@ function HydrationGoal({
   onLogWater: () => void;
 }) {
   return (
-    <div className="rounded-[30px] border border-white/10 bg-[#07110A]/70 p-9">
-      <p className="flex items-center gap-4 text-[30px] font-black uppercase tracking-[0.22em] text-[#18D3D0]">
-        <Droplets size={38} />
+    <div className="rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
+      <p className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.16em] text-[#18D3D0]">
+        <Droplets size={18} />
         Hydration Goal
       </p>
 
-      <p className="mt-10 text-[46px] font-black">
-        {consumed} L{" "}
-        <span className="font-medium text-white/50">/ {target} L</span>
+      <p className="mt-5 text-[28px] font-black">
+        {consumed} L <span className="font-medium text-white/50">/ {target} L</span>
       </p>
 
-      <div className="mt-7 h-4 rounded-full bg-white/15">
+      <div className="mt-4 h-2.5 rounded-full bg-white/15">
         <div
           className="h-full rounded-full bg-[#18D3D0] shadow-[0_0_18px_rgba(24,211,208,.7)]"
           style={{ width: `${percent}%` }}
         />
       </div>
 
-      <p className="mt-5 text-[24px] text-white/65">
+      <p className="mt-3 text-[13px] text-white/65">
         {percent}% of your daily goal
       </p>
 
       <button
         onClick={onLogWater}
-        className="mt-7 inline-flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-7 py-4 text-[24px] font-bold text-white"
+        className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-[13px] font-bold text-white"
       >
-        <Droplets size={28} className="text-[#18D3D0]" />
+        <Droplets size={15} className="text-[#18D3D0]" />
         Log Water
       </button>
     </div>
@@ -750,13 +750,13 @@ function AISmartNotes({
   onCoachText: (value: string) => void;
 }) {
   return (
-    <div className="rounded-[30px] border border-white/10 bg-[#07110A]/70 p-9">
-      <p className="flex items-center gap-4 text-[30px] font-black uppercase tracking-[0.22em] text-[#A875FF]">
-        <Sparkles size={38} />
+    <div className="rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
+      <p className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.16em] text-[#A875FF]">
+        <Sparkles size={18} />
         AI Smart Notes
       </p>
 
-      <div className="mt-8 space-y-5 text-[26px] leading-[1.45] text-white/75">
+      <div className="mt-5 space-y-3 text-[13px] leading-6 text-white/72">
         {notes.map((note) => (
           <p key={note}>{note}</p>
         ))}
@@ -766,7 +766,7 @@ function AISmartNotes({
         value={coachText}
         onChange={(event) => onCoachText(event.target.value)}
         placeholder="Ask AI Coach..."
-        className="mt-8 w-full rounded-xl border border-white/15 bg-white/[0.03] px-6 py-5 text-[24px] font-bold text-white outline-none placeholder:text-white/40 focus:border-[#A875FF]/60"
+        className="mt-5 w-full rounded-xl border border-white/15 bg-white/[0.03] px-4 py-3 text-[13px] font-bold text-white outline-none placeholder:text-white/40 focus:border-[#A875FF]/60"
       />
     </div>
   );
@@ -782,46 +782,48 @@ function SwapSuggestions({
   onToggleSwap: () => void;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[30px] border border-[#A6FF4D]/25 bg-[#07110A]/70 p-9">
-      <div className="pointer-events-none absolute right-10 top-10 h-52 w-80 rotate-[-18deg] rounded-full border border-[#A6FF4D]/20" />
-      <div className="pointer-events-none absolute right-20 top-20 h-52 w-80 rotate-[24deg] rounded-full border border-[#18D3D0]/20" />
+    <div className="relative overflow-hidden rounded-[24px] border border-[#A6FF4D]/25 bg-[#07110A]/70 p-5">
+      <div className="pointer-events-none absolute right-6 top-6 h-28 w-44 rotate-[-18deg] rounded-full border border-[#A6FF4D]/20" />
+      <div className="pointer-events-none absolute right-10 top-10 h-28 w-44 rotate-[24deg] rounded-full border border-[#18D3D0]/20" />
 
-      <p className="text-[30px] font-black uppercase tracking-[0.22em] text-[#A6FF4D]">
+      <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
         {swap.title}
       </p>
 
-      <p className="mt-5 text-[24px] text-white/65">{swap.description}</p>
+      <p className="mt-3 text-[13px] leading-6 text-white/65">
+        {swap.description}
+      </p>
 
       {swapOpen && (
-        <p className="mt-5 rounded-xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/5 px-5 py-4 text-[24px] font-semibold text-[#A6FF4D]">
+        <p className="mt-3 rounded-xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/5 px-4 py-3 text-[13px] font-semibold text-[#A6FF4D]">
           Smart swap active: lower calories, better protein balance.
         </p>
       )}
 
-      <div className="mt-10 flex items-center justify-between gap-8">
+      <div className="relative z-10 mt-5 flex items-center justify-between gap-4">
         <button
           onClick={onToggleSwap}
-          className="inline-flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.03] px-8 py-5 text-[26px] font-bold text-white"
+          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-[13px] font-bold text-white"
         >
-          <RotateCcw size={30} />
+          <RotateCcw size={15} />
           {swapOpen ? "Hide Swaps" : "View Swaps"}
         </button>
 
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-3">
           <img
             src={swap.beforeImage}
             alt="Swap before"
-            className="h-36 w-36 rounded-full object-contain"
+            className="h-16 w-16 rounded-full object-contain"
           />
 
-          <span className="grid h-16 w-16 place-items-center rounded-full border border-[#A6FF4D]/20 bg-black/20 text-[#A6FF4D]">
-            <ChevronRight size={38} />
+          <span className="grid h-9 w-9 place-items-center rounded-full border border-[#A6FF4D]/20 bg-black/20 text-[#A6FF4D]">
+            <ChevronRight size={20} />
           </span>
 
           <img
             src={swap.afterImage}
             alt="Swap after"
-            className="h-36 w-36 rounded-full object-contain"
+            className="h-16 w-16 rounded-full object-contain"
           />
         </div>
       </div>
@@ -832,8 +834,8 @@ function SwapSuggestions({
 function BackgroundFX() {
   return (
     <>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_45%,rgba(24,211,208,0.08),transparent_32%),radial-gradient(circle_at_75%_70%,rgba(166,255,77,0.1),transparent_34%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.13] [background-image:linear-gradient(rgba(166,255,77,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(166,255,77,.11)_1px,transparent_1px)] [background-size:78px_78px]" />
+      <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_25%_45%,rgba(24,211,208,0.08),transparent_32%),radial-gradient(circle_at_75%_70%,rgba(166,255,77,0.1),transparent_34%)]" />
+      <div className="pointer-events-none absolute inset-0 rounded-[30px] opacity-[0.13] [background-image:linear-gradient(rgba(166,255,77,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(166,255,77,.11)_1px,transparent_1px)] [background-size:78px_78px]" />
     </>
   );
 }
