@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import Image from "@/compat/NextImage";
 import {
   Activity,
@@ -88,7 +89,7 @@ const bottomFeatures = [
 
 export default function AdaptiveEngineSection() {
   return (
-    <section className="relative overflow-hidden bg-[#030805] px-6 pb-20 pt-10 text-[#F5F8F2] sm:px-8 lg:px-14 lg:pt-12 xl:px-20 2xl:px-28">
+    <section className="relative overflow-hidden bg-[#030805] px-4 pb-12 pt-12 text-[#F5F8F2] sm:px-6 lg:px-8 lg:pt-14 xl:px-10 2xl:px-12">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(166,255,77,0.12),transparent_44%)]" />
 
       {/* Athlete */}
@@ -97,19 +98,19 @@ export default function AdaptiveEngineSection() {
         alt="Fitness Athlete"
         width={620}
         height={980}
-        className="pointer-events-none absolute right-[-120px] top-[18px] z-[12] hidden w-[420px] opacity-95 xl:block 2xl:right-[-90px] 2xl:w-[450px]"
+        className="pointer-events-none absolute right-[-120px] top-[18px] z-[12] hidden w-[24vw] max-w-[450px] min-w-[360px] opacity-95 xl:block 2xl:right-[-90px]"
         priority
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1500px]">
-        <div className="grid items-start gap-10 lg:grid-cols-[1.08fr_0.9fr_0.94fr] xl:gap-12">
+      <div className="relative z-10 mx-auto w-full max-w-[92vw] 2xl:max-w-[1780px]">
+        <div className="grid items-start gap-10 lg:grid-cols-[1.02fr_0.96fr_1.02fr] xl:gap-10 2xl:gap-12">
           {/* LEFT CONTENT */}
-          <div className="relative z-20 max-w-[620px]">
-            <div className="mb-4 inline-flex rounded-full border border-[#A6FF4D]/25 bg-[#A6FF4D]/10 px-4 py-2 text-[11px] font-bold tracking-wide text-[#A6FF4D]">
+          <div className="relative z-20 max-w-[720px]">
+            <div className="mb-5 inline-flex rounded-full border border-[#A6FF4D]/25 bg-[#A6FF4D]/10 px-5 py-2.5 text-[12px] font-bold tracking-wide text-[#A6FF4D] sm:text-[13px]">
               ADAPTIVE HEALTH ENGINE
             </div>
 
-            <h2 className="max-w-[620px] text-[38px] font-black leading-[0.94] tracking-[-0.06em] sm:text-[44px] lg:text-[48px] xl:text-[50px]">
+            <h2 className="max-w-[720px] text-[44px] font-black leading-[0.94] tracking-[-0.06em] sm:text-[56px] lg:text-[64px] xl:text-[76px] 2xl:text-[84px]">
               Your Plan Adapts.
               <br />
               <span className="bg-gradient-to-r from-[#A6FF4D] to-[#7BFF57] bg-clip-text text-transparent">
@@ -117,24 +118,26 @@ export default function AdaptiveEngineSection() {
               </span>
             </h2>
 
-            <p className="mt-5 max-w-[520px] text-[15px] leading-8 text-[#A3B3A3] xl:text-[16px]">
+            <p className="mt-5 max-w-[680px] text-[18px] leading-8 text-[#A3B3A3] lg:text-[20px] xl:text-[21px]">
               Our AI continuously learns from your daily activities, body
               changes, and habits to adjust calories, workouts, and recovery —
               in real time.
             </p>
 
-            <div className="relative mt-7 space-y-5">
+            <div className="relative mt-8 space-y-6">
               <div className="absolute left-7 top-5 hidden h-[83%] w-px bg-[#A6FF4D]/20 lg:block" />
 
               {leftFeatures.map((feature) => (
                 <div key={feature.title} className="relative flex gap-5">
-                  <div className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#A6FF4D]/25 bg-[#07110A] text-[#A6FF4D] shadow-[0_0_30px_rgba(166,255,77,0.12)]">
-                    <feature.icon size={25} />
+                  <div className="relative z-10 flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full border border-[#A6FF4D]/25 bg-[#07110A] text-[#A6FF4D] shadow-[0_0_30px_rgba(166,255,77,0.12)]">
+                    <feature.icon size={26} />
                   </div>
 
                   <div>
-                    <h3 className="text-[17px] font-bold">{feature.title}</h3>
-                    <p className="mt-1 max-w-[390px] text-[13px] leading-6 text-[#A3B3A3]">
+                    <h3 className="text-[19px] font-bold xl:text-[20px]">
+                      {feature.title}
+                    </h3>
+                    <p className="mt-1 max-w-[520px] text-[15px] leading-6 text-[#A3B3A3] xl:text-[16px]">
                       {feature.desc}
                     </p>
                   </div>
@@ -144,13 +147,13 @@ export default function AdaptiveEngineSection() {
           </div>
 
           {/* CENTER PHONE + ORBIT */}
-          <div className="relative z-10 flex min-h-[570px] items-start justify-center pt-12">
+          <div className="relative z-10 flex min-h-[560px] items-start justify-center pt-12 lg:min-h-[650px]">
             <Image
               src="/assets/Orbitalmesh.png"
               alt="Orbit Ring"
               width={1100}
               height={1100}
-              className="absolute left-1/2 top-[64px] z-0 w-[820px] max-w-none -translate-x-1/2 opacity-[0.72] xl:w-[900px] 2xl:w-[960px]"
+              className="absolute left-1/2 top-[64px] z-0 w-[56vw] max-w-[960px] min-w-[680px] -translate-x-1/2 opacity-[0.72]"
             />
 
             <Metric
@@ -209,21 +212,23 @@ export default function AdaptiveEngineSection() {
           </div>
 
           {/* RIGHT ANALYTICS */}
-          <div className="relative z-20 max-w-[390px] space-y-3 xl:-translate-x-8 2xl:-translate-x-10">
-            <div className="rounded-[26px] border border-[#A6FF4D]/15 bg-[#07110A]/78 p-4 shadow-[0_0_50px_rgba(166,255,77,0.06)] backdrop-blur-md">
-              <h3 className="mb-3 text-xl font-bold">Real-Time Insights</h3>
+          <div className="relative z-20 max-w-[620px] space-y-4 justify-self-start lg:-ml-5 xl:-ml-8">
+            <div className="rounded-[26px] border border-[#A6FF4D]/15 bg-[#07110A]/78 p-4 shadow-[0_0_50px_rgba(166,255,77,0.06)] backdrop-blur-md xl:p-5">
+              <h3 className="mb-4 text-[22px] font-bold xl:text-[24px]">
+                Real-Time Insights
+              </h3>
 
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {topInsightCards.map((card) => (
                   <div
                     key={card.title}
                     className="rounded-2xl border border-white/10 bg-[#07110A]/82 p-3 text-center"
                   >
                     <card.icon
-                      size={27}
+                      size={28}
                       className={`mx-auto mb-2 ${card.color}`}
                     />
-                    <p className="text-[13px] font-bold">{card.title}</p>
+                    <p className="text-[14px] font-bold">{card.title}</p>
                     <p className="mt-1 text-xs text-[#A3B3A3]">
                       {card.subtitle}
                     </p>
@@ -232,15 +237,17 @@ export default function AdaptiveEngineSection() {
               </div>
             </div>
 
-            <div className="rounded-[26px] border border-[#A6FF4D]/15 bg-[#07110A]/78 p-4 backdrop-blur-md">
+            <div className="rounded-[26px] border border-[#A6FF4D]/15 bg-[#07110A]/78 p-4 backdrop-blur-md xl:p-5">
               <div className="flex items-center justify-between gap-4">
-                <h3 className="text-xl font-bold">Progress Over Time</h3>
+                <h3 className="text-[22px] font-bold xl:text-[24px]">
+                  Progress Over Time
+                </h3>
                 <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-[#A3B3A3]">
                   This Week
                 </div>
               </div>
 
-              <div className="relative mt-4 h-[172px] overflow-hidden rounded-2xl border border-white/5 bg-[linear-gradient(180deg,rgba(166,255,77,0.13),rgba(166,255,77,0.02))]">
+              <div className="relative mt-4 h-[180px] overflow-hidden rounded-2xl border border-white/5 bg-[linear-gradient(180deg,rgba(166,255,77,0.13),rgba(166,255,77,0.02))] xl:h-[200px]">
                 <svg viewBox="0 0 520 230" className="h-full w-full">
                   <defs>
                     <linearGradient id="area" x1="0" x2="0" y1="0" y2="1">
@@ -286,6 +293,7 @@ export default function AdaptiveEngineSection() {
                       const y = [
                         150, 120, 110, 105, 78, 105, 130, 128, 100, 88,
                       ][i];
+
                       return (
                         <circle key={x} cx={x} cy={y} r="5" fill="#A6FF4D" />
                       );
@@ -314,26 +322,28 @@ export default function AdaptiveEngineSection() {
               </div>
             </div>
 
-            <div className="rounded-[26px] border border-[#A6FF4D]/15 bg-[#07110A]/78 p-4 backdrop-blur-md">
+            <div className="rounded-[26px] border border-[#A6FF4D]/15 bg-[#07110A]/78 p-4 backdrop-blur-md xl:p-5">
               <div className="flex items-center gap-4">
                 <Image
                   src="/assets/ai-coach.png"
                   alt="AI Coach"
                   width={140}
                   height={140}
-                  className="h-auto w-[86px] shrink-0"
+                  className="h-auto w-[86px] shrink-0 xl:w-[96px]"
                 />
 
                 <div>
-                  <h3 className="text-xl font-bold">AI Coach Tip</h3>
-                  <p className="mt-1.5 text-[15px] font-bold text-[#A6FF4D]">
+                  <h3 className="text-[22px] font-bold xl:text-[24px]">
+                    AI Coach Tip
+                  </h3>
+                  <p className="mt-1.5 text-[15px] font-bold text-[#A6FF4D] xl:text-[16px]">
                     You've been consistent for 5 days!
                   </p>
-                  <p className="mt-1.5 text-sm leading-6 text-[#A3B3A3]">
+                  <p className="mt-1.5 text-sm leading-6 text-[#A3B3A3] xl:text-[15px]">
                     Add 10g more protein to dinner to hit your daily goal.
                   </p>
 
-                  <button className="mt-2.5 rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/10 px-4 py-2 text-sm font-bold text-[#A6FF4D] transition hover:bg-[#A6FF4D]/20">
+                  <button className="mt-3 rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/10 px-4 py-2 text-sm font-bold text-[#A6FF4D] transition hover:bg-[#A6FF4D]/20">
                     View Meal Suggestions →
                   </button>
                 </div>
@@ -343,7 +353,7 @@ export default function AdaptiveEngineSection() {
         </div>
 
         {/* BOTTOM FEATURE BAR */}
-        <div className="mt-8 grid gap-4 rounded-[30px] border border-[#A6FF4D]/15 bg-[#07110A]/70 p-5 backdrop-blur-xl md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-10 grid gap-5 rounded-[30px] border border-[#A6FF4D]/15 bg-[#07110A]/70 p-5 backdrop-blur-xl md:grid-cols-2 xl:grid-cols-4 xl:p-6">
           {bottomFeatures.map((feature) => (
             <div
               key={feature.title}
@@ -354,8 +364,10 @@ export default function AdaptiveEngineSection() {
               </div>
 
               <div>
-                <h3 className="text-base font-bold">{feature.title}</h3>
-                <p className="mt-1.5 text-sm leading-6 text-[#A3B3A3]">
+                <h3 className="text-base font-bold xl:text-[17px]">
+                  {feature.title}
+                </h3>
+                <p className="mt-1.5 text-sm leading-6 text-[#A3B3A3] xl:text-[15px]">
                   {feature.desc}
                 </p>
               </div>
@@ -385,7 +397,9 @@ function Metric({
       <div className="mx-auto mb-2 flex h-13 w-13 items-center justify-center rounded-full border border-[#A6FF4D]/25 bg-[#07110A]/90 text-[#A6FF4D] shadow-[0_0_28px_rgba(166,255,77,0.12)]">
         <div className="[&>svg]:h-7 [&>svg]:w-7">{icon}</div>
       </div>
-      <p className={`text-[24px] font-black leading-none ${color}`}>{value}</p>
+      <p className={`text-[24px] font-black leading-none ${color}`}>
+        {value}
+      </p>
       <p className="mt-1 text-sm text-[#A3B3A3]">{label}</p>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "@/compat/NextImage";
+import { Link } from "react-router-dom";
 
 const scannerFeatures = [
   {
@@ -48,12 +49,15 @@ const macroStats = [
 
 export default function FoodScannerSection() {
   return (
-    <section className="relative overflow-hidden bg-[#030805] px-5 pb-6 pt-2 text-[#F5F8F2] sm:px-8 lg:px-14 lg:pt-3 xl:px-16 2xl:px-20">
+    <section
+      id="scanner"
+      className="relative overflow-hidden bg-[#030805] px-4 pb-10 pt-10 text-[#F5F8F2] sm:px-6 lg:px-8 lg:pt-12 xl:px-10 2xl:px-12"
+    >
       {/* Background */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_42%_40%,rgba(166,255,77,0.18),transparent_34%),radial-gradient(circle_at_84%_20%,rgba(24,211,208,0.045),transparent_28%)]" />
 
-      <div className="pointer-events-none absolute left-[30%] top-[8%] h-[690px] w-[690px] rounded-full border border-[#A6FF4D]/[0.04]" />
-      <div className="pointer-events-none absolute left-[35%] top-[20%] h-[520px] w-[520px] rounded-full border border-[#A6FF4D]/[0.045]" />
+      <div className="pointer-events-none absolute left-[30%] top-[8%] h-[42vw] max-h-[690px] min-h-[360px] w-[42vw] min-w-[360px] max-w-[690px] rounded-full border border-[#A6FF4D]/[0.04]" />
+      <div className="pointer-events-none absolute left-[35%] top-[20%] h-[32vw] max-h-[520px] min-h-[280px] w-[32vw] min-w-[280px] max-w-[520px] rounded-full border border-[#A6FF4D]/[0.045]" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-[180px] w-[680px] bg-[radial-gradient(ellipse_at_bottom_left,rgba(166,255,77,0.12),transparent_60%)]" />
 
       {/* Decorations */}
@@ -62,7 +66,7 @@ export default function FoodScannerSection() {
         alt=""
         width={360}
         height={360}
-        className="pointer-events-none absolute right-[20px] top-[10px] z-0 hidden w-[230px] rotate-[-8deg] opacity-75 lg:block"
+        className="pointer-events-none absolute right-[20px] top-[10px] z-0 hidden w-[15vw] max-w-[230px] min-w-[150px] rotate-[-8deg] opacity-75 lg:block"
       />
 
       <Image
@@ -70,7 +74,7 @@ export default function FoodScannerSection() {
         alt=""
         width={320}
         height={320}
-        className="pointer-events-none absolute right-[12px] top-[300px] z-0 hidden w-[200px] rotate-[18deg] opacity-70 lg:block"
+        className="pointer-events-none absolute right-[12px] top-[300px] z-0 hidden w-[13vw] max-w-[200px] min-w-[135px] rotate-[18deg] opacity-70 lg:block"
       />
 
       <Image
@@ -78,7 +82,7 @@ export default function FoodScannerSection() {
         alt=""
         width={420}
         height={420}
-        className="pointer-events-none absolute bottom-[-150px] right-[-80px] z-0 hidden w-[235px] opacity-95 drop-shadow-[0_30px_70px_rgba(0,0,0,0.7)] lg:block xl:w-[275px]"
+        className="pointer-events-none absolute bottom-[-150px] right-[-80px] z-0 hidden w-[16vw] max-w-[275px] min-w-[210px] opacity-95 drop-shadow-[0_30px_70px_rgba(0,0,0,0.7)] lg:block"
       />
 
       <Image
@@ -89,39 +93,39 @@ export default function FoodScannerSection() {
         className="pointer-events-none absolute right-[-45px] top-[92px] z-0 hidden h-[120px] w-[120px] rounded-full object-cover opacity-65 blur-[0.2px] lg:block"
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-[1540px]">
-        <div className="grid items-center gap-5 lg:grid-cols-[1.05fr_0.95fr_1fr] xl:gap-6">
+      <div className="relative z-10 mx-auto w-full max-w-[92vw] 2xl:max-w-[1780px]">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.02fr_0.96fr_1.02fr] xl:gap-10 2xl:gap-12">
           {/* LEFT CONTENT */}
           <div className="relative z-20 min-w-0">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[#A6FF4D]/20 bg-[#07140B]/80 px-4 py-2 text-xs font-black uppercase tracking-wide text-[#A6FF4D] shadow-[0_0_40px_rgba(166,255,77,0.08)] backdrop-blur-xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-xl border border-[#A6FF4D]/20 bg-[#07140B]/80 px-4 py-2 text-[12px] font-black uppercase tracking-wide text-[#A6FF4D] shadow-[0_0_40px_rgba(166,255,77,0.08)] backdrop-blur-xl sm:text-[13px]">
               <span className="text-base">⌘</span>
               SMART FOOD SCANNER
             </div>
 
-            <h2 className="max-w-[650px] text-[42px] font-black leading-[0.93] tracking-[-0.055em] text-white sm:text-[50px] lg:text-[58px] xl:text-[66px]">
+            <h2 className="max-w-[720px] text-[44px] font-black leading-[0.93] tracking-[-0.055em] text-white sm:text-[56px] lg:text-[64px] xl:text-[76px] 2xl:text-[84px]">
               Scan. Detect.
               <br />
               Understand. <span className="text-[#A6FF4D]">Eat Smart.</span>
             </h2>
 
-            <p className="mt-4 max-w-[600px] text-[16px] leading-[1.65] text-white/70 xl:text-[17px]">
+            <p className="mt-5 max-w-[680px] text-[18px] leading-8 text-white/70 lg:text-[20px] xl:text-[21px]">
               Just click a photo of your food and our AI instantly identifies
               the dish, calculates calories, macros, and provides smarter
               choices for your goals.
             </p>
 
-            <div className="mt-5 space-y-2.5">
+            <div className="mt-7 space-y-4">
               {scannerFeatures.map((feature) => (
                 <div key={feature.title} className="flex items-start gap-5">
-                  <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-3xl border border-[#A6FF4D]/15 bg-[#07140B]/80 text-[23px] font-black text-[#A6FF4D] shadow-[0_0_38px_rgba(166,255,77,0.08)] backdrop-blur-xl">
+                  <div className="flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-3xl border border-[#A6FF4D]/15 bg-[#07140B]/80 text-[24px] font-black text-[#A6FF4D] shadow-[0_0_38px_rgba(166,255,77,0.08)] backdrop-blur-xl">
                     {feature.icon}
                   </div>
 
                   <div className="pt-0.5">
-                    <h3 className="text-[17px] font-black leading-tight text-white">
+                    <h3 className="text-[19px] font-black leading-tight text-white xl:text-[20px]">
                       {feature.title}
                     </h3>
-                    <p className="mt-1 max-w-[420px] text-[13px] leading-5 text-white/62 xl:text-[14px]">
+                    <p className="mt-1 max-w-[520px] text-[15px] leading-6 text-white/62 xl:text-[16px]">
                       {feature.desc}
                     </p>
                   </div>
@@ -129,22 +133,22 @@ export default function FoodScannerSection() {
               ))}
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center gap-7">
-              <a
-                href="#scanner"
-                className="group inline-flex items-center gap-5 rounded-2xl bg-[#B6FF3B] px-8 py-4 text-[16px] font-black text-[#071008] shadow-[0_18px_60px_rgba(166,255,77,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_70px_rgba(166,255,77,0.28)]"
+            <div className="mt-8 flex flex-wrap items-center gap-6">
+              <Link
+                to="/scanner"
+                className="group inline-flex items-center gap-4 rounded-2xl bg-[#B6FF3B] px-8 py-4 text-[18px] font-black text-[#071008] shadow-[0_18px_60px_rgba(166,255,77,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_70px_rgba(166,255,77,0.28)] xl:text-[20px]"
               >
                 Try Scanner Now
                 <span className="text-2xl leading-none transition group-hover:translate-x-1">
                   →
                 </span>
-              </a>
+              </Link>
 
               <a
                 href="#dashboard"
-                className="inline-flex items-center gap-4 text-[16px] font-semibold text-white/88 transition hover:text-white"
+                className="inline-flex items-center gap-4 text-[18px] font-semibold text-white/88 transition hover:text-white xl:text-[20px]"
               >
-                <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-[#B6FF3B]/50 bg-[#07140B]/85 text-[#B6FF3B] shadow-[0_0_36px_rgba(166,255,77,0.12)]">
+                <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full border border-[#B6FF3B]/50 bg-[#07140B]/85 text-[#B6FF3B] shadow-[0_0_36px_rgba(166,255,77,0.12)]">
                   ▶
                 </span>
                 See How It Works
@@ -153,22 +157,22 @@ export default function FoodScannerSection() {
           </div>
 
           {/* CENTER PHONE */}
-          <div className="relative z-20 flex min-h-[545px] items-center justify-center lg:-mt-20 lg:-translate-x-4 lg:-translate-y-8">
-            <div className="pointer-events-none absolute h-[710px] w-[710px] rounded-full bg-[#A6FF4D]/[0.075] blur-[185px]" />
-            <div className="pointer-events-none absolute h-[640px] w-[640px] rounded-full border border-[#A6FF4D]/[0.04]" />
-            <div className="pointer-events-none absolute h-[490px] w-[490px] rounded-full border border-[#A6FF4D]/[0.045]" />
-            <div className="pointer-events-none absolute h-[340px] w-[340px] rounded-full border border-[#A6FF4D]/[0.05]" />
+          <div className="relative z-20 flex min-h-[520px] items-center justify-center lg:min-h-[620px] lg:-translate-x-3 xl:-translate-x-5">
+            <div className="pointer-events-none absolute h-[44vw] max-h-[710px] min-h-[380px] w-[44vw] min-w-[380px] max-w-[710px] rounded-full bg-[#A6FF4D]/[0.075] blur-[185px]" />
+            <div className="pointer-events-none absolute h-[40vw] max-h-[640px] min-h-[340px] w-[40vw] min-w-[340px] max-w-[640px] rounded-full border border-[#A6FF4D]/[0.04]" />
+            <div className="pointer-events-none absolute h-[30vw] max-h-[490px] min-h-[280px] w-[30vw] min-w-[280px] max-w-[490px] rounded-full border border-[#A6FF4D]/[0.045]" />
+            <div className="pointer-events-none absolute h-[22vw] max-h-[340px] min-h-[220px] w-[22vw] min-w-[220px] max-w-[340px] rounded-full border border-[#A6FF4D]/[0.05]" />
 
             <Image
               src="/assets/Phonenew.png"
               alt="Food scanner phone"
               width={700}
               height={1200}
-              className="relative z-10 h-auto w-full max-w-[430px] object-contain drop-shadow-[0_0_90px_rgba(166,255,77,0.34)] xl:max-w-[540px]"
+              className="relative z-10 h-auto w-full max-w-[380px] object-contain drop-shadow-[0_0_90px_rgba(166,255,77,0.34)] sm:max-w-[430px] xl:max-w-[500px] 2xl:max-w-[540px]"
               priority
             />
 
-            <div className="absolute bottom-8 z-20 hidden w-[390px] rounded-2xl border border-[#A6FF4D]/15 bg-[#06120B]/88 px-6 py-4 shadow-[0_0_80px_rgba(166,255,77,0.08)] backdrop-blur-xl md:block">
+            <div className="absolute bottom-6 z-20 hidden w-[390px] rounded-2xl border border-[#A6FF4D]/15 bg-[#06120B]/88 px-6 py-4 shadow-[0_0_80px_rgba(166,255,77,0.08)] backdrop-blur-xl md:block">
               <p className="font-black text-[#A6FF4D]">💡 Scanning Tips</p>
               <p className="mt-1 text-sm text-white/68">
                 Good lighting&nbsp; • &nbsp;Clear view&nbsp; • &nbsp;Single
@@ -178,28 +182,28 @@ export default function FoodScannerSection() {
           </div>
 
           {/* RIGHT ANALYTICS */}
-          <div className="relative z-30 min-w-0 max-w-[548px] justify-self-start space-y-3 lg:-ml-9 xl:-ml-12">
-            <div className="min-w-0 rounded-[24px] border border-[#A6FF4D]/15 bg-[#06120B]/76 p-3.5 shadow-[0_0_70px_rgba(166,255,77,0.04)] backdrop-blur-xl">
+          <div className="relative z-30 min-w-0 max-w-[620px] justify-self-start space-y-4 lg:-ml-5 xl:-ml-8">
+            <div className="min-w-0 rounded-[26px] border border-[#A6FF4D]/15 bg-[#06120B]/76 p-4 shadow-[0_0_70px_rgba(166,255,77,0.04)] backdrop-blur-xl xl:p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-[16px] font-bold text-white">
+                  <p className="text-[17px] font-bold text-white">
                     Detected Food
                   </p>
 
                   <div className="mt-1.5 flex items-center gap-3">
-                    <h3 className="text-[23px] font-black leading-tight text-[#A6FF4D] xl:text-[26px]">
+                    <h3 className="text-[25px] font-black leading-tight text-[#A6FF4D] xl:text-[30px]">
                       Bengali Style Fish Curry
                     </h3>
                     <span className="text-[#A6FF4D]">✹</span>
                   </div>
 
-                  <p className="mt-1.5 text-[14px] text-white/64">
+                  <p className="mt-1.5 text-[15px] text-white/64">
                     Hilsa fish, Rice, Potato curry, Salad
                   </p>
                 </div>
 
                 <div className="shrink-0 rounded-2xl border border-[#A6FF4D]/20 bg-[#09170C]/80 px-4 py-3 text-center">
-                  <p className="text-[23px] font-black leading-none text-[#A6FF4D]">
+                  <p className="text-[25px] font-black leading-none text-[#A6FF4D]">
                     90%
                   </p>
                   <p className="mt-1 text-xs font-semibold text-[#A6FF4D]">
@@ -208,12 +212,12 @@ export default function FoodScannerSection() {
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-[1.05fr_1fr_1fr_1fr] items-center gap-3 rounded-[20px] border border-[#A6FF4D]/10 bg-white/[0.025] px-4 py-3">
+              <div className="mt-4 grid grid-cols-1 items-center gap-4 rounded-[20px] border border-[#A6FF4D]/10 bg-white/[0.025] px-4 py-4 sm:grid-cols-[1.05fr_1fr_1fr_1fr]">
                 <div>
                   <p className="text-sm font-semibold text-white/78">
                     Calories
                   </p>
-                  <p className="mt-2 text-[26px] font-black leading-none text-white">
+                  <p className="mt-2 text-[30px] font-black leading-none text-white">
                     650{" "}
                     <span className="text-base font-bold text-white/70">
                       kcal
@@ -233,10 +237,10 @@ export default function FoodScannerSection() {
                       {macro.label}
                     </p>
                     <div
-                      className={`flex h-[66px] w-[66px] items-center justify-center rounded-full border-[5px] bg-[#07120B] ${macro.color}`}
+                      className={`flex h-[72px] w-[72px] items-center justify-center rounded-full border-[5px] bg-[#07120B] ${macro.color}`}
                     >
                       <div className="text-center">
-                        <p className="text-[17px] font-black leading-none text-white">
+                        <p className="text-[18px] font-black leading-none text-white">
                           {macro.value}
                         </p>
                         <p
@@ -252,13 +256,13 @@ export default function FoodScannerSection() {
                 ))}
               </div>
 
-              <div className="mt-3 grid overflow-hidden rounded-[22px] border border-[#A6FF4D]/10 md:grid-cols-[1.35fr_0.9fr]">
-                <div className="p-3.5">
-                  <h4 className="text-[16px] font-black text-white">
+              <div className="mt-4 grid overflow-hidden rounded-[22px] border border-[#A6FF4D]/10 md:grid-cols-[1.35fr_0.9fr]">
+                <div className="p-4">
+                  <h4 className="text-[17px] font-black text-white">
                     Nutrition Facts
                   </h4>
 
-                  <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-[13px] text-white/65">
+                  <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-[14px] text-white/65">
                     <p className="flex justify-between gap-5">
                       <span>Fiber</span>
                       <span>5.6g</span>
@@ -286,14 +290,14 @@ export default function FoodScannerSection() {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-center border-t border-[#A6FF4D]/10 p-3.5 md:border-l md:border-t-0">
-                  <h4 className="text-[16px] font-black text-white">
+                <div className="flex flex-col items-center justify-center border-t border-[#A6FF4D]/10 p-4 md:border-l md:border-t-0">
+                  <h4 className="text-[17px] font-black text-white">
                     Quality Score
                   </h4>
 
-                  <div className="mt-3 flex h-[82px] w-[82px] items-center justify-center rounded-full border-[7px] border-[#A6FF4D] bg-[#08120B] shadow-[0_0_35px_rgba(166,255,77,0.14)]">
+                  <div className="mt-3 flex h-[88px] w-[88px] items-center justify-center rounded-full border-[7px] border-[#A6FF4D] bg-[#08120B] shadow-[0_0_35px_rgba(166,255,77,0.14)]">
                     <div className="text-center">
-                      <p className="text-[29px] font-black leading-none text-white">
+                      <p className="text-[31px] font-black leading-none text-white">
                         82
                       </p>
                       <p className="mt-1 text-xs text-white/60">/100</p>
@@ -307,13 +311,13 @@ export default function FoodScannerSection() {
               </div>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="min-h-[112px] rounded-[22px] border border-[#A6FF4D]/15 bg-[#06120B]/76 p-3.5 backdrop-blur-xl">
-                <h4 className="text-[16px] font-black text-[#A6FF4D]">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="min-h-[124px] rounded-[22px] border border-[#A6FF4D]/15 bg-[#06120B]/76 p-4 backdrop-blur-xl">
+                <h4 className="text-[17px] font-black text-[#A6FF4D]">
                   ✨ AI Insights
                 </h4>
 
-                <p className="mt-2 text-[13px] leading-5 text-white/65">
+                <p className="mt-2 text-[14px] leading-6 text-white/65">
                   Great choice! This meal is high in protein and provides
                   balanced macros.
                 </p>
@@ -331,8 +335,8 @@ export default function FoodScannerSection() {
                 </div>
               </div>
 
-              <div className="min-h-[112px] rounded-[22px] border border-[#A6FF4D]/15 bg-[#06120B]/76 p-3.5 backdrop-blur-xl">
-                <h4 className="text-[16px] font-black text-white">
+              <div className="min-h-[124px] rounded-[22px] border border-[#A6FF4D]/15 bg-[#06120B]/76 p-4 backdrop-blur-xl">
+                <h4 className="text-[17px] font-black text-white">
                   ♡ Better Alternatives
                 </h4>
 
@@ -346,7 +350,7 @@ export default function FoodScannerSection() {
                   />
 
                   <div>
-                    <p className="text-[13px] font-bold leading-5 text-white">
+                    <p className="text-[14px] font-bold leading-5 text-white">
                       Grilled Fish
                       <br />
                       with Brown Rice
@@ -361,17 +365,17 @@ export default function FoodScannerSection() {
               </div>
             </div>
 
-            <div className="relative z-40 flex items-center gap-4 rounded-[22px] border border-[#A6FF4D]/15 bg-[#06120B]/76 p-3.5 backdrop-blur-xl">
+            <div className="relative z-40 flex items-center gap-4 rounded-[22px] border border-[#A6FF4D]/15 bg-[#06120B]/76 p-4 backdrop-blur-xl">
               <div className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#A6FF4D]/10 text-2xl md:flex">
                 🤖
               </div>
 
               <div>
-                <h4 className="text-[16px] font-black text-[#A6FF4D]">
+                <h4 className="text-[17px] font-black text-[#A6FF4D]">
                   AI Recommendation
                 </h4>
 
-                <p className="mt-1.5 text-[13px] leading-5 text-white/65">
+                <p className="mt-1.5 text-[14px] leading-6 text-white/65">
                   Try adding more vegetables to improve fiber intake. A side of
                   salad or steamed veggies would be perfect!
                 </p>

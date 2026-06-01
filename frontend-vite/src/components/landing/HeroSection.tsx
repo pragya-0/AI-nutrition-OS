@@ -39,7 +39,7 @@ const featureCards = [
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#030805] px-5 pb-8 pt-0 text-[#F5F8F2] sm:px-8 lg:px-14 xl:px-16 2xl:px-20">
+<section className="relative overflow-hidden bg-[#030805] px-4 pb-4 pt-0 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       {/* Ambient Background */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(166,255,77,0.16),transparent_30%),radial-gradient(circle_at_78%_22%,rgba(166,255,77,0.11),transparent_26%),radial-gradient(circle_at_70%_76%,rgba(24,211,208,0.06),transparent_24%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(3,8,5,0)_0%,rgba(3,8,5,0.38)_58%,#030805_100%)]" />
@@ -85,18 +85,17 @@ export default function HeroSection() {
         height={160}
         className="pointer-events-none absolute left-[47%] top-[410px] z-0 hidden w-[105px] rotate-[22deg] opacity-60 lg:block"
       />
-
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-145px)] w-full max-w-[1560px] flex-col justify-center">
+<div className="relative z-10 mx-auto flex w-full max-w-[92vw] flex-col justify-center py-8 lg:py-10 2xl:max-w-[1780px]">
         {/* HERO GRID */}
-        <div className="grid items-center gap-10 lg:grid-cols-[0.8fr_1.2fr] xl:gap-12 2xl:gap-14">
+        <div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] xl:gap-10 2xl:gap-12">
           {/* LEFT CONTENT */}
-          <div className="relative z-20 flex w-full max-w-[560px] flex-col">
+          <div className="relative z-20 flex w-full max-w-[720px] flex-col">
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-5 inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-[#A6FF4D]/20 bg-[#A6FF4D]/10 px-4 py-2 text-[10px] font-black tracking-[0.09em] text-[#A6FF4D] shadow-[0_0_30px_rgba(166,255,77,0.08)] sm:text-[11px]"
+              className="mb-5 inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-[#A6FF4D]/20 bg-[#A6FF4D]/10 px-5 py-2.5 text-[12px] font-black tracking-[0.09em] text-[#A6FF4D] shadow-[0_0_30px_rgba(166,255,77,0.08)] sm:text-[13px]"
             >
-              <Star size={12} fill="currentColor" />
+              <Star size={15} fill="currentColor" />
               <span className="truncate">
                 AI POWERED • SCIENCE BACKED • MADE FOR YOU
               </span>
@@ -106,7 +105,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 }}
-              className="max-w-[510px] text-[46px] font-black leading-[0.9] tracking-[-0.065em] text-[#F5F8F2] sm:text-[60px] lg:text-[70px] xl:text-[74px] 2xl:text-[78px]"
+              className="max-w-[680px] text-[52px] font-black leading-[0.9] tracking-[-0.065em] text-[#F5F8F2] sm:text-[64px] lg:text-[78px] xl:text-[88px] 2xl:text-[94px]"
             >
               <span className="block whitespace-nowrap">Your Personal</span>
 
@@ -121,7 +120,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.14 }}
-              className="mt-5 max-w-[455px] text-[15px] leading-7 text-[#A8B5A3] md:text-[16px] md:leading-8"
+              className="mt-6 max-w-[680px] text-[20px] leading-9 text-[#A8B5A3] lg:text-[22px] lg:leading-10"
             >
               Personalized meal plans, smart food scanning, macro tracking and
               adaptive health intelligence powered by AI.
@@ -131,21 +130,21 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.22 }}
-              className="mt-7 flex flex-wrap items-center gap-3"
+              className="mt-8 flex flex-wrap items-center gap-4"
             >
- <Link
-  to="/dashboard"
-  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#A6FF4D] px-7 py-3.5 text-[15px] font-black text-[#07110A] shadow-[0_0_40px_rgba(166,255,77,0.22)] transition duration-300 hover:scale-[1.02] hover:bg-[#B8FF6C]"
->
-  Get Your Plan
-  <ArrowRight size={17} />
-</Link>
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#A6FF4D] px-8 py-4 text-[20px] font-black text-[#07110A] shadow-[0_0_40px_rgba(166,255,77,0.22)] transition duration-300 hover:scale-[1.02] hover:bg-[#B8FF6C] lg:text-[22px]"
+              >
+                Get Your Plan
+                <ArrowRight size={22} />
+              </Link>
 
               <a
                 href="#dashboard"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-7 py-3.5 text-[15px] font-bold text-white/90 backdrop-blur-xl transition duration-300 hover:border-[#A6FF4D]/30 hover:bg-white/[0.07]"
+                className="inline-flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.045] px-8 py-4 text-[20px] font-bold text-white/90 backdrop-blur-xl transition duration-300 hover:border-[#A6FF4D]/30 hover:bg-white/[0.07] lg:text-[22px]"
               >
-                <Play size={15} fill="currentColor" />
+                <Play size={21} fill="currentColor" />
                 See How It Works
               </a>
             </motion.div>
@@ -154,43 +153,43 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="mt-7 flex flex-wrap items-center gap-4"
+              className="mt-8 flex flex-wrap items-center gap-5"
             >
               <Image
                 src="/assets/avatars.png"
                 alt="Loved by users"
                 width={180}
                 height={50}
-                className="h-auto w-[152px]"
+                className="h-auto w-[172px]"
                 priority
               />
 
               <div>
                 <div className="flex gap-1 text-[#A6FF4D]">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} size={14} fill="currentColor" />
+                    <Star key={i} size={17} fill="currentColor" />
                   ))}
                 </div>
 
-                <p className="mt-1 text-[14px] text-[#A8B5A3]">
+                <p className="mt-1 text-[16px] text-[#A8B5A3]">
                   Loved by 50K+ users
                 </p>
               </div>
             </motion.div>
 
             {/* Feature Icons */}
-            <div className="mt-7 grid max-w-[620px] grid-cols-2 gap-x-5 gap-y-5 sm:grid-cols-4">
+            <div className="mt-8 grid max-w-[720px] grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
               {featureCards.map((card) => (
                 <div key={card.title} className="flex flex-col items-start">
-                  <div className="mb-3 flex h-13 w-13 items-center justify-center rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/10 text-[#A6FF4D]">
-                    <card.icon size={22} />
+                  <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/10 text-[#A6FF4D]">
+                    <card.icon size={25} />
                   </div>
 
-                  <h3 className="text-[12px] font-black text-white">
+                  <h3 className="text-[18px] font-black leading-tight text-white lg:text-[20px]">
                     {card.title}
                   </h3>
 
-                  <p className="mt-1 text-[10px] leading-4 text-[#9AA79A]">
+                  <p className="mt-1 text-[15px] leading-5 text-[#9AA79A] lg:text-[16px]">
                     {card.subtitle}
                   </p>
                 </div>

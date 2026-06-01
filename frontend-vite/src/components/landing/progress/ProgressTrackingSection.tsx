@@ -123,19 +123,19 @@ function HealthScoreRing() {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="relative grid h-[82px] w-[82px] place-items-center">
+      <div className="relative grid h-[88px] w-[88px] place-items-center">
         <svg className="absolute inset-0 h-full w-full -rotate-90">
           <circle
-            cx="41"
-            cy="41"
+            cx="44"
+            cy="44"
             r={radius}
             stroke="rgba(255,255,255,0.06)"
             strokeWidth="6"
             fill="none"
           />
           <circle
-            cx="41"
-            cy="41"
+            cx="44"
+            cy="44"
             r={radius}
             stroke="#9DFF16"
             strokeWidth="6"
@@ -148,12 +148,12 @@ function HealthScoreRing() {
         </svg>
 
         <div className="text-center">
-          <div className="text-[24px] font-black leading-none">82</div>
+          <div className="text-[26px] font-black leading-none">82</div>
           <div className="text-[10px] text-white/45">/100</div>
         </div>
       </div>
 
-      <p className="mt-0.5 text-[10px] font-semibold text-[#9DFF16]">
+      <p className="mt-0.5 text-[11px] font-semibold text-[#9DFF16]">
         Great Progress!
       </p>
     </div>
@@ -162,55 +162,56 @@ function HealthScoreRing() {
 
 export default function ProgressTrackingSection() {
   return (
-    <section className="relative isolate overflow-hidden bg-[#030805] pt-6 pb-8 text-white sm:pt-8 sm:pb-10 xl:pt-6 xl:pb-10">
+    <section className="relative isolate overflow-hidden bg-[#030805] px-4 pb-12 pt-12 text-white sm:px-6 lg:px-8 lg:pt-14 xl:px-10 2xl:px-12">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(157,255,22,0.07),transparent_24%),radial-gradient(circle_at_82%_72%,rgba(157,255,22,0.07),transparent_30%),radial-gradient(circle_at_20%_82%,rgba(157,255,22,0.055),transparent_28%)]" />
-      <div className="absolute bottom-[-240px] left-1/2 h-[620px] w-[1350px] -translate-x-1/2 rounded-full bg-[#9DFF16]/[0.045] blur-[120px]" />
+      <div className="absolute bottom-[-240px] left-1/2 h-[620px] w-[72vw] max-w-[1350px] min-w-[900px] -translate-x-1/2 rounded-full bg-[#9DFF16]/[0.045] blur-[120px]" />
       <div className="absolute bottom-0 left-0 right-0 h-[330px] bg-[radial-gradient(ellipse_at_bottom,rgba(157,255,22,0.08),transparent_62%)]" />
 
-      <div className="relative mx-auto w-full max-w-[1560px] px-5 sm:px-7 lg:px-8 xl:px-10">
-        <div className="grid items-start gap-5 xl:grid-cols-[350px_700px_320px] xl:gap-x-4 xl:gap-y-5 2xl:grid-cols-[390px_740px_340px]">
-          <div className="space-y-4 xl:col-start-1 xl:row-start-1">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#9DFF16]/20 bg-[#08100B]/80 px-4 py-2 text-xs font-semibold text-[#9DFF16] shadow-[0_0_20px_rgba(157,255,22,0.08)]">
-              <Trophy className="h-3.5 w-3.5" />
+      <div className="relative z-10 mx-auto w-full max-w-[92vw] 2xl:max-w-[1780px]">
+        <div className="grid items-start gap-10 xl:grid-cols-[0.9fr_1.5fr_0.9fr] xl:gap-8 2xl:gap-10">
+          {/* LEFT CONTENT */}
+          <div className="space-y-5 xl:col-start-1 xl:row-start-1">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#9DFF16]/20 bg-[#08100B]/80 px-5 py-2.5 text-[12px] font-semibold text-[#9DFF16] shadow-[0_0_20px_rgba(157,255,22,0.08)] sm:text-[13px]">
+              <Trophy className="h-4 w-4" />
               PROGRESS TRACKING
             </div>
 
             <div>
-              <h2 className="max-w-[350px] text-[42px] font-black leading-[0.9] tracking-[-0.06em] sm:text-[52px] xl:text-[48px] 2xl:text-[54px]">
+              <h2 className="max-w-[720px] text-[44px] font-black leading-[0.9] tracking-[-0.06em] sm:text-[56px] lg:text-[64px] xl:text-[70px] 2xl:text-[80px]">
                 Track Today.
                 <br />
                 <span className="text-[#9DFF16]">Transform</span> Tomorrow.
               </h2>
 
-              <p className="mt-5 max-w-[330px] text-[15px] leading-7 text-white/64 xl:text-[16px]">
+              <p className="mt-5 max-w-[680px] text-[18px] leading-8 text-white/64 lg:text-[20px] xl:text-[21px]">
                 Monitor your daily habits, workouts, nutrition and more. Our AI
                 turns your data into progress and helps you stay consistent
                 every day.
               </p>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {features.map((item) => (
                 <div
                   key={item.title}
-                  className="flex items-center justify-between gap-3 rounded-[22px] border border-white/6 bg-[#08100B]/72 px-3.5 py-2.5 backdrop-blur-xl"
+                  className="flex items-center justify-between gap-4 rounded-[24px] border border-white/6 bg-[#08100B]/72 px-4 py-3 backdrop-blur-xl xl:px-4 xl:py-3.5"
                 >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/6 bg-black/25">
-                      <item.icon className={`h-[18px] w-[18px] ${item.color}`} />
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/6 bg-black/25">
+                      <item.icon className={`h-5 w-5 ${item.color}`} />
                     </div>
 
                     <div className="min-w-0">
-                      <h4 className="text-[15px] font-bold leading-tight">
+                      <h4 className="text-[17px] font-bold leading-tight xl:text-[18px]">
                         {item.title}
                       </h4>
-                      <p className="mt-1 max-w-[175px] text-[12px] leading-5 text-white/52">
+                      <p className="mt-1 max-w-[280px] text-[13px] leading-5 text-white/52 xl:text-[14px]">
                         {item.desc}
                       </p>
                     </div>
                   </div>
 
-                  <div className={`shrink-0 text-[14px] font-black ${item.color}`}>
+                  <div className={`shrink-0 text-[16px] font-black ${item.color}`}>
                     {item.value}
                   </div>
                 </div>
@@ -218,9 +219,10 @@ export default function ProgressTrackingSection() {
             </div>
           </div>
 
-          <div className="h-fit rounded-[32px] border border-[#9DFF16]/18 bg-[#07100A]/80 p-5 shadow-[0_0_40px_rgba(157,255,22,0.07)] backdrop-blur-xl xl:col-start-2 xl:row-start-1">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <h3 className="text-[25px] font-black tracking-[-0.035em] xl:text-[26px]">
+          {/* CENTER OVERVIEW */}
+          <div className="h-fit rounded-[32px] border border-[#9DFF16]/18 bg-[#07100A]/80 p-5 shadow-[0_0_40px_rgba(157,255,22,0.07)] backdrop-blur-xl xl:col-start-2 xl:row-start-1 xl:p-6">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <h3 className="text-[26px] font-black tracking-[-0.035em] xl:text-[30px]">
                 Your Progress Overview
               </h3>
 
@@ -229,7 +231,7 @@ export default function ProgressTrackingSection() {
               </button>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 {
                   icon: Flame,
@@ -258,15 +260,15 @@ export default function ProgressTrackingSection() {
               ].map((card) => (
                 <div
                   key={card.title}
-                  className="rounded-[20px] border border-white/6 bg-[#08100B]/72 px-4 py-4"
+                  className="rounded-[22px] border border-white/6 bg-[#08100B]/72 px-4 py-4"
                 >
                   <div className="flex items-center gap-2">
-                    <card.icon className={`h-[17px] w-[17px] ${card.color}`} />
-                    <p className="text-[12px] text-white/65">{card.title}</p>
+                    <card.icon className={`h-[18px] w-[18px] ${card.color}`} />
+                    <p className="text-[13px] text-white/65">{card.title}</p>
                   </div>
 
                   <div className="mt-3 flex items-end gap-1.5">
-                    <div className="text-[31px] font-black leading-none xl:text-[32px]">
+                    <div className="text-[32px] font-black leading-none xl:text-[36px]">
                       {card.value}
                     </div>
                     <div className="pb-1 text-xs text-white/45">
@@ -274,29 +276,29 @@ export default function ProgressTrackingSection() {
                     </div>
                   </div>
 
-                  <p className={`mt-2 text-[11px] font-semibold ${card.color}`}>
+                  <p className={`mt-2 text-[12px] font-semibold ${card.color}`}>
                     {card.sub}
                   </p>
                 </div>
               ))}
 
-              <div className="rounded-[20px] border border-white/6 bg-[#08100B]/72 px-4 py-4">
-                <p className="text-center text-[12px] text-white/65">
+              <div className="rounded-[22px] border border-white/6 bg-[#08100B]/72 px-4 py-4">
+                <p className="text-center text-[13px] text-white/65">
                   Health Score
                 </p>
                 <HealthScoreRing />
               </div>
             </div>
 
-            <div className="mt-4 rounded-[26px] border border-white/6 bg-[#08100B]/72 p-4">
-              <div className="mb-2 flex items-start justify-between gap-4">
-                <h4 className="flex items-center gap-2 text-[19px] font-black tracking-[-0.02em]">
-                  <TrendingUp className="h-[18px] w-[18px] text-cyan-400" />
+            <div className="mt-5 rounded-[28px] border border-white/6 bg-[#08100B]/72 p-5">
+              <div className="mb-3 flex items-start justify-between gap-4">
+                <h4 className="flex items-center gap-2 text-[21px] font-black tracking-[-0.02em] xl:text-[23px]">
+                  <TrendingUp className="h-5 w-5 text-cyan-400" />
                   Weight Trend
                 </h4>
 
                 <div className="text-right">
-                  <div className="text-[30px] font-black leading-none text-[#9DFF16]">
+                  <div className="text-[32px] font-black leading-none text-[#9DFF16] xl:text-[36px]">
                     68.4 kg
                   </div>
                   <p className="mt-1 text-xs text-white/45">
@@ -305,7 +307,7 @@ export default function ProgressTrackingSection() {
                 </div>
               </div>
 
-              <div className="h-[165px] w-full">
+              <div className="h-[190px] w-full xl:h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={weightData}
@@ -379,18 +381,20 @@ export default function ProgressTrackingSection() {
               </div>
             </div>
 
-            <div className="mt-3 grid gap-3 lg:grid-cols-2">
-              <div className="rounded-[24px] border border-white/6 bg-[#08100B]/72 p-4">
-                <h4 className="text-[17px] font-black">Macronutrient Balance</h4>
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <div className="rounded-[26px] border border-white/6 bg-[#08100B]/72 p-5">
+                <h4 className="text-[19px] font-black">
+                  Macronutrient Balance
+                </h4>
 
-                <div className="mt-3 flex items-center gap-4">
-                  <div className="h-[96px] w-[96px]">
+                <div className="mt-4 flex items-center gap-5">
+                  <div className="h-[110px] w-[110px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
                           data={macroData}
-                          innerRadius={34}
-                          outerRadius={43}
+                          innerRadius={38}
+                          outerRadius={50}
                           paddingAngle={2}
                           dataKey="value"
                         >
@@ -402,7 +406,7 @@ export default function ProgressTrackingSection() {
                     </ResponsiveContainer>
                   </div>
 
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-[15px]">
                     {macroData.map((item) => (
                       <div key={item.name} className="flex items-center gap-2.5">
                         <span
@@ -417,10 +421,10 @@ export default function ProgressTrackingSection() {
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-white/6 bg-[#08100B]/72 p-4">
-                <h4 className="text-[17px] font-black">Calorie Intake</h4>
+              <div className="rounded-[26px] border border-white/6 bg-[#08100B]/72 p-5">
+                <h4 className="text-[19px] font-black">Calorie Intake</h4>
 
-                <div className="mt-4 text-[36px] font-black leading-none text-[#9DFF16]">
+                <div className="mt-4 text-[38px] font-black leading-none text-[#9DFF16] xl:text-[42px]">
                   1,650{" "}
                   <span className="text-[14px] text-white/50">/ 2,200 kcal</span>
                 </div>
@@ -429,49 +433,50 @@ export default function ProgressTrackingSection() {
                   <div className="h-full w-[75%] rounded-full bg-[#9DFF16]" />
                 </div>
 
-                <p className="mt-3 text-[14px] font-bold text-[#9DFF16]">
+                <p className="mt-3 text-[15px] font-bold text-[#9DFF16]">
                   75% of daily goal
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex h-full flex-col gap-3 xl:col-start-3 xl:row-start-1">
-            <div className="relative rounded-[30px] border border-[#9DFF16]/16 bg-[#07100A]/78 px-5 py-5 backdrop-blur-xl">
+          {/* RIGHT CONTENT */}
+          <div className="flex h-full flex-col gap-4 xl:col-start-3 xl:row-start-1">
+            <div className="relative rounded-[30px] border border-[#9DFF16]/16 bg-[#07100A]/78 px-5 py-5 backdrop-blur-xl xl:p-6">
               <Sparkles className="absolute right-5 top-5 h-5 w-5 text-[#9DFF16]" />
 
               <div className="flex items-center gap-3">
                 <Bot className="h-7 w-7 text-[#9DFF16]" />
-                <h4 className="text-[23px] font-black leading-none tracking-[-0.035em]">
+                <h4 className="text-[24px] font-black leading-none tracking-[-0.035em] xl:text-[26px]">
                   AI Coach Insights
                 </h4>
               </div>
 
-              <p className="mt-4 text-[17px] font-black leading-[1.25] text-[#9DFF16]">
+              <p className="mt-4 text-[18px] font-black leading-[1.25] text-[#9DFF16] xl:text-[20px]">
                 Great job staying consistent!
               </p>
 
-              <p className="mt-3 text-[14px] leading-6 text-white/65">
+              <p className="mt-3 text-[15px] leading-6 text-white/65 xl:text-[16px]">
                 Your protein intake is on point. Try increasing your water
                 intake by 0.5L for even better results.
               </p>
             </div>
 
-            <div className="rounded-[30px] border border-[#9DFF16]/16 bg-[#07100A]/78 p-5 backdrop-blur-xl">
-              <h4 className="text-[23px] font-black tracking-[-0.035em]">
+            <div className="rounded-[30px] border border-[#9DFF16]/16 bg-[#07100A]/78 p-5 backdrop-blur-xl xl:p-6">
+              <h4 className="text-[24px] font-black tracking-[-0.035em] xl:text-[26px]">
                 Habits Overview
               </h4>
 
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-3">
                 {habits.map((habit, index) => (
                   <div
                     key={habit.name}
-                    className="rounded-2xl border border-white/6 bg-[#08100B]/72 px-3 py-2"
+                    className="rounded-2xl border border-white/6 bg-[#08100B]/72 px-3 py-3"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex min-w-[105px] items-center gap-2.5">
+                      <div className="flex min-w-[115px] items-center gap-2.5">
                         <habit.icon className={`h-[18px] w-[18px] ${habit.color}`} />
-                        <span className="text-[14px] font-bold tracking-[-0.02em]">
+                        <span className="text-[14px] font-bold tracking-[-0.02em] xl:text-[15px]">
                           {habit.name}
                         </span>
                       </div>
@@ -505,19 +510,20 @@ export default function ProgressTrackingSection() {
             </div>
           </div>
 
-          <div className="rounded-[30px] border border-[#9DFF16]/16 bg-[#07100A]/78 p-5 backdrop-blur-xl xl:col-start-1 xl:row-start-2 xl:min-h-[150px]">
+          {/* DAILY STREAK */}
+          <div className="rounded-[30px] border border-[#9DFF16]/16 bg-[#07100A]/78 p-5 backdrop-blur-xl xl:col-start-1 xl:row-start-2 xl:min-h-[170px] xl:p-6">
             <div className="flex items-center gap-4">
               <Flame className="h-10 w-10 text-orange-400" />
 
               <div>
-                <h4 className="text-[16px] font-bold">Daily Streak</h4>
-                <div className="text-[34px] font-black leading-none">
+                <h4 className="text-[17px] font-bold">Daily Streak</h4>
+                <div className="text-[36px] font-black leading-none">
                   12 <span className="text-base text-white/55">days</span>
                 </div>
               </div>
             </div>
 
-            <p className="mt-3 text-sm leading-6 text-white/55">
+            <p className="mt-3 text-[15px] leading-6 text-white/55">
               Keep it up! Consistency builds results.
             </p>
 
@@ -539,26 +545,27 @@ export default function ProgressTrackingSection() {
             </div>
           </div>
 
-          <div className="rounded-[30px] border border-[#9DFF16]/16 bg-[#07100A]/78 px-5 py-5 shadow-[0_0_28px_rgba(157,255,22,0.045)] backdrop-blur-xl xl:col-span-2 xl:col-start-2 xl:row-start-2 xl:min-h-[150px]">
+          {/* ACHIEVEMENTS */}
+          <div className="rounded-[30px] border border-[#9DFF16]/16 bg-[#07100A]/78 px-5 py-5 shadow-[0_0_28px_rgba(157,255,22,0.045)] backdrop-blur-xl xl:col-span-2 xl:col-start-2 xl:row-start-2 xl:min-h-[170px] xl:p-6">
             <div className="mb-4 flex items-center gap-2.5">
               <Trophy className="h-5 w-5 text-[#9DFF16]" />
-              <h4 className="text-[24px] font-black tracking-[-0.03em]">
+              <h4 className="text-[25px] font-black tracking-[-0.03em] xl:text-[28px]">
                 Achievements
               </h4>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))]">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {achievements.map((badge) => (
                 <div
                   key={badge.title}
-                  className="flex min-h-[68px] items-center gap-3 rounded-2xl border border-white/6 bg-[#08100B]/72 px-3 py-2.5"
+                  className="flex min-h-[78px] items-center gap-3 rounded-2xl border border-white/6 bg-[#08100B]/72 px-3 py-3"
                 >
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/6 bg-[#9DFF16]/10">
-                    <badge.icon className={`h-[18px] w-[18px] ${badge.color}`} />
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/6 bg-[#9DFF16]/10">
+                    <badge.icon className={`h-5 w-5 ${badge.color}`} />
                   </div>
 
                   <div className="min-w-0">
-                    <h5 className="whitespace-nowrap text-[14px] font-bold">
+                    <h5 className="whitespace-nowrap text-[15px] font-bold">
                       {badge.title}
                     </h5>
                     <p className="mt-0.5 whitespace-nowrap text-[12px] text-white/45">
