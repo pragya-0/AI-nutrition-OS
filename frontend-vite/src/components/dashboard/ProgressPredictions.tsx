@@ -421,7 +421,7 @@ export default function ProgressPredictions() {
           </div>
         )}
 
-        <div className="grid gap-5 2xl:grid-cols-[0.72fr_1.28fr]">
+        <div className="grid gap-5 xl:grid-cols-[0.72fr_1.28fr]">
           <div className="rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_0_50px_rgba(166,255,77,.07)]">
             <h3 className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
               Overall Progress
@@ -519,7 +519,7 @@ export default function ProgressPredictions() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {data.trendMetrics.map((metric) => {
                 const Icon = metric.icon;
 
@@ -575,7 +575,7 @@ export default function ProgressPredictions() {
             </button>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {data.predictions.map((prediction) => {
               const Icon = prediction.icon;
               const theme = themeStyles[prediction.theme];
