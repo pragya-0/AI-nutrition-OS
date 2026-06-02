@@ -76,14 +76,16 @@ export default function ScannerHeroUpload() {
   return (
     <div className="min-h-screen bg-[#030805] px-4 pb-4 pt-3 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       <header className="mx-auto mb-4 flex max-w-[1780px] items-center justify-between rounded-[26px] border border-white/10 bg-[#020604]/95 px-5 py-3 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-        <a href="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/10 text-[#A6FF4D]">
-            <Sparkles size={22} />
-          </div>
-          <p className="hidden text-[18px] font-black tracking-[0.04em] sm:block">
-            AI NUTRITION OS
-          </p>
-        </a>
+      <a href="/" className="flex items-center gap-3">
+  <Image
+    src="/assets/logo.png"
+    alt="AI Nutrition OS"
+    width={180}
+    height={42}
+    className="h-[38px] w-auto object-contain"
+    priority
+  />
+</a>
 
         <nav className="hidden items-center gap-1.5 xl:flex">
           {navItems.map((item) => {
