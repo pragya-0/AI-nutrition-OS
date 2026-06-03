@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "@/compat/NextImage";
+
 import { getScanHistory } from "@/services/api";
 import {
   ArrowLeft,

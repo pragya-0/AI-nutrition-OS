@@ -193,14 +193,7 @@ export default function NutritionIntelligence({ result }: { result?: ScanResult 
   const proTip = backendImpact?.pro_tip || result?.suggestions?.[0] || "Keep portion size aligned with your nutrition goal.";
   const impactSource = backendImpact?.source || "frontend_fallback_until_backend_update";
 
-  const micronutrients = [
-    ["Calcium", numberValue(result?.micronutrients?.calcium, 20), "#A6FF4D"],
-    ["Iron", numberValue(result?.micronutrients?.iron, 12), "#25C8F5"],
-    ["Vitamin A", numberValue(result?.micronutrients?.vitamin_a, 18), "#25C8F5"],
-    ["Vitamin C", numberValue(result?.micronutrients?.vitamin_c, 10), "#FFB323"],
-    ["Potassium", numberValue(result?.micronutrients?.potassium, 18), "#FF5E7E"],
-    ["Magnesium", numberValue(result?.micronutrients?.magnesium, 14), "#9C6BFF"],
-  ] as const;
+
 
   const insights = [
     { icon: Zap, title: protein >= 25 ? "High Protein" : protein >= 15 ? "Moderate Protein" : "Low Protein", text: `Backend estimate: ${protein}g protein. Confidence: ${confidence}%.`, tag: protein >= 15 ? "Good" : "Watch", color: "#8CFF2F" },
