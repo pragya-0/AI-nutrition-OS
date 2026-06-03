@@ -239,7 +239,7 @@ export default function NutritionIntelligence({ result }: { result?: ScanResult 
             </div>
           </div>
 
-          <div className="grid items-start gap-4 xl:grid-cols-[0.72fr_1.28fr]">
+          <div className="grid items-start gap-4 xl:grid-cols-[0.78fr_1.22fr]">
             <div className="self-start rounded-[22px] border border-white/10 bg-[#07110A]/70 p-4">
               <h3 className="mb-2 flex items-center gap-3 border-b border-white/10 pb-3 text-lg font-black sm:text-xl">
                 <Brain className="text-[#A6FF4D]" size={23} /> AI Insights
@@ -276,32 +276,32 @@ export default function NutritionIntelligence({ result }: { result?: ScanResult 
                   <HeartPulse className="text-[#A6FF4D]" size={23} /> Health Impact <ChevronDown size={16} className="text-[#A3B3A3]" />
                 </h3>
 
-                <div className="grid items-start gap-4 xl:grid-cols-[minmax(300px,0.95fr)_minmax(270px,0.9fr)_220px] 2xl:grid-cols-[minmax(340px,1fr)_minmax(290px,0.9fr)_230px]">
-                  <div className="relative hidden min-h-[390px] items-end justify-center overflow-hidden rounded-[20px] border border-white/5 bg-[#020604]/25 lg:flex xl:min-h-[430px] 2xl:min-h-[460px]">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(166,255,77,0.18),transparent_62%)]" />
-      <Image
+                <div className="grid items-start gap-3 xl:grid-cols-[320px_minmax(280px,1fr)_220px] 2xl:grid-cols-[380px_minmax(300px,1fr)_230px]">
+                  <div className="relative hidden min-h-[360px] items-end justify-center overflow-hidden rounded-[20px] border border-white/5 bg-[#020604]/25 lg:flex xl:min-h-[390px] 2xl:min-h-[420px]">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(166,255,77,0.20),transparent_62%)]" />
+<Image
   src="/assets/scanner/scanner-health-human.png"
   alt="AI health human body"
   width={720}
   height={980}
   className="
-absolute
-bottom-[-60px]
-left-1
--transform-x-1/2
-z-10
-h-[450px]
-max-w-none
-object-cover
-scale-[1]
-origin-bottom
-drop-shadow-[0_0_110px_rgba(166,255,77,0.45)]
-
+    absolute
+    bottom-[-400px]
+    left-1/2
+    -translate-x-1/2
+    z-10
+    h-[580px]
+    w-auto
+    max-w-none
+    object-contain
+    scale-[2]
+    origin-bottom
+    drop-shadow-[0_0_110px_rgba(166,255,77,0.45)]
   "
 />
                   </div>
 
-                  <div className="flex min-h-[390px] flex-col justify-center gap-4 self-stretch rounded-[20px] border border-white/5 bg-[#020604]/25 p-3 xl:min-h-[430px] 2xl:min-h-[460px]">
+                  <div className="flex min-h-[360px] flex-col justify-center gap-3 self-stretch rounded-[20px] border border-white/5 bg-[#020604]/25 p-3 xl:min-h-[390px] 2xl:min-h-[420px]">
                     {healthMetrics.map((item) => {
                       const Icon = item.icon;
                       return (
