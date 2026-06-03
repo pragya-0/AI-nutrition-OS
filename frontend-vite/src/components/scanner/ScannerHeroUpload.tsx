@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "@/compat/NextImage";
+import { scanFood } from "@/services/api";
 import {
   Activity,
   BarChart3,
@@ -21,7 +22,7 @@ import {
   UploadCloud,
   Utensils,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const scannerExamples = [
   "/assets/scanner/scanner-good-example-1.png",
@@ -63,29 +64,96 @@ const benefits = [
   },
 ];
 
-export default function ScannerHeroUpload() {
+export default function ScannerHeroUpload({
+  onScanComplete,
+}: {
+  onScanComplete?: (result: any) => void;
+}) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanError, setScanError] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const handleFile = (file?: File) => {
     if (!file) return;
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+
     setSelectedFile(file);
+    setImagePreview(previewUrl);
+    setScanError("");
+  };
+
+  const handleScanNow = async () => {
+    if (!selectedFile) return;
+
+    setIsScanning(true);
+    setScanError("");
+
+    try {
+      const result = await scanFood(selectedFile);
+
+      console.log("AI Scan Result:", result);
+
+      const enrichedResult = {
+        ...result,
+        uploadedImage: imagePreview,
+        saved_at: result?.saved_at || new Date().toISOString(),
+      };
+
+      onScanComplete?.(enrichedResult);
+
+      window.dispatchEvent(
+        new CustomEvent("scan-history-updated", {
+          detail: enrichedResult,
+        })
+      );
+
+      setTimeout(() => {
+        const resultSection = document.getElementById("ai-analysis-result");
+
+        if (resultSection) {
+          window.scrollTo({
+            top: resultSection.offsetTop - 40,
+            behavior: "smooth",
+          });
+        }
+      }, 350);
+    } catch (error) {
+      console.error(error);
+      setScanError("Food scan failed. Please check if backend is running.");
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#030805] px-4 pb-4 pt-3 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       <header className="mx-auto mb-4 flex max-w-[1780px] items-center justify-between rounded-[26px] border border-white/10 bg-[#020604]/95 px-5 py-3 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-      <a href="/" className="flex items-center gap-3">
-  <Image
-    src="/assets/logo.png"
-    alt="AI Nutrition OS"
-    width={180}
-    height={42}
-    className="h-[38px] w-auto object-contain"
-    priority
-  />
-</a>
+        <a href="/" className="flex items-center gap-3">
+          <Image
+            src="/assets/logo.png"
+            alt="AI Nutrition OS"
+            width={180}
+            height={42}
+            className="h-[38px] w-auto object-contain"
+            priority
+          />
+        </a>
 
         <nav className="hidden items-center gap-1.5 xl:flex">
           {navItems.map((item) => {
@@ -179,14 +247,25 @@ export default function ScannerHeroUpload() {
                 <div className="mx-auto flex max-w-[560px] flex-col items-center text-center">
                   <button
                     onClick={() => inputRef.current?.click()}
-                    className="group relative flex h-[132px] w-[132px] items-center justify-center rounded-full border border-[#A6FF4D]/45 bg-[#A6FF4D]/10 text-[#A6FF4D] shadow-[0_0_45px_rgba(166,255,77,0.18)] transition hover:scale-105"
+                    className={`group relative flex items-center justify-center overflow-hidden rounded-full border border-[#A6FF4D]/45 bg-[#A6FF4D]/10 text-[#A6FF4D] shadow-[0_0_45px_rgba(166,255,77,0.18)] transition hover:scale-105 ${
+                      imagePreview ? "h-[148px] w-[148px]" : "h-[132px] w-[132px]"
+                    }`}
                   >
                     <span className="absolute inset-[-15px] rounded-full border border-[#A6FF4D]/20" />
                     <span className="absolute inset-[-28px] rounded-full border border-[#A6FF4D]/10" />
-                    <Camera size={44} />
+
+                    {imagePreview ? (
+                      <img
+                        src={imagePreview}
+                        alt="Selected food preview"
+                        className="relative z-10 h-full w-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <Camera size={44} />
+                    )}
                   </button>
 
-                  <h3 className="mt-7 text-xl font-black text-[#F5F8F2]">
+                  <h3 className="mt-7 max-w-full break-words text-xl font-black text-[#F5F8F2]">
                     {selectedFile ? selectedFile.name : "Tap to Open Camera"}
                   </h3>
 
@@ -221,6 +300,25 @@ export default function ScannerHeroUpload() {
                 <span className="mx-2 text-[#A3B3A3]">•</span>
                 Max size: 10MB
               </p>
+
+              {selectedFile && (
+                <div className="mt-6 flex flex-col items-center gap-3">
+                  <button
+                    onClick={handleScanNow}
+                    disabled={isScanning}
+                    className="flex h-[58px] min-w-[260px] items-center justify-center gap-3 rounded-[16px] bg-[#A6FF4D] px-8 text-base font-black text-[#051004] shadow-[0_0_40px_rgba(166,255,77,0.25)] transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Sparkles size={20} />
+                    {isScanning ? "Scanning..." : "Scan Food Now"}
+                  </button>
+
+                  {scanError && (
+                    <p className="text-center text-sm font-semibold text-[#FF6C7D]">
+                      {scanError}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="relative min-h-[570px]">
@@ -233,13 +331,15 @@ export default function ScannerHeroUpload() {
                     AI Scanning
                   </p>
                   <p className="mt-1.5 text-sm text-[#F5F8F2]">
-                    Analyzing Nutrition
+                    {isScanning ? "Scanning..." : "Analyzing Nutrition"}
                   </p>
                 </div>
 
                 <div className="absolute left-16 top-[188px] z-20 flex h-14 w-14 flex-col items-center justify-center rounded-full border border-[#A6FF4D]/20 bg-[#07110A]/80 text-center text-[#A6FF4D] backdrop-blur-xl">
-                  <span className="text-[10px] font-bold leading-none">kcals</span>
-                  <span className="text-sm font-black leading-none">520</span>
+                  <span className="text-[10px] font-bold leading-none">
+                    AI
+                  </span>
+                  <span className="text-sm font-black leading-none">LIVE</span>
                 </div>
 
                 <div className="absolute right-14 top-[142px] z-20 flex h-12 w-12 items-center justify-center rounded-full border border-[#A6FF4D]/25 bg-[#07110A]/80 text-[#A6FF4D]">
@@ -259,13 +359,21 @@ export default function ScannerHeroUpload() {
                 <div className="absolute bottom-8 h-[88px] w-[390px] rounded-[50%] border border-[#A6FF4D]/30 bg-[#A6FF4D]/10 blur-[1px]" />
                 <div className="absolute bottom-3 h-[68px] w-[470px] rounded-[50%] border border-[#18D3D0]/15" />
 
-                <Image
-                  src="/assets/scanner/scanner-food-bowl.png"
-                  alt="Scanner food bowl"
-                  width={600}
-                  height={450}
-                  className="relative z-10 mt-14 w-[74%] max-w-[500px] object-contain drop-shadow-[0_40px_65px_rgba(0,0,0,0.75)]"
-                />
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Selected food"
+                    className="relative z-10 mt-14 h-[300px] w-[74%] max-w-[500px] rounded-[30px] object-cover drop-shadow-[0_40px_65px_rgba(0,0,0,0.75)]"
+                  />
+                ) : (
+                  <Image
+                    src="/assets/scanner/scanner-food-bowl.png"
+                    alt="Scanner food bowl"
+                    width={600}
+                    height={450}
+                    className="relative z-10 mt-14 w-[74%] max-w-[500px] object-contain drop-shadow-[0_40px_65px_rgba(0,0,0,0.75)]"
+                  />
+                )}
               </div>
 
               <div className="mt-3 grid gap-3">
