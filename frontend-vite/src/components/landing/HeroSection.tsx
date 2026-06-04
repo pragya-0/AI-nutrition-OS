@@ -2,7 +2,6 @@
 
 import Image from "@/compat/NextImage";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import DashboardPreview from "./DashboardPreview";
 import {
   ArrowRight,
@@ -39,7 +38,7 @@ const featureCards = [
 
 export default function HeroSection() {
   return (
-<section className="relative overflow-hidden bg-[#030805] px-4 pb-4 pt-0 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+    <section className="relative overflow-hidden bg-[#030805] px-4 pb-4 pt-0 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       {/* Ambient Background */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(166,255,77,0.16),transparent_30%),radial-gradient(circle_at_78%_22%,rgba(166,255,77,0.11),transparent_26%),radial-gradient(circle_at_70%_76%,rgba(24,211,208,0.06),transparent_24%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(3,8,5,0)_0%,rgba(3,8,5,0.38)_58%,#030805_100%)]" />
@@ -85,7 +84,8 @@ export default function HeroSection() {
         height={160}
         className="pointer-events-none absolute left-[47%] top-[410px] z-0 hidden w-[105px] rotate-[22deg] opacity-60 lg:block"
       />
-<div className="relative z-10 mx-auto flex w-full max-w-[92vw] flex-col justify-center py-8 lg:py-10 2xl:max-w-[1780px]">
+
+      <div className="relative z-10 mx-auto flex w-full max-w-[92vw] flex-col justify-center py-8 lg:py-10 2xl:max-w-[1780px]">
         {/* HERO GRID */}
         <div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] xl:gap-10 2xl:gap-12">
           {/* LEFT CONTENT */}
@@ -132,13 +132,13 @@ export default function HeroSection() {
               transition={{ delay: 0.22 }}
               className="mt-8 flex flex-wrap items-center gap-4"
             >
-              <Link
-                to="/dashboard"
+              <a
+                href="/dashboard/onboarding"
                 className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#A6FF4D] px-8 py-4 text-[20px] font-black text-[#07110A] shadow-[0_0_40px_rgba(166,255,77,0.22)] transition duration-300 hover:scale-[1.02] hover:bg-[#B8FF6C] lg:text-[22px]"
               >
                 Get Your Plan
                 <ArrowRight size={22} />
-              </Link>
+              </a>
 
               <a
                 href="#dashboard"

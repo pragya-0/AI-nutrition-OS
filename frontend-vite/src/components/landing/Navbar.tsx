@@ -17,11 +17,11 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-  <header className="sticky left-0 top-0 z-50 w-full px-4 py-3">
+    <header className="sticky left-0 top-0 z-50 w-full px-4 py-3">
       {/* NAVBAR */}
       <nav className="mx-auto flex max-w-[1400px] items-center justify-between rounded-full border border-white/10 bg-[#061009]/75 px-5 py-3 shadow-[0_20px_90px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:px-7">
         {/* LOGO */}
-        <a href="#" className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3">
           <Image
             src="/assets/logo.png"
             alt="NutriAI logo"
@@ -47,7 +47,7 @@ export default function Navbar() {
           {navItems.map((item, index) => (
             <a
               key={item}
-              href={index === 0 ? "#" : `#${item.toLowerCase()}`}
+              href={index === 0 ? "/" : `/#${item.toLowerCase()}`}
               className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-300 ${
                 index === 0
                   ? "bg-[#A6FF4D] text-[#07110A] shadow-[0_0_25px_rgba(166,255,77,0.18)]"
@@ -69,7 +69,7 @@ export default function Navbar() {
           </a>
 
           <a
-            href="#assessment"
+            href="/dashboard/onboarding"
             className="rounded-full bg-[#A6FF4D] px-6 py-2.5 text-sm font-black text-[#07110A] shadow-[0_0_40px_rgba(166,255,77,0.28)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_60px_rgba(166,255,77,0.45)]"
           >
             Get Started
@@ -100,7 +100,7 @@ export default function Navbar() {
               {navItems.map((item, index) => (
                 <a
                   key={item}
-                  href={index === 0 ? "#" : `#${item.toLowerCase()}`}
+                  href={index === 0 ? "/" : `/#${item.toLowerCase()}`}
                   onClick={() => setOpen(false)}
                   className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                     index === 0
@@ -122,7 +122,7 @@ export default function Navbar() {
                 </a>
 
                 <a
-                  href="#assessment"
+                  href="/dashboard/onboarding"
                   onClick={() => setOpen(false)}
                   className="rounded-full bg-[#A6FF4D] px-5 py-3 text-center text-sm font-black text-[#07110A]"
                 >
@@ -136,3 +136,4 @@ export default function Navbar() {
     </header>
   );
 }
+   

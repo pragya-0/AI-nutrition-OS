@@ -1,45 +1,53 @@
+# backend/nutrition/ai_engine.py
+
+"""
+Rule-based AI tip helper.
+
+Important:
+- This function does not receive medical_conditions, age, or pregnancy_status.
+- Medical blocking must happen before this function is called.
+- Output must stay general wellness-only and avoid medical claims.
+"""
+
+
 def generate_ai_tip(bmi, goal, diet):
+    goal = str(goal or "maintenance").lower()
+    diet = str(diet or "balanced").lower()
+
     goal_text = goal.replace("_", " ").title()
     diet_text = diet.replace("_", " ").title()
 
-    # IMPORTANT: goal always comes first. BMI only modifies the advice.
-
-    if goal == "muscle_gain":
+    if goal in ["muscle_gain", "gain_muscle"]:
         if bmi >= 30:
             return (
-                f"Your plan is optimized for lean muscle gain using a {diet_text} diet style. "
-                "Because BMI is slightly higher, focus on strength training, high-quality protein, "
-                "a controlled calorie surplus, hydration, and recovery while avoiding excess fat gain."
+                f"Your general wellness plan uses a {diet_text} style with strength-focused habits. "
+                "Focus on consistent training, quality protein, hydration, sleep, and gradual progress."
             )
 
         return (
-            f"Your plan is optimized for muscle gain using a {diet_text} diet style. "
-            "Focus on progressive overload, calorie surplus, high-quality protein, hydration, "
-            "and proper sleep recovery."
+            f"Your general wellness plan supports muscle gain using a {diet_text} style. "
+            "Focus on progressive training, protein-rich meals, hydration, and recovery."
         )
 
-    if goal == "fat_loss":
+    if goal in ["fat_loss", "weight_loss", "lose_weight"]:
         if bmi >= 25:
             return (
-                f"Your BMI indicates higher body fat levels. Your {diet_text} plan is optimized "
-                "for fat loss with a calorie deficit, higher protein, walking/cardio, hydration, "
-                "and consistent meal timing."
+                f"Your general wellness plan uses a {diet_text} style with portion awareness, "
+                "protein-rich meals, daily movement, hydration, and consistent sleep."
             )
 
         return (
-            f"Your plan is optimized for fat loss using a {diet_text} diet style. "
-            "Focus on a moderate calorie deficit, protein-rich meals, daily movement, "
-            "and hydration."
+            f"Your general wellness plan supports fat loss using a {diet_text} style. "
+            "Focus on balanced meals, moderate portions, daily movement, and hydration."
         )
 
-    if goal == "maintenance":
+    if goal in ["maintenance", "maintain"]:
         return (
-            f"Your plan is optimized for maintenance using a {diet_text} diet style. "
-            "Focus on balanced meals, stable calories, strength training, hydration, "
-            "and consistent sleep."
+            f"Your general wellness plan supports maintenance using a {diet_text} style. "
+            "Focus on balanced meals, stable habits, regular movement, hydration, and sleep."
         )
 
     return (
-        f"Your nutrition plan is optimized for {goal_text} using a {diet_text} diet style. "
-        "Stay consistent with your meals, hydration, movement, and sleep."
+        f"Your general wellness plan supports {goal_text} using a {diet_text} style. "
+        "Stay consistent with meals, hydration, movement, and sleep."
     )

@@ -1,4 +1,4 @@
-import { useState, type ElementType, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ElementType, type ReactNode } from "react";
 import {
   ArrowRight,
   ArrowUp,
@@ -57,6 +57,74 @@ type Milestone = {
   progress: number;
 };
 
+type StoredHealthReportPlan = {
+  success?: boolean;
+  user_profile?: {
+    name?: string;
+    age?: number;
+    weight?: number;
+    height?: number;
+    goal?: string;
+    activity?: string;
+    sleep_hours?: number;
+    water_intake?: number;
+  };
+  analytics?: {
+    health_score?: number;
+    health_status?: string;
+    sleep_score?: number;
+    hydration_score?: number;
+    bmi?: number;
+    body_fat?: number;
+    metabolic_age?: number;
+  };
+  targets?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fats?: number;
+    water_target?: string;
+  };
+  meal_plan?: {
+    days?: unknown[];
+  };
+  health_insight?: string;
+  coach_message?: string;
+  ai_tip?: string;
+};
+
+type ReportData = {
+  name: string;
+  range: string;
+  healthScore: number;
+  status: string;
+  sleepScore: number;
+  hydrationScore: number;
+  recoveryScore: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  waterTarget: string;
+  waterLiters: number;
+  weight: number;
+  goalWeight: number;
+  progressToGoal: number;
+  goal: string;
+  bmi: number;
+  bodyFat: number;
+  metabolicAge: number;
+  mealPlanDays: number;
+  insight: string;
+  weeklySummary: SummaryItem[];
+  achievements: Achievement[];
+  highlights: Highlight[];
+  comparisons: Comparison[];
+  milestones: Milestone[];
+  healthTrend: number[];
+  weightTrend: number[];
+};
+
 const tabs = [
   "Overview",
   "Achievements",
@@ -65,147 +133,310 @@ const tabs = [
   "Recommendations",
 ];
 
-const weeklySummary: SummaryItem[] = [
-  {
-    label: "Consistency",
-    value: "92%",
-    status: "Excellent",
-    icon: ShieldCheck,
-    color: "#A6FF4D",
-  },
-  {
-    label: "Nutrition",
-    value: "85%",
-    status: "Good",
-    icon: HeartPulse,
-    color: "#18D3D0",
-  },
-  {
-    label: "Activity",
-    value: "88%",
-    status: "Excellent",
-    icon: Dumbbell,
-    color: "#A875FF",
-  },
-  {
-    label: "Recovery",
-    value: "84%",
-    status: "Good",
-    icon: Flame,
-    color: "#FFB347",
-  },
-  {
-    label: "Lifestyle",
-    value: "90%",
-    status: "Excellent",
-    icon: Sparkles,
-    color: "#A6FF4D",
-  },
-];
+function getStoredHealthReportPlan(): StoredHealthReportPlan | null {
+  try {
+    const raw = localStorage.getItem("ai_nutrition_generated_plan");
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredHealthReportPlan;
+  } catch {
+    return null;
+  }
+}
 
-const achievements: Achievement[] = [
-  {
-    title: "7 Day Streak",
-    text: "Logged your meals for 7 days in a row",
-    icon: Trophy,
-    color: "#FFB347",
-  },
-  {
-    title: "Protein Goal Crusher",
-    text: "Hit your protein goal 5 days this week",
-    icon: Star,
-    color: "#FFB347",
-  },
-  {
-    title: "Hydration Hero",
-    text: "Reached 80% hydration goal 6 days",
-    icon: HeartPulse,
-    color: "#18D3D0",
-  },
-  {
-    title: "Early Bird",
-    text: "Slept before 11 PM 5 nights this week",
-    icon: Moon,
-    color: "#7BE929",
-  },
-];
+function getCurrentWeekRange() {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 6);
 
-const highlights: Highlight[] = [
-  {
-    text: "Average calorie intake was in your target range",
-    icon: ShieldCheck,
-    color: "#7BE929",
-  },
-  {
-    text: "Protein intake improved by 15% vs last week",
-    icon: ArrowUp,
-    color: "#A6FF4D",
-  },
-  {
-    text: "Your sleep quality improved by 12%",
-    icon: Moon,
-    color: "#A875FF",
-  },
-  {
-    text: "You burned 1,120 more calories through activity",
-    icon: Flame,
-    color: "#FFB347",
-  },
-  {
-    text: "Hydration was consistent and on point",
-    icon: HeartPulse,
-    color: "#18D3D0",
-  },
-];
+  const format = (date: Date) =>
+    date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
 
-const comparisons: Comparison[] = [
-  {
-    label: "Calories",
-    value: "-120",
-    sub: "kcal/day",
-    icon: Flame,
-    color: "#FFB347",
-  },
-  {
-    label: "Protein",
-    value: "+18g",
-    sub: "g/day",
-    icon: Dumbbell,
-    color: "#A6FF4D",
-  },
-  {
-    label: "Workouts",
-    value: "+6",
-    sub: "sessions",
-    icon: Footprints,
-    color: "#18D3D0",
-  },
-  {
-    label: "Steps",
-    value: "+9,420",
-    sub: "steps/day",
-    icon: Footprints,
-    color: "#7BE929",
-  },
-  {
-    label: "Sleep",
-    value: "+45m",
-    sub: "hrs/night",
-    icon: Moon,
-    color: "#A875FF",
-  },
-];
+  return `${format(start)} – ${format(end)}`;
+}
 
-const milestones: Milestone[] = [
-  { label: "Reach 65 kg", progress: 60 },
-  { label: "Hit 10k steps daily", progress: 80 },
-  { label: "Sleep 7h average", progress: 70 },
-];
+function formatGoal(value?: string) {
+  if (!value) return "your health goal";
+  return value.replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function parseLiters(value?: string, fallback = 2.5) {
+  if (!value) return fallback;
+  const match = value.match(/[\d.]+/);
+  if (!match) return fallback;
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function clamp(value: number, min = 0, max = 100) {
+  return Math.min(Math.max(Math.round(value), min), max);
+}
+
+function goalWeightFromGoal(weight: number, goal?: string) {
+  const normalized = (goal || "").toLowerCase();
+
+  if (!weight) return 0;
+  if (normalized.includes("weight_loss")) return Math.max(weight - 4, 35);
+  if (normalized.includes("muscle_gain")) return weight + 3;
+  return weight;
+}
+
+function scoreTrend(score: number) {
+  const safe = score || 0;
+  return [safe - 14, safe - 10, safe - 8, safe - 5, safe - 3, safe - 1, safe].map((value) =>
+    clamp(value),
+  );
+}
+
+function weightTrend(weight: number, goalWeight: number) {
+  if (!weight) return [0, 0, 0, 0, 0, 0, 0];
+
+  const delta = (weight - goalWeight) / 8;
+
+  return Array.from({ length: 8 }, (_, index) =>
+    Number((weight - delta * index).toFixed(1)),
+  );
+}
+
+function getHealthReportData(): ReportData {
+  const plan = getStoredHealthReportPlan();
+  const profile = plan?.user_profile || {};
+  const analytics = plan?.analytics || {};
+  const targets = plan?.targets || {};
+
+  const healthScore = analytics.health_score ?? 0;
+  const sleepScore = analytics.sleep_score ?? healthScore;
+  const hydrationScore = analytics.hydration_score ?? healthScore;
+  const recoveryScore = clamp((sleepScore + hydrationScore) / 2);
+  const status =
+    analytics.health_status ||
+    (healthScore >= 85 ? "Excellent" : healthScore >= 70 ? "Good" : "Needs Focus");
+
+  const weight = profile.weight ?? 0;
+  const goalWeight = goalWeightFromGoal(weight, profile.goal);
+  const progressToGoal =
+    weight && goalWeight && weight !== goalWeight
+      ? clamp(((Math.abs(weight - goalWeight) - Math.abs(weight - goalWeight) * 0.4) / Math.abs(weight - goalWeight)) * 100)
+      : healthScore;
+
+  const waterLiters = parseLiters(targets.water_target, profile.water_intake ?? 2.5);
+  const mealPlanDays = plan?.meal_plan?.days?.length || 0;
+  const goal = formatGoal(profile.goal);
+
+  const weeklySummary: SummaryItem[] = [
+    {
+      label: "Consistency",
+      value: `${healthScore || 0}%`,
+      status,
+      icon: ShieldCheck,
+      color: "#A6FF4D",
+    },
+    {
+      label: "Nutrition",
+      value: targets.protein ? `${targets.protein}g` : "Pending",
+      status: "Protein",
+      icon: HeartPulse,
+      color: "#18D3D0",
+    },
+    {
+      label: "Activity",
+      value: formatGoal(profile.activity),
+      status: "Focus",
+      icon: Dumbbell,
+      color: "#A875FF",
+    },
+    {
+      label: "Recovery",
+      value: `${recoveryScore}%`,
+      status: recoveryScore >= 85 ? "Excellent" : "Good",
+      icon: Flame,
+      color: "#FFB347",
+    },
+    {
+      label: "Lifestyle",
+      value: targets.water_target || `${profile.water_intake ?? 2.5}L`,
+      status: "Hydration",
+      icon: Sparkles,
+      color: "#A6FF4D",
+    },
+  ];
+
+  const achievements: Achievement[] = [
+    {
+      title: mealPlanDays ? `${mealPlanDays} Day Plan Generated` : "Plan Ready",
+      text: mealPlanDays
+        ? `Your AI generated ${mealPlanDays} day${mealPlanDays === 1 ? "" : "s"} of meals.`
+        : "Generate a plan to unlock plan achievements.",
+      icon: Trophy,
+      color: "#FFB347",
+    },
+    {
+      title: "Protein Target Set",
+      text: targets.protein
+        ? `Daily target: ${targets.protein}g protein.`
+        : "Protein target will appear after generation.",
+      icon: Star,
+      color: "#FFB347",
+    },
+    {
+      title: "Hydration Target Ready",
+      text: `Hydration goal: ${targets.water_target || `${profile.water_intake ?? 2.5}L`}.`,
+      icon: HeartPulse,
+      color: "#18D3D0",
+    },
+    {
+      title: "Recovery Profile Active",
+      text: `Sleep score is ${sleepScore || 0} based on your latest profile.`,
+      icon: Moon,
+      color: "#7BE929",
+    },
+  ];
+
+  const highlights: Highlight[] = [
+    {
+      text: targets.calories
+        ? `Calorie target is set at ${targets.calories.toLocaleString()} kcal.`
+        : "Generate a plan to set calorie targets.",
+      icon: ShieldCheck,
+      color: "#7BE929",
+    },
+    {
+      text: targets.protein
+        ? `Protein target is ${targets.protein}g for your current goal.`
+        : "Protein target pending.",
+      icon: ArrowUp,
+      color: "#A6FF4D",
+    },
+    {
+      text: `Sleep score is ${sleepScore || 0}, supporting recovery and routine.`,
+      icon: Moon,
+      color: "#A875FF",
+    },
+    {
+      text: `Activity focus is ${formatGoal(profile.activity)}.`,
+      icon: Flame,
+      color: "#FFB347",
+    },
+    {
+      text: `Hydration target is ${targets.water_target || `${profile.water_intake ?? 2.5}L`}.`,
+      icon: HeartPulse,
+      color: "#18D3D0",
+    },
+  ];
+
+  const comparisons: Comparison[] = [
+    {
+      label: "Calories",
+      value: targets.calories ? targets.calories.toLocaleString() : "0",
+      sub: "kcal target",
+      icon: Flame,
+      color: "#FFB347",
+    },
+    {
+      label: "Protein",
+      value: targets.protein ? `${targets.protein}g` : "0g",
+      sub: "daily target",
+      icon: Dumbbell,
+      color: "#A6FF4D",
+    },
+    {
+      label: "Carbs",
+      value: targets.carbs ? `${targets.carbs}g` : "0g",
+      sub: "daily target",
+      icon: Footprints,
+      color: "#18D3D0",
+    },
+    {
+      label: "Fats",
+      value: targets.fats ? `${targets.fats}g` : "0g",
+      sub: "daily target",
+      icon: Footprints,
+      color: "#7BE929",
+    },
+    {
+      label: "Sleep",
+      value: `${profile.sleep_hours ?? 0}h`,
+      sub: "logged profile",
+      icon: Moon,
+      color: "#A875FF",
+    },
+  ];
+
+  const milestones: Milestone[] = [
+    {
+      label: goalWeight ? `Reach ${goalWeight} kg` : "Set body goal",
+      progress: progressToGoal,
+    },
+    {
+      label: targets.protein ? `Hit ${targets.protein}g protein daily` : "Set protein target",
+      progress: targets.protein ? 75 : 0,
+    },
+    {
+      label: `Maintain ${profile.sleep_hours ?? 8}h sleep`,
+      progress: sleepScore || 0,
+    },
+  ];
+
+  return {
+    name: profile.name?.trim() || "there",
+    range: getCurrentWeekRange(),
+    healthScore,
+    status,
+    sleepScore,
+    hydrationScore,
+    recoveryScore,
+    calories: targets.calories ?? 0,
+    protein: targets.protein ?? 0,
+    carbs: targets.carbs ?? 0,
+    fats: targets.fats ?? 0,
+    waterTarget: targets.water_target || `${profile.water_intake ?? 2.5}L`,
+    waterLiters,
+    weight,
+    goalWeight,
+    progressToGoal,
+    goal,
+    bmi: analytics.bmi ?? 0,
+    bodyFat: analytics.body_fat ?? 0,
+    metabolicAge: analytics.metabolic_age ?? 0,
+    mealPlanDays,
+    insight:
+      plan?.health_insight ||
+      plan?.coach_message ||
+      "Generate a plan from profile inputs to unlock your personalized health report.",
+    weeklySummary,
+    achievements,
+    highlights,
+    comparisons,
+    milestones,
+    healthTrend: scoreTrend(healthScore),
+    weightTrend: weightTrend(weight, goalWeight),
+  };
+}
 
 export default function AIHealthReport() {
   const [activeTab, setActiveTab] = useState("Overview");
-  const [range, setRange] = useState("12 May – 18 May 2024");
+  const [reportData, setReportData] = useState<ReportData>(() => getHealthReportData());
+  const [range, setRange] = useState(reportData.range);
   const [downloaded, setDownloaded] = useState(false);
+
+  useEffect(() => {
+    const refresh = () => {
+      const next = getHealthReportData();
+      setReportData(next);
+      setRange(next.range);
+    };
+
+    window.addEventListener("storage", refresh);
+    window.addEventListener("ai-plan-updated", refresh);
+
+    return () => {
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener("ai-plan-updated", refresh);
+    };
+  }, []);
 
   return (
     <section className="relative overflow-x-hidden bg-[#030805] px-4 py-4 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
@@ -223,23 +454,23 @@ export default function AIHealthReport() {
           <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
           <div className="mt-4 grid items-start gap-4 xl:grid-cols-[1.04fr_0.9fr_0.9fr_0.9fr_1fr]">
-            <HealthScoreCard />
-            <WeeklySummary />
-            <TopAchievements />
-            <WeekHighlights />
-            <ReportSummary />
+            <HealthScoreCard data={reportData} />
+            <WeeklySummary data={reportData} />
+            <TopAchievements achievements={reportData.achievements} />
+            <WeekHighlights highlights={reportData.highlights} />
+            <ReportSummary data={reportData} />
           </div>
 
           <div className="mt-4 grid items-start gap-4 xl:grid-cols-[1.16fr_0.85fr_1.2fr]">
-            <HealthScoreTrend />
-            <WeightProgress />
-            <BodyComposition />
+            <HealthScoreTrend data={reportData} />
+            <WeightProgress data={reportData} />
+            <BodyComposition data={reportData} />
           </div>
 
           <div className="mt-4 grid items-stretch gap-4 xl:grid-cols-[1.35fr_0.62fr_0.95fr]">
-            <MonthlyComparison />
-            <NextMilestones />
-            <AIRecommendationSummary />
+            <MonthlyComparison comparisons={reportData.comparisons} />
+            <NextMilestones milestones={reportData.milestones} />
+            <AIRecommendationSummary data={reportData} />
           </div>
         </div>
       </div>
@@ -262,19 +493,15 @@ function Header({
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex items-center gap-4">
-      
+      <div>
+        <h2 className="flex items-center gap-3 text-[28px] font-black uppercase leading-none tracking-[0.02em] sm:text-[34px] lg:text-[38px] xl:text-[42px]">
+          AI Health Report
+          <Sparkles className="text-[#A6FF4D]" size={24} />
+        </h2>
 
-        <div>
-          <h2 className="flex items-center gap-3 text-[28px] font-black uppercase leading-none tracking-[0.02em] sm:text-[34px] lg:text-[38px] xl:text-[42px]">
-            AI Health Report
-            <Sparkles className="text-[#A6FF4D]" size={24} />
-          </h2>
-
-          <p className="mt-2 text-[14px] font-semibold leading-6 text-[#A3B3A3] xl:text-[15px]">
-            Your personalized health report & achievements
-          </p>
-        </div>
+        <p className="mt-2 text-[14px] font-semibold leading-6 text-[#A3B3A3] xl:text-[15px]">
+          Your personalized health report & achievements
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -285,8 +512,8 @@ function Header({
             onChange={(event) => setRange(event.target.value)}
             className="bg-transparent text-white outline-none"
           >
-            <option className="bg-[#07110A]">12 May – 18 May 2024</option>
-            <option className="bg-[#07110A]">19 May – 25 May 2024</option>
+            <option className="bg-[#07110A]">{range}</option>
+            <option className="bg-[#07110A]">Latest generated plan</option>
             <option className="bg-[#07110A]">This Month</option>
           </select>
         </label>
@@ -347,7 +574,9 @@ function Tabs({
   );
 }
 
-function HealthScoreCard() {
+function HealthScoreCard({ data }: { data: ReportData }) {
+  const angle = Math.max(0, Math.min(data.healthScore, 100)) * 3.6;
+
   return (
     <Card className="h-[390px] overflow-hidden">
       <CardTitle title="Health Score" icon={Info} />
@@ -356,33 +585,32 @@ function HealthScoreCard() {
         <div
           className="grid h-[155px] w-[155px] place-items-center rounded-full shadow-[0_0_55px_rgba(166,255,77,.25)]"
           style={{
-            background:
-              "conic-gradient(#18D3D0 0deg 56deg,#A6FF4D 56deg 306deg,#F5E642 306deg 340deg,rgba(255,255,255,.08) 340deg)",
+            background: `conic-gradient(#18D3D0 0deg ${angle * 0.2}deg,#A6FF4D ${angle * 0.2}deg ${angle}deg,rgba(255,255,255,.08) ${angle}deg)`,
           }}
         >
           <div className="grid h-[116px] w-[116px] place-items-center rounded-full bg-[#07110A] text-center">
             <div>
               <p className="text-[42px] font-black leading-none text-white">
-                87
+                {data.healthScore}
               </p>
               <p className="mt-1.5 text-[14px] font-bold text-[#A6FF4D]">
-                Excellent
+                {data.status}
               </p>
             </div>
           </div>
         </div>
 
         <p className="mt-2 rounded-xl bg-[#A6FF4D]/8 px-3 py-1 text-[11px] text-white/80">
-          <span className="text-[#A6FF4D]">↑ 6 points</span> vs last week
+          <span className="text-[#A6FF4D]">Latest</span> generated score
         </p>
       </div>
 
-      <MiniHealthChart />
+      <MiniHealthChart data={data.healthTrend} />
     </Card>
   );
 }
 
-function WeeklySummary() {
+function WeeklySummary({ data }: { data: ReportData }) {
   const [selected, setSelected] = useState("Consistency");
 
   return (
@@ -390,7 +618,7 @@ function WeeklySummary() {
       <CardTitle title="Weekly Summary" icon={Info} />
 
       <div className="space-y-2.5">
-        {weeklySummary.map((item) => {
+        {data.weeklySummary.map((item) => {
           const Icon = item.icon;
           const active = selected === item.label;
 
@@ -426,13 +654,13 @@ function WeeklySummary() {
 
       <p className="mt-3 text-[12px] text-white/75">
         <span className="mr-2 text-[#A6FF4D]">✧</span>
-        Great week! Keep it up 💚
+        Latest AI health summary loaded from your generated plan 💚
       </p>
     </Card>
   );
 }
 
-function TopAchievements() {
+function TopAchievements({ achievements }: { achievements: Achievement[] }) {
   const [checked, setChecked] = useState<string[]>(
     achievements.map((achievement) => achievement.title),
   );
@@ -495,8 +723,8 @@ function TopAchievements() {
   );
 }
 
-function WeekHighlights() {
-  const [selected, setSelected] = useState(highlights[0].text);
+function WeekHighlights({ highlights }: { highlights: Highlight[] }) {
+  const [selected, setSelected] = useState(highlights[0]?.text || "");
 
   return (
     <Card className="h-[390px] overflow-hidden">
@@ -536,7 +764,7 @@ function WeekHighlights() {
   );
 }
 
-function ReportSummary() {
+function ReportSummary({ data }: { data: ReportData }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -550,17 +778,16 @@ function ReportSummary() {
       />
 
       <p className="mt-3 text-[12px] leading-5 text-white/75">
-        You&apos;re building a strong, balanced and sustainable healthy
-        lifestyle.
+        {data.insight}
       </p>
       <p className="mt-1.5 text-[12px] leading-5 text-white/75">
-        Keep going, Isha! You&apos;re doing amazing.
+        Keep going, {data.name}! You&apos;re doing amazing.
       </p>
 
       {open && (
         <p className="mt-2 rounded-xl border border-[#A6FF4D]/25 bg-[#A6FF4D]/5 px-3 py-2 text-[11px] leading-4 text-white/75">
-          Detailed report unlocked: your strongest wins are consistency,
-          protein improvement and sleep recovery.
+          Detailed report unlocked: your strongest signals are nutrition target,
+          hydration, sleep recovery and consistency with your selected goal.
         </p>
       )}
 
@@ -575,63 +802,75 @@ function ReportSummary() {
   );
 }
 
-function HealthScoreTrend() {
+function HealthScoreTrend({ data }: { data: ReportData }) {
   return (
     <Card className="h-[250px] overflow-hidden">
-      <CardTitle title="Health Score Trend" icon={Info} right="Last 8 Weeks" />
+      <CardTitle title="Health Score Trend" icon={Info} right="Latest 8 Signals" />
       <LineChart
-        data={[62, 65, 68, 72, 75, 79, 81, 87]}
+        data={data.healthTrend}
         color="#A6FF4D"
-        labels={["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"]}
+        labels={["S1", "S2", "S3", "S4", "S5", "S6", "S7", "Now"]}
       />
       <p className="mt-1 text-[12px] text-white/75">
         <span className="mr-2 text-[#A6FF4D]">✧</span>
-        Your health score improved by 25 points in 8 weeks{" "}
-        <span className="text-[#A6FF4D]">↑</span>
+        Latest generated health score:{" "}
+        <span className="text-[#A6FF4D]">{data.healthScore}</span>
       </p>
     </Card>
   );
 }
 
-function WeightProgress() {
+function WeightProgress({ data }: { data: ReportData }) {
   return (
     <Card className="h-[250px] overflow-hidden">
-      <CardTitle title="Weight Progress" icon={Info} right="This Month" />
+      <CardTitle title="Weight Direction" icon={Info} right="Plan Based" />
 
       <p className="text-[24px] font-black leading-none text-white">
-        70.0 <span className="text-[14px] font-medium text-white/65">kg</span>
+        {data.weight || 0}
+        <span className="ml-1 text-[14px] font-medium text-white/65">kg</span>
       </p>
       <p className="mt-1 text-[11px] font-bold text-[#A6FF4D]">
-        ↓ 2.4 kg vs last month
+        Goal direction: {data.goalWeight || data.weight || 0} kg
       </p>
 
       <LineChart
-        data={[72, 71, 70.8, 70.5, 70.7, 70.2, 70, 69.8, 70]}
+        data={data.weightTrend}
         color="#18D3D0"
-        labels={["20 Apr", "27 Apr", "4 May", "11 May", "18 May"]}
+        labels={["Start", "S2", "S3", "S4", "S5", "S6", "S7", "Goal"]}
         compact
       />
 
       <div className="mt-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5">
         <div className="mb-2 flex justify-between text-[11px]">
-          <span className="text-white/65">Goal: 65.0 kg</span>
-          <span className="font-bold text-white">Progress: 60%</span>
+          <span className="text-white/65">Goal: {data.goalWeight || data.weight || 0} kg</span>
+          <span className="font-bold text-white">Progress: {data.progressToGoal}%</span>
         </div>
         <div className="h-2 rounded-full bg-white/10">
-          <div className="h-full w-[60%] rounded-full bg-[#18D3D0]" />
+          <div
+            className="h-full rounded-full bg-[#18D3D0]"
+            style={{ width: `${data.progressToGoal}%` }}
+          />
         </div>
       </div>
     </Card>
   );
 }
 
-function BodyComposition() {
+function BodyComposition({ data }: { data: ReportData }) {
+  const fatMass = data.weight && data.bodyFat ? Number(((data.weight * data.bodyFat) / 100).toFixed(1)) : 0;
+  const waterWeight = data.weight ? Number((data.weight * 0.08).toFixed(1)) : 0;
+  const muscleMass = data.weight ? Number(Math.max(data.weight - fatMass - waterWeight, 0).toFixed(1)) : 0;
+
+  const musclePercent = data.weight ? Math.round((muscleMass / data.weight) * 100) : 0;
+  const fatPercent = data.bodyFat ? Math.round(data.bodyFat) : 0;
+  const waterPercent = data.weight ? Math.round((waterWeight / data.weight) * 100) : 0;
+
   return (
     <Card className="h-[250px] overflow-hidden">
       <CardTitle
         title="Body Composition Overview"
         icon={Info}
-        right="This Month"
+        right="Generated"
       />
 
       <div className="grid items-center gap-4 md:grid-cols-[150px_1fr]">
@@ -639,13 +878,14 @@ function BodyComposition() {
           <div
             className="absolute inset-0 rounded-full"
             style={{
-              background:
-                "conic-gradient(#A6FF4D 0deg 258deg,#FFB347 258deg 333deg,#38BDF8 333deg 360deg)",
+              background: `conic-gradient(#A6FF4D 0deg ${musclePercent * 3.6}deg,#FFB347 ${musclePercent * 3.6}deg ${
+                (musclePercent + fatPercent) * 3.6
+              }deg,#38BDF8 ${(musclePercent + fatPercent) * 3.6}deg 360deg)`,
             }}
           />
           <div className="absolute inset-[22px] grid place-items-center rounded-full bg-[#07110A] text-center">
             <div>
-              <p className="text-[20px] font-black">70.0 kg</p>
+              <p className="text-[20px] font-black">{data.weight || 0} kg</p>
               <p className="text-[11px] text-white/65">Total Weight</p>
             </div>
           </div>
@@ -654,31 +894,31 @@ function BodyComposition() {
         <div className="space-y-3">
           <BodyLegend
             color="#A6FF4D"
-            label="Muscle Mass"
-            value="50.2 kg"
-            sub="(71.7%)"
+            label="Lean Mass"
+            value={`${muscleMass} kg`}
+            sub={`(${musclePercent}%)`}
           />
           <BodyLegend
             color="#FFB347"
             label="Fat Mass"
-            value="14.6 kg"
-            sub="(20.9%)"
+            value={`${fatMass} kg`}
+            sub={`(${fatPercent}%)`}
           />
           <BodyLegend
             color="#38BDF8"
             label="Water Weight"
-            value="5.2 kg"
-            sub="(7.4%)"
+            value={`${waterWeight} kg`}
+            sub={`(${waterPercent}%)`}
           />
         </div>
       </div>
 
       <div className="mt-3 grid gap-3 border-t border-white/10 pt-3 sm:grid-cols-3">
-        <CompositionStat label="Muscle Mass" value="↑ 0.8 kg" color="#A6FF4D" />
-        <CompositionStat label="Fat Mass" value="↓ 1.6 kg" color="#FF6C7D" />
+        <CompositionStat label="BMI" value={`${data.bmi || 0}`} color="#A6FF4D" />
+        <CompositionStat label="Body Fat" value={`${data.bodyFat || 0}%`} color="#FFB347" />
         <CompositionStat
-          label="Water Weight"
-          value="↑ 0.4 kg"
+          label="Metabolic Age"
+          value={`${data.metabolicAge || 0}`}
           color="#18D3D0"
         />
       </div>
@@ -686,17 +926,17 @@ function BodyComposition() {
   );
 }
 
-function MonthlyComparison() {
+function MonthlyComparison({ comparisons }: { comparisons: Comparison[] }) {
   const [selected, setSelected] = useState("Calories");
 
   return (
     <Card className="h-full min-h-[185px] overflow-hidden">
       <div className="mb-3 flex items-center gap-3">
         <p className="text-[14px] font-black uppercase tracking-[0.1em] text-[#A6FF4D]">
-          Monthly Comparison
+          Generated Targets
         </p>
         <Info size={14} className="text-white/55" />
-        <span className="text-[11px] text-white/55">vs Previous Month</span>
+        <span className="text-[11px] text-white/55">latest plan</span>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -736,7 +976,7 @@ function MonthlyComparison() {
   );
 }
 
-function NextMilestones() {
+function NextMilestones({ milestones }: { milestones: Milestone[] }) {
   const [completed, setCompleted] = useState<string[]>([]);
 
   return (
@@ -780,8 +1020,33 @@ function NextMilestones() {
   );
 }
 
-function AIRecommendationSummary() {
-  const [selectedTip, setSelectedTip] = useState("Increase strength training");
+function AIRecommendationSummary({ data }: { data: ReportData }) {
+  const tips = useMemo(
+    () => [
+      {
+        title: `Follow ${data.calories.toLocaleString()} kcal target`,
+        sub: "for your selected goal",
+        icon: Sparkles,
+      },
+      {
+        title: `Hit ${data.protein}g protein`,
+        sub: "for satiety and recovery",
+        icon: ShieldCheck,
+      },
+      {
+        title: `Maintain ${data.waterTarget} hydration`,
+        sub: "for recovery and energy",
+        icon: Moon,
+      },
+    ],
+    [data.calories, data.protein, data.waterTarget],
+  );
+
+  const [selectedTip, setSelectedTip] = useState(tips[0].title);
+
+  useEffect(() => {
+    setSelectedTip(tips[0].title);
+  }, [tips]);
 
   return (
     <Card className="h-full min-h-[185px] overflow-hidden">
@@ -790,31 +1055,20 @@ function AIRecommendationSummary() {
           <CardTitle title="AI Recommendation Summary" icon={Info} />
 
           <p className="mt-0 text-[11px] text-white/60">
-            Based on your progress, AI suggests:
+            Based on your generated profile, AI suggests:
           </p>
 
           <div className="mt-2 space-y-1.5">
-            <RecommendationLine
-              icon={Sparkles}
-              text="Increase strength training"
-              sub="2–3 times per week"
-              active={selectedTip === "Increase strength training"}
-              onClick={() => setSelectedTip("Increase strength training")}
-            />
-            <RecommendationLine
-              icon={ShieldCheck}
-              text="Add more fiber-rich foods"
-              sub="for better gut health"
-              active={selectedTip === "Add more fiber-rich foods"}
-              onClick={() => setSelectedTip("Add more fiber-rich foods")}
-            />
-            <RecommendationLine
-              icon={Moon}
-              text="Maintain your sleep routine"
-              sub="for improved recovery"
-              active={selectedTip === "Maintain your sleep routine"}
-              onClick={() => setSelectedTip("Maintain your sleep routine")}
-            />
+            {tips.map((tip) => (
+              <RecommendationLine
+                key={tip.title}
+                icon={tip.icon}
+                text={tip.title}
+                sub={tip.sub}
+                active={selectedTip === tip.title}
+                onClick={() => setSelectedTip(tip.title)}
+              />
+            ))}
           </div>
         </div>
 
@@ -904,9 +1158,7 @@ function CardTitle({
   );
 }
 
-function MiniHealthChart() {
-  const data = [58, 68, 70, 75, 80, 81, 87];
-
+function MiniHealthChart({ data }: { data: number[] }) {
   return (
     <svg viewBox="0 0 300 78" className="mt-3 h-[78px] w-full overflow-visible">
       {[0, 1, 2].map((line) => (

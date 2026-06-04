@@ -1,4 +1,4 @@
-import { useMemo, useState, type ElementType } from "react";
+import { useEffect, useMemo, useState, type ElementType, type ReactNode } from "react";
 import {
   Activity,
   ArrowRight,
@@ -13,7 +13,6 @@ import {
   HeartPulse,
   Moon,
   Salad,
-  
   ShieldCheck,
   Sparkles,
   Zap,
@@ -44,6 +43,85 @@ type Insight = {
   color: string;
 };
 
+type AnalyticsData = {
+  range: string;
+  goal: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  waterTarget: number;
+  waterIntake: number;
+  sleepHours: number;
+  activity: string;
+  steps: number;
+  healthScore: number;
+  hydrationScore: number;
+  sleepScore: number;
+  coachMessage: string;
+  healthInsight: string;
+  overviewMetrics: OverviewMetric[];
+  micros: Micro[];
+  keyInsights: Insight[];
+  calorieTrend: number[];
+  nutritionTrend: number[];
+  hydrationTrend: number[];
+  sleepTrend: number[];
+};
+
+type StoredGeneratedPlan = {
+  success?: boolean;
+  user_profile?: {
+    name?: string;
+    goal?: string;
+    diet?: string;
+    activity?: string;
+    weight?: number;
+    sleep_hours?: number;
+    water_intake?: number;
+  };
+  analytics?: {
+    health_score?: number;
+    hydration_score?: number;
+    sleep_score?: number;
+    health_status?: string;
+    metabolic_strategy?: string;
+    strategy_details?: {
+      reason?: string;
+      recommended_focus?: string[];
+      coaching_focus?: string[];
+    };
+  };
+  targets?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fats?: number;
+    water_target?: string;
+  };
+  meal_plan?: {
+    days?: Array<{
+      day?: number;
+      breakfast?: string;
+      lunch?: string;
+      snack?: string;
+      dinner?: string;
+      alternatives?: string[];
+      water_target?: string;
+      workout_tip?: string;
+      meals?: {
+        breakfast?: string;
+        lunch?: string;
+        snack?: string;
+        dinner?: string;
+      };
+    }>;
+  };
+  coach_message?: string;
+  ai_tip?: string;
+  health_insight?: string;
+};
+
 const tabs = [
   { id: "overview", label: "Overview", icon: Brain },
   { id: "nutrition", label: "Nutrition", icon: Salad },
@@ -55,105 +133,393 @@ const tabs = [
   { id: "metabolic", label: "Metabolic Health", icon: HeartPulse },
 ];
 
-const overviewMetrics: OverviewMetric[] = [
-  {
-    id: "nutrition",
-    label: "Avg. Nutrition Score",
-    value: "86",
-    subValue: "/100",
-    change: "↑ 7% vs last week",
-    color: "#A6FF4D",
-    icon: Brain,
-    ring: 86,
-  },
-  {
-    id: "calories",
-    label: "Avg. Calories",
-    value: "1,842",
-    subValue: "kcal",
-    change: "↓ 120 kcal vs last week",
-    color: "#FFB347",
-    icon: Flame,
-  },
-  {
-    id: "protein",
-    label: "Protein Consistency",
-    value: "82%",
-    change: "↑ 12% vs last week",
-    color: "#7BE929",
-    icon: Salad,
-  },
-  {
-    id: "hydration",
-    label: "Hydration Avg.",
-    value: "2.4 L",
-    subValue: "/ 3.0 L",
-    change: "80% of goal",
-    color: "#18D3D0",
-    icon: Droplets,
-  },
-  {
-    id: "sleep",
-    label: "Sleep Avg.",
-    value: "7h 48m",
-    change: "↑ 35m vs last week",
-    color: "#A875FF",
-    icon: Moon,
-  },
-  {
-    id: "steps",
-    label: "Steps Avg.",
-    value: "8,240",
-    change: "↑ 1,120 vs last week",
-    color: "#7BE929",
-    icon: Footprints,
-  },
-];
+const fallbackAnalytics: AnalyticsData = {
+  range: "Latest generated plan",
+  goal: "Personalized Plan",
+  calories: 0,
+  protein: 0,
+  carbs: 0,
+  fats: 0,
+  waterTarget: 2.5,
+  waterIntake: 0,
+  sleepHours: 0,
+  activity: "Not Set",
+  steps: 0,
+  healthScore: 0,
+  hydrationScore: 0,
+  sleepScore: 0,
+  coachMessage: "Generate your AI nutrition plan to unlock analytics.",
+  healthInsight: "Your analytics will appear after plan generation.",
+  overviewMetrics: [
+    {
+      id: "nutrition",
+      label: "Nutrition Score",
+      value: "0",
+      subValue: "/100",
+      change: "Waiting for generated plan",
+      color: "#A6FF4D",
+      icon: Brain,
+      ring: 0,
+    },
+    {
+      id: "calories",
+      label: "Target Calories",
+      value: "0",
+      subValue: "kcal",
+      change: "Generate plan first",
+      color: "#FFB347",
+      icon: Flame,
+    },
+    {
+      id: "protein",
+      label: "Protein Target",
+      value: "0g",
+      change: "Generate plan first",
+      color: "#7BE929",
+      icon: Salad,
+    },
+    {
+      id: "hydration",
+      label: "Hydration Target",
+      value: "0 L",
+      subValue: "/ 2.5 L",
+      change: "Generate plan first",
+      color: "#18D3D0",
+      icon: Droplets,
+    },
+    {
+      id: "sleep",
+      label: "Sleep Score",
+      value: "0",
+      subValue: "/100",
+      change: "Generate plan first",
+      color: "#A875FF",
+      icon: Moon,
+    },
+    {
+      id: "steps",
+      label: "Activity Mode",
+      value: "—",
+      change: "Generate plan first",
+      color: "#7BE929",
+      icon: Footprints,
+    },
+  ],
+  micros: [
+    { name: "Protein", value: 0 },
+    { name: "Carbs", value: 0 },
+    { name: "Fats", value: 0 },
+    { name: "Hydration", value: 0 },
+    { name: "Sleep", value: 0 },
+    { name: "Plan Match", value: 0 },
+  ],
+  keyInsights: [
+    {
+      id: "start",
+      icon: Brain,
+      title: "Generate your plan",
+      description: "Analytics will update from your AI-generated nutrition profile.",
+      color: "#A6FF4D",
+    },
+    {
+      id: "nutrition",
+      icon: Salad,
+      title: "Nutrition intelligence pending",
+      description: "Calories and macros will appear here.",
+      color: "#FFB347",
+    },
+    {
+      id: "hydration",
+      icon: Droplets,
+      title: "Hydration target pending",
+      description: "Your water target will come from the generated plan.",
+      color: "#18D3D0",
+    },
+    {
+      id: "sleep",
+      icon: Moon,
+      title: "Sleep analytics pending",
+      description: "Sleep quality appears after assessment.",
+      color: "#A875FF",
+    },
+  ],
+  calorieTrend: [0, 0, 0, 0, 0, 0, 0],
+  nutritionTrend: [0, 0, 0, 0, 0, 0, 0],
+  hydrationTrend: [0, 0, 0, 0, 0, 0, 0],
+  sleepTrend: [0, 0, 0, 0, 0, 0, 0],
+};
 
-const micros: Micro[] = [
-  { name: "Vitamin D", value: 72 },
-  { name: "Iron", value: 88 },
-  { name: "Calcium", value: 76 },
-  { name: "Vitamin B12", value: 92 },
-  { name: "Magnesium", value: 69 },
-  { name: "Omega 3", value: 55, status: "Low" },
-];
+const dateRange = () => {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 6);
 
-const keyInsights: Insight[] = [
-  {
-    id: "calorie",
-    icon: Flame,
-    title: "You had a calorie deficit",
-    description: "5 of 7 days this week. Great for fat loss! 🔥",
-    color: "#FFB347",
-  },
-  {
-    id: "protein",
-    icon: Zap,
-    title: "Protein intake is improving.",
-    description: "Keep it consistent for better muscle retention.",
-    color: "#A6FF4D",
-  },
-  {
-    id: "hydration",
-    icon: Droplets,
-    title: "Hydration is 80% of goal.",
-    description: "Try hitting 3L daily for better energy & skin.",
-    color: "#18D3D0",
-  },
-  {
-    id: "sleep",
-    icon: Moon,
-    title: "Sleep quality improving!",
-    description: "Consistent sleep boosts recovery & metabolism.",
-    color: "#A875FF",
-  },
-];
+  const formatter = new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+  return `${formatter.format(start)} – ${formatter.format(end)}`;
+};
+
+function getStoredGeneratedPlan(): StoredGeneratedPlan | null {
+  try {
+    const raw = localStorage.getItem("ai_nutrition_generated_plan");
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredGeneratedPlan;
+  } catch {
+    return null;
+  }
+}
+
+function formatLabel(value?: string) {
+  if (!value) return "Not Set";
+
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function parseWaterTarget(value?: string, fallback = 2.5) {
+  if (!value) return fallback;
+
+  const match = value.match(/[\d.]+/);
+  if (!match) return fallback;
+
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function clamp(value: number, min = 0, max = 100) {
+  return Math.min(Math.max(Math.round(value), min), max);
+}
+
+function targetToTrend(target: number, spread = 0.12) {
+  if (!target || target <= 0) return [0, 0, 0, 0, 0, 0, 0];
+
+  return [0.82, 0.88, 0.92, 0.9, 0.96, 1.02, 1].map((factor) =>
+    Math.round(target * (factor + spread * 0.08)),
+  );
+}
+
+function scoreTrend(score: number) {
+  const base = score || 0;
+  return [base - 12, base - 9, base - 6, base - 4, base - 2, base - 1, base].map(
+    (value) => clamp(value),
+  );
+}
+
+function waterTrend(target: number) {
+  if (!target || target <= 0) return [0, 0, 0, 0, 0, 0, 0];
+
+  return [0.72, 0.82, 0.78, 0.9, 0.86, 0.96, 1].map((factor) =>
+    Number((target * factor).toFixed(1)),
+  );
+}
+
+function macroPercent(value: number, total: number) {
+  if (!total) return 0;
+  return clamp((value / total) * 100);
+}
+
+function transformGeneratedPlan(plan: StoredGeneratedPlan | null): AnalyticsData {
+  if (!plan?.success) {
+    return fallbackAnalytics;
+  }
+
+  const profile = plan.user_profile || {};
+  const analytics = plan.analytics || {};
+  const targets = plan.targets || {};
+
+  const calories = targets.calories || 0;
+  const protein = targets.protein || 0;
+  const carbs = targets.carbs || 0;
+  const fats = targets.fats || 0;
+
+  const waterTarget = parseWaterTarget(
+    targets.water_target,
+    profile.water_intake || 2.5,
+  );
+
+  const waterIntake = profile.water_intake || waterTarget;
+  const sleepHours = profile.sleep_hours || 8;
+  const sleepScore = analytics.sleep_score || (sleepHours >= 8 ? 95 : sleepHours >= 7 ? 85 : 70);
+  const hydrationScore =
+    analytics.hydration_score || clamp((waterIntake / Math.max(waterTarget, 1)) * 100);
+  const healthScore = analytics.health_score || 85;
+
+  const macroTotal = protein + carbs + fats;
+  const proteinPercent = macroPercent(protein, macroTotal);
+  const carbsPercent = macroPercent(carbs, macroTotal);
+  const fatsPercent = macroPercent(fats, macroTotal);
+
+  const activity = formatLabel(profile.activity);
+  const steps =
+    profile.activity === "sedentary"
+      ? 5000
+      : profile.activity === "light"
+        ? 6500
+        : profile.activity === "active" || profile.activity === "very_active"
+          ? 10000
+          : 8420;
+
+  const generatedMeals = plan.meal_plan?.days?.length || 0;
+  const goal = formatLabel(profile.goal);
+
+  const overviewMetrics: OverviewMetric[] = [
+    {
+      id: "nutrition",
+      label: "Nutrition Score",
+      value: String(healthScore),
+      subValue: "/100",
+      change: "Latest generated plan",
+      color: "#A6FF4D",
+      icon: Brain,
+      ring: healthScore,
+    },
+    {
+      id: "calories",
+      label: "Target Calories",
+      value: calories.toLocaleString(),
+      subValue: "kcal",
+      change: `Goal: ${goal}`,
+      color: "#FFB347",
+      icon: Flame,
+    },
+    {
+      id: "protein",
+      label: "Protein Target",
+      value: `${protein}g`,
+      change: `${proteinPercent}% macro share`,
+      color: "#7BE929",
+      icon: Salad,
+    },
+    {
+      id: "hydration",
+      label: "Hydration Target",
+      value: `${waterIntake} L`,
+      subValue: `/ ${waterTarget} L`,
+      change: `${hydrationScore}% of target`,
+      color: "#18D3D0",
+      icon: Droplets,
+    },
+    {
+      id: "sleep",
+      label: "Sleep Score",
+      value: String(sleepScore),
+      subValue: "/100",
+      change: `${sleepHours}h logged`,
+      color: "#A875FF",
+      icon: Moon,
+    },
+    {
+      id: "steps",
+      label: "Activity Focus",
+      value: steps.toLocaleString(),
+      change: activity,
+      color: "#7BE929",
+      icon: Footprints,
+    },
+  ];
+
+  const micros: Micro[] = [
+    { name: "Protein", value: proteinPercent },
+    { name: "Carbs", value: carbsPercent },
+    { name: "Fats", value: fatsPercent },
+    { name: "Hydration", value: hydrationScore },
+    { name: "Sleep", value: sleepScore },
+    {
+      name: "Plan Days",
+   value: clamp((generatedMeals / Math.max(generatedMeals || 1, 1)) * 100),
+      status: generatedMeals ? `${generatedMeals}d` : "New",
+    },
+  ];
+
+  const keyInsights: Insight[] = [
+    {
+      id: "calorie",
+      icon: Flame,
+      title: `${calories.toLocaleString()} kcal target`,
+      description: `Your target is tuned for ${goal.toLowerCase()} and ${activity.toLowerCase()} activity.`,
+      color: "#FFB347",
+    },
+    {
+      id: "protein",
+      icon: Zap,
+      title: `${protein}g protein target`,
+      description: "Protein consistency supports satiety, recovery, and body-composition goals.",
+      color: "#A6FF4D",
+    },
+    {
+      id: "hydration",
+      icon: Droplets,
+      title: `Hydration target: ${waterTarget} L`,
+      description: `Current plan records ${waterIntake} L/day. Keep it consistent across the week.`,
+      color: "#18D3D0",
+    },
+    {
+      id: "sleep",
+      icon: Moon,
+      title: `Sleep score: ${sleepScore}`,
+      description: `${sleepHours}h sleep supports recovery, cravings control, and energy stability.`,
+      color: "#A875FF",
+    },
+  ];
+
+  return {
+    range: dateRange(),
+    goal,
+    calories,
+    protein,
+    carbs,
+    fats,
+    waterTarget,
+    waterIntake,
+    sleepHours,
+    activity,
+    steps,
+    healthScore,
+    hydrationScore,
+    sleepScore,
+    coachMessage: plan.coach_message || "Your AI coach insight will appear here.",
+    healthInsight:
+      plan.health_insight ||
+      analytics.strategy_details?.reason ||
+      "Your analytics are based on your latest generated plan.",
+    overviewMetrics,
+    micros,
+    keyInsights,
+    calorieTrend: targetToTrend(calories),
+    nutritionTrend: scoreTrend(healthScore),
+    hydrationTrend: waterTrend(waterTarget),
+    sleepTrend: scoreTrend(sleepScore),
+  };
+}
 
 export default function AnalyticsHub() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [range, setRange] = useState("12 May – 18 May 2024");
+  const [data, setData] = useState<AnalyticsData>(() =>
+    transformGeneratedPlan(getStoredGeneratedPlan()),
+  );
+  const [range, setRange] = useState(data.range);
   const [reportGenerated, setReportGenerated] = useState(false);
+
+  useEffect(() => {
+    const refreshFromStorage = () => {
+      const fresh = transformGeneratedPlan(getStoredGeneratedPlan());
+      setData(fresh);
+      setRange(fresh.range);
+    };
+
+    window.addEventListener("storage", refreshFromStorage);
+    window.addEventListener("ai-plan-updated", refreshFromStorage);
+
+    return () => {
+      window.removeEventListener("storage", refreshFromStorage);
+      window.removeEventListener("ai-plan-updated", refreshFromStorage);
+    };
+  }, []);
 
   const activeTabLabel = useMemo(
     () => tabs.find((tab) => tab.id === activeTab)?.label ?? "Overview",
@@ -166,26 +532,37 @@ export default function AnalyticsHub() {
         <BackgroundFX />
 
         <div className="relative z-10">
-          
           <Header range={range} setRange={setRange} />
 
           <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
-          <OverviewStrip activeTabLabel={activeTabLabel} />
+          <OverviewStrip
+            activeTabLabel={activeTabLabel}
+            overviewMetrics={data.overviewMetrics}
+          />
 
           <div className="mt-5 grid gap-5 xl:grid-cols-[1.1fr_0.92fr_0.98fr]">
-            <CalorieTrend />
-            <MacroDistribution />
-            <MicronutrientCoverage />
+            <CalorieTrend calories={data.calories} points={data.calorieTrend} />
+            <MacroDistribution
+              protein={data.protein}
+              carbs={data.carbs}
+              fats={data.fats}
+            />
+            <MicronutrientCoverage micros={data.micros} />
           </div>
 
           <div className="mt-5 grid gap-5 xl:grid-cols-[1.08fr_0.86fr_1fr]">
-            <NutritionScoreTrend />
-            <HydrationTracker />
-            <SleepQualityTrend />
+            <NutritionScoreTrend data={data.nutritionTrend} range={data.range} />
+            <HydrationTracker
+              values={data.hydrationTrend}
+              target={data.waterTarget}
+            />
+            <SleepQualityTrend data={data.sleepTrend} />
           </div>
 
           <KeyInsights
+            keyInsights={data.keyInsights}
+            healthInsight={data.healthInsight}
             reportGenerated={reportGenerated}
             onGenerate={() => setReportGenerated(true)}
           />
@@ -194,26 +571,6 @@ export default function AnalyticsHub() {
     </section>
   );
 }
-
-
-       
-
-      <div className="flex items-center gap-5">
-        <div className="relative text-white/85">
-          <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#A6FF4D]" />
-          <span className="text-[22px]">♧</span>
-        </div>
-
-        <img
-          src="/assets/avatar-1.png"
-          alt="Isha"
-          className="h-10 w-10 rounded-full border border-white/20 object-cover"
-        />
-
-        <button className="flex items-center gap-2 text-[15px] font-black text-white">
-          Isha <ChevronDown size={16} />
-        </button>
-      </div>
 
 function Header({
   range,
@@ -224,19 +581,15 @@ function Header({
 }) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex items-center gap-4">
-        
+      <div>
+        <h2 className="flex items-center gap-3 text-[28px] font-black uppercase leading-none tracking-[0.02em] sm:text-[34px] lg:text-[38px] xl:text-[42px]">
+          Analytics Hub
+          <Sparkles className="text-[#A6FF4D]" size={24} />
+        </h2>
 
-        <div>
-          <h2 className="flex items-center gap-3 text-[28px] font-black uppercase leading-none tracking-[0.02em] sm:text-[34px] lg:text-[38px] xl:text-[42px]">
-            Analytics Hub
-            <Sparkles className="text-[#A6FF4D]" size={24} />
-          </h2>
-
-          <p className="mt-2 text-[14px] font-semibold leading-6 text-[#A3B3A3] xl:text-[15px]">
-            Deep insights into your nutrition, health & lifestyle patterns.
-          </p>
-        </div>
+        <p className="mt-2 text-[14px] font-semibold leading-6 text-[#A3B3A3] xl:text-[15px]">
+          Deep insights from your latest generated nutrition profile.
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -247,8 +600,8 @@ function Header({
             onChange={(event) => setRange(event.target.value)}
             className="bg-transparent text-white outline-none"
           >
-            <option className="bg-[#07110A]">12 May – 18 May 2024</option>
-            <option className="bg-[#07110A]">19 May – 25 May 2024</option>
+            <option className="bg-[#07110A]">{range}</option>
+            <option className="bg-[#07110A]">Latest generated plan</option>
             <option className="bg-[#07110A]">This Month</option>
           </select>
           <ChevronDown size={15} />
@@ -295,11 +648,17 @@ function Tabs({
   );
 }
 
-function OverviewStrip({ activeTabLabel }: { activeTabLabel: string }) {
+function OverviewStrip({
+  activeTabLabel,
+  overviewMetrics,
+}: {
+  activeTabLabel: string;
+  overviewMetrics: OverviewMetric[];
+}) {
   return (
     <div className="mt-5 rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
       <p className="mb-5 text-[15px] font-black uppercase tracking-[0.12em] text-[#A6FF4D]">
-        This Week Overview · {activeTabLabel}
+        Latest Plan Overview · {activeTabLabel}
       </p>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
@@ -315,7 +674,7 @@ function OverviewStrip({ activeTabLabel }: { activeTabLabel: string }) {
                   : ""
               }`}
             >
-              {metric.ring ? (
+              {typeof metric.ring === "number" ? (
                 <div
                   className="grid h-[58px] w-[58px] shrink-0 place-items-center rounded-full"
                   style={{
@@ -346,7 +705,7 @@ function OverviewStrip({ activeTabLabel }: { activeTabLabel: string }) {
               <div>
                 <p className="text-[12px] text-white/70">{metric.label}</p>
                 <p className="mt-1 text-[24px] font-black leading-none text-white">
-                  {metric.ring ? metric.value : metric.value}
+                  {metric.value}
                   {metric.subValue && (
                     <span className="ml-1 text-[16px] font-medium text-white/65">
                       {metric.subValue}
@@ -368,11 +727,15 @@ function OverviewStrip({ activeTabLabel }: { activeTabLabel: string }) {
   );
 }
 
-function CalorieTrend() {
-  const points = [1200, 1500, 1700, 1650, 1600, 1980, 1780, 1350, 1842];
-
+function CalorieTrend({
+  calories,
+  points,
+}: {
+  calories: number;
+  points: number[];
+}) {
   return (
-    <ChartCard title="Calorie Intake Trend" action="This Week">
+    <ChartCard title="Calorie Target Trend" action="Latest Plan">
       <div className="relative h-[230px]">
         <svg viewBox="0 0 520 230" className="h-full w-full overflow-visible">
           {[0, 1, 2, 3].map((line) => (
@@ -388,35 +751,19 @@ function CalorieTrend() {
           ))}
 
           <polyline
-            points={points
-              .map((value, index) => {
-                const x = 45 + index * 54;
-                const y = 190 - ((value - 900) / 1300) * 145;
-                return `${x},${y}`;
-              })
-              .join(" ")}
+            points={buildChartPoints(points, 900, Math.max(calories * 1.2, 2200))}
             fill="none"
             stroke="#A6FF4D"
             strokeWidth="3"
             filter="drop-shadow(0 0 10px rgba(166,255,77,.65))"
           />
 
-          <path
-            d={`M 45,190 ${points
-              .map((value, index) => {
-                const x = 45 + index * 54;
-                const y = 190 - ((value - 900) / 1300) * 145;
-                return `L ${x},${y}`;
-              })
-              .join(" ")} L 477,190 Z`}
-            fill="rgba(166,255,77,.12)"
-          />
-
-          {points.map((value, index) => {
-            const x = 45 + index * 54;
-            const y = 190 - ((value - 900) / 1300) * 145;
-            return <circle key={index} cx={x} cy={y} r="5" fill="#A6FF4D" />;
-          })}
+          {buildChartPoints(points, 900, Math.max(calories * 1.2, 2200))
+            .split(" ")
+            .map((pair, index) => {
+              const [x, y] = pair.split(",");
+              return <circle key={index} cx={x} cy={y} r="5" fill="#A6FF4D" />;
+            })}
 
           <line
             x1="38"
@@ -427,7 +774,7 @@ function CalorieTrend() {
             strokeDasharray="5 6"
           />
           <text x="220" y="102" fill="#18D3D0" fontSize="13">
-            2100 kcal
+            {calories.toLocaleString()} kcal
           </text>
 
           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
@@ -446,19 +793,35 @@ function CalorieTrend() {
         </svg>
 
         <div className="absolute right-2 top-10 rounded-xl bg-[#A6FF4D]/15 px-3 py-2 text-[13px] font-black text-white">
-          1,842 kcal
+          {calories.toLocaleString()} kcal
         </div>
       </div>
 
       <p className="mt-3 text-[13px] text-white/70">
-        ✧ You stayed within your calorie goal{" "}
-        <span className="font-black text-[#A6FF4D]">5 of 7</span> days.
+        ✧ Your current plan is optimized around{" "}
+        <span className="font-black text-[#A6FF4D]">
+          {calories.toLocaleString()} kcal
+        </span>
+        .
       </p>
     </ChartCard>
   );
 }
 
-function MacroDistribution() {
+function MacroDistribution({
+  protein,
+  carbs,
+  fats,
+}: {
+  protein: number;
+  carbs: number;
+  fats: number;
+}) {
+  const total = protein + carbs + fats;
+  const proteinPercent = macroPercent(protein, total);
+  const carbsPercent = macroPercent(carbs, total);
+  const fatsPercent = macroPercent(fats, total);
+
   return (
     <ChartCard title="Macro Distribution">
       <div className="grid items-center gap-5 md:grid-cols-[190px_1fr]">
@@ -466,29 +829,46 @@ function MacroDistribution() {
           <div
             className="absolute inset-0 rounded-full"
             style={{
-              background:
-                "conic-gradient(#20E4A5 0deg 100deg,#18D3D0 100deg 252deg,#FFB347 252deg 360deg)",
+              background: `conic-gradient(#20E4A5 0deg ${
+                proteinPercent * 3.6
+              }deg,#18D3D0 ${proteinPercent * 3.6}deg ${
+                (proteinPercent + carbsPercent) * 3.6
+              }deg,#FFB347 ${
+                (proteinPercent + carbsPercent) * 3.6
+              }deg 360deg)`,
             }}
           />
           <div className="absolute inset-[22px] grid place-items-center rounded-full bg-[#07110A] text-center">
-            <p className="text-[14px] text-white/75">Daily Avg</p>
+            <p className="text-[14px] text-white/75">Plan Avg</p>
             <p className="mt-1 text-[12px] font-black text-white">P • C • F</p>
             <p className="mt-1 text-[15px] font-black text-white">
-              28 • 42 • 30
+              {proteinPercent} • {carbsPercent} • {fatsPercent}
             </p>
           </div>
         </div>
 
         <div className="space-y-5">
-          <MacroLegend color="#20E4A5" label="Protein" value="118g (28%)" />
-          <MacroLegend color="#18D3D0" label="Carbs" value="178g (42%)" />
-          <MacroLegend color="#FFB347" label="Fats" value="58g (30%)" />
+          <MacroLegend
+            color="#20E4A5"
+            label="Protein"
+            value={`${protein}g (${proteinPercent}%)`}
+          />
+          <MacroLegend
+            color="#18D3D0"
+            label="Carbs"
+            value={`${carbs}g (${carbsPercent}%)`}
+          />
+          <MacroLegend
+            color="#FFB347"
+            label="Fats"
+            value={`${fats}g (${fatsPercent}%)`}
+          />
         </div>
       </div>
 
       <p className="mt-5 border-t border-white/10 pt-4 text-[13px] text-white/70">
         <span className="mr-2 text-[#A6FF4D]">◉</span>
-        Your macros are well balanced
+        Your macro split is loaded from the latest generated plan.
       </p>
     </ChartCard>
   );
@@ -513,18 +893,18 @@ function MacroLegend({
       <p className="text-[13px] font-bold text-white">{value}</p>
 
       <span className="rounded-lg bg-[#A6FF4D]/10 px-3 py-1 text-[11px] font-black text-[#A6FF4D]">
-        Good
+        Target
       </span>
     </div>
   );
 }
 
-function MicronutrientCoverage() {
+function MicronutrientCoverage({ micros }: { micros: Micro[] }) {
   return (
-    <ChartCard title="Micronutrient Coverage" action="View All">
+    <ChartCard title="Plan Coverage" action="Generated">
       <div className="space-y-4">
         {micros.map((micro) => (
-          <div key={micro.name} className="grid grid-cols-[100px_1fr_44px] items-center gap-4">
+          <div key={micro.name} className="grid grid-cols-[100px_1fr_54px] items-center gap-4">
             <p className="text-[13px] font-medium text-white/85">
               {micro.name}
             </p>
@@ -550,39 +930,46 @@ function MicronutrientCoverage() {
 
       <p className="mt-5 border-t border-white/10 pt-4 text-[13px] text-white/70">
         <span className="mr-2 text-[#A6FF4D]">ⓘ</span>
-        Based on your intake this week
+        Based on generated target coverage, not food logging history yet.
       </p>
     </ChartCard>
   );
 }
 
-function NutritionScoreTrend() {
-  const data = [72, 75, 81, 85, 88, 83, 92];
-
+function NutritionScoreTrend({
+  data,
+  range,
+}: {
+  data: number[];
+  range: string;
+}) {
   return (
     <ChartCard title="Nutrition Score Over Time">
       <LineChart
         data={data}
         color="#A6FF4D"
-        labels={["12 May", "13 May", "14 May", "15 May", "16 May", "17 May", "18 May"]}
-        suffix=""
+        labels={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}
       />
       <p className="mt-4 text-[13px] text-white/70">
         <span className="mr-2 text-[#A6FF4D]">✩</span>
-        Great progress! Your nutrition score is improving consistently.
+        Latest plan range: {range}
       </p>
     </ChartCard>
   );
 }
 
-function HydrationTracker() {
-  const values = [2.1, 2.6, 2.2, 2.8, 2.5, 2.9, 2.4];
-
+function HydrationTracker({
+  values,
+  target,
+}: {
+  values: number[];
+  target: number;
+}) {
   return (
     <ChartCard title="Hydration Tracker">
       <div className="relative h-[220px]">
         <p className="absolute right-0 top-0 text-[13px] font-black text-[#18D3D0]">
-          Goal: 3.0 L
+          Goal: {target} L
         </p>
 
         <div className="flex h-full items-end gap-6 border-b border-white/10 px-5 pt-9">
@@ -591,7 +978,7 @@ function HydrationTracker() {
               <p className="text-[12px] font-bold text-white">{value}L</p>
               <div
                 className="w-7 rounded-t-lg bg-gradient-to-t from-[#0899A5] to-[#18D3D0] shadow-[0_0_18px_rgba(24,211,208,.35)]"
-                style={{ height: `${value * 42}px` }}
+                style={{ height: `${Math.max(value, 0.2) * 42}px` }}
               />
               <span className="text-[11px] text-white/60">
                 {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index]}
@@ -603,15 +990,13 @@ function HydrationTracker() {
 
       <p className="mt-4 text-[13px] text-white/70">
         <span className="mr-2 text-[#18D3D0]">♢</span>
-        Best day: Saturday (2.9 L)
+        Hydration target loaded from your latest AI plan.
       </p>
     </ChartCard>
   );
 }
 
-function SleepQualityTrend() {
-  const data = [72, 75, 78, 82, 85, 80, 87];
-
+function SleepQualityTrend({ data }: { data: number[] }) {
   return (
     <ChartCard title="Sleep Quality Trend" titleColor="#B47CFF">
       <LineChart
@@ -621,7 +1006,7 @@ function SleepQualityTrend() {
       />
       <p className="mt-4 text-[13px] text-white/70">
         <span className="mr-2 text-[#B47CFF]">☾</span>
-        Your sleep quality is excellent!
+        Sleep trend is derived from your generated profile score.
       </p>
     </ChartCard>
   );
@@ -635,7 +1020,6 @@ function LineChart({
   data: number[];
   color: string;
   labels: string[];
-  suffix?: string;
 }) {
   const points = data
     .map((value, index) => {
@@ -701,9 +1085,13 @@ function LineChart({
 }
 
 function KeyInsights({
+  keyInsights,
+  healthInsight,
   reportGenerated,
   onGenerate,
 }: {
+  keyInsights: Insight[];
+  healthInsight: string;
   reportGenerated: boolean;
   onGenerate: () => void;
 }) {
@@ -719,7 +1107,7 @@ function KeyInsights({
             AI Key Insights
           </p>
           <p className="mt-1 text-[13px] text-white/65">
-            Based on your analytics
+            Based on latest plan
           </p>
         </div>
       </div>
@@ -753,7 +1141,7 @@ function KeyInsights({
               Want Deeper Insights?
             </p>
             <p className="mt-1 text-[12px] leading-5 text-white/65">
-              AI can generate a detailed weekly report for you.
+              {healthInsight}
             </p>
           </div>
         </div>
@@ -778,7 +1166,7 @@ function ChartCard({
 }: {
   title: string;
   action?: string;
-  children: React.ReactNode;
+  children: ReactNode;
   titleColor?: string;
 }) {
   return (
@@ -810,4 +1198,14 @@ function BackgroundFX() {
       <div className="pointer-events-none absolute inset-0 rounded-[30px] opacity-[0.13] [background-image:linear-gradient(rgba(166,255,77,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(166,255,77,.11)_1px,transparent_1px)] [background-size:78px_78px]" />
     </>
   );
+}
+
+function buildChartPoints(points: number[], min: number, max: number) {
+  return points
+    .map((value, index) => {
+      const x = 45 + index * (430 / Math.max(points.length - 1, 1));
+      const y = 190 - ((value - min) / (max - min || 1)) * 145;
+      return `${x},${y}`;
+    })
+    .join(" ");
 }

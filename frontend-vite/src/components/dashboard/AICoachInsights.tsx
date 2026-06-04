@@ -1,4 +1,4 @@
-import { useMemo, useState, type ElementType } from "react";
+import { useEffect, useMemo, useState, type ElementType } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -7,6 +7,7 @@ import {
   Flame,
   HeartPulse,
   Info,
+  AlertTriangle,
   Mic,
   Moon,
   Sparkles,
@@ -16,7 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 
-const AI_GIRL_IMAGE = "/assets/AI-girl.png";
+const AI_GIRL_IMAGE = "/assets/ai-coach2.png";
 const BULB_IMAGE = "/assets/Bulb.png";
 
 type Insight = {
@@ -93,7 +94,7 @@ const recommendations: Recommendation[] = [
   {
     id: "protein",
     title: "Increase Protein",
-    description: "Add 18g more protein today to hit your target.",
+    description: "Hit your current protein target today.",
     priority: "High Priority",
     color: "#A6FF4D",
     icon: Trash2,
@@ -101,7 +102,7 @@ const recommendations: Recommendation[] = [
   {
     id: "sleep",
     title: "Optimize Sleep",
-    description: "Try sleeping 15–20 min earlier for better recovery.",
+    description: "Keep your sleep routine consistent to maintain recovery.",
     priority: "Medium Priority",
     color: "#A875FF",
     icon: Moon,
@@ -109,7 +110,7 @@ const recommendations: Recommendation[] = [
   {
     id: "hydration",
     title: "Hydration Boost",
-    description: "Drink 500ml more water to complete your goal.",
+    description: "Work toward your hydration target.",
     priority: "Medium Priority",
     color: "#18D3D0",
     icon: Droplets,
@@ -117,7 +118,7 @@ const recommendations: Recommendation[] = [
   {
     id: "move",
     title: "Move More",
-    description: "A 20 min walk post dinner can improve fat loss.",
+    description: "A 20 min post-meal walk can support your goal.",
     priority: "Low Priority",
     color: "#FFB347",
     icon: Dumbbell,
@@ -139,11 +140,140 @@ const chatSuggestions = [
   "How can I improve my sleep?",
 ];
 
+type StoredCoachPlan = {
+  success?: boolean;
+  blocked?: boolean;
+  message?: string;
+  medical_risk?: {
+    block_reason?: string;
+    warnings?: string[];
+    hard_block?: boolean;
+  };
+  user_profile?: {
+    name?: string;
+    goal?: string;
+    sleep_hours?: number;
+    water_intake?: number;
+  };
+  analytics?: {
+    health_score?: number;
+    sleep_score?: number;
+    hydration_score?: number;
+  };
+  targets?: {
+    calories?: number;
+    protein?: number;
+    water_target?: string;
+  };
+  coach_message?: string;
+  ai_tip?: string;
+  health_insight?: string;
+};
+
+function getStoredCoachPlan(): StoredCoachPlan | null {
+  try {
+    const raw = localStorage.getItem("ai_nutrition_generated_plan");
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredCoachPlan;
+  } catch {
+    return null;
+  }
+}
+
+function getStoredBlockedCoachResponse(): StoredCoachPlan | null {
+  try {
+    const raw = localStorage.getItem("ai_nutrition_blocked_response");
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredCoachPlan;
+  } catch {
+    return null;
+  }
+}
+
+
+function formatLabel(value?: string) {
+  if (!value) return "your goal";
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function getCoachData() {
+  const blocked = getStoredBlockedCoachResponse();
+  const plan = getStoredCoachPlan();
+
+  if (blocked?.blocked) {
+    return {
+      blocked: true,
+      name: "User",
+      goal: "medical guidance required",
+      healthScore: 0,
+      sleepScore: 0,
+      hydrationScore: 0,
+      protein: 0,
+      calories: 0,
+      waterTarget: "Not available",
+      message:
+        blocked.message ||
+        blocked.medical_risk?.block_reason ||
+        "Medical guidance is required before AI coaching can be used.",
+      insight:
+        "AI Coach is disabled for this profile because nutrition and workout recommendations should come from a qualified medical professional.",
+    };
+  }
+
+  const profile = plan?.user_profile || {};
+  const analytics = plan?.analytics || {};
+  const targets = plan?.targets || {};
+
+  const name = "User";
+  const goal = formatLabel(profile.goal);
+  const healthScore = analytics.health_score ?? 0;
+  const sleepScore = analytics.sleep_score ?? healthScore;
+  const hydrationScore = analytics.hydration_score ?? healthScore;
+  const protein = targets.protein ?? 0;
+  const calories = targets.calories ?? 0;
+  const waterTarget = targets.water_target || `${profile.water_intake ?? 2.5}L`;
+
+  return {
+    blocked: false,
+    name,
+    goal,
+    healthScore,
+    sleepScore,
+    hydrationScore,
+    protein,
+    calories,
+    waterTarget,
+    message:
+      plan?.coach_message ||
+      plan?.ai_tip ||
+      "Generate a plan from your profile inputs to unlock personalized coach guidance.",
+    insight:
+      plan?.health_insight ||
+      "Your AI coach will summarize your health and nutrition patterns after plan generation.",
+  };
+}
+
+
 export default function AICoachInsights() {
+  const [coachData, setCoachData] = useState(() => getCoachData());
   const [input, setInput] = useState("");
   const [habits, setHabits] = useState(defaultHabits);
   const [showAllInsights, setShowAllInsights] = useState(false);
   const [coachReply, setCoachReply] = useState("");
+
+  useEffect(() => {
+    const refresh = () => setCoachData(getCoachData());
+
+    window.addEventListener("storage", refresh);
+    window.addEventListener("ai-plan-updated", refresh);
+
+    return () => {
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener("ai-plan-updated", refresh);
+    };
+  }, []);
 
   const completedHabits = useMemo(
     () => habits.filter((habit) => habit.completed).length,
@@ -154,6 +284,14 @@ export default function AICoachInsights() {
 
   const handleSend = () => {
     if (!input.trim()) return;
+
+    if (coachData.blocked) {
+      setCoachReply(
+        "AI Coach: I cannot provide nutrition, workout, or wellness recommendations for this profile. Please consult a qualified healthcare professional.",
+      );
+      setInput("");
+      return;
+    }
 
     setCoachReply(
       `AI Coach: "${input}" — I’ll personalize this using your latest nutrition and progress data.`,
@@ -179,19 +317,22 @@ export default function AICoachInsights() {
         <div className="relative z-10">
           <Header />
 
+          {coachData.blocked ? <CoachSafetyBlockedNotice message={coachData.message} /> : null}
+
           <div className="grid items-stretch gap-5 xl:grid-cols-[1.38fr_0.92fr]">
             <div className="grid items-stretch gap-5 lg:grid-cols-[0.68fr_1fr]">
               <CoachAvatar />
-              <CoachMessage />
+              <CoachMessage data={coachData} />
             </div>
 
             <InsightPanel
+              data={coachData}
               showAllInsights={showAllInsights}
               onToggle={() => setShowAllInsights((value) => !value)}
             />
           </div>
 
-          <RecommendationPanel />
+          <RecommendationPanel data={coachData} />
 
           <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_0.42fr]">
             <CoachInput
@@ -214,6 +355,33 @@ export default function AICoachInsights() {
     </section>
   );
 }
+
+
+function CoachSafetyBlockedNotice({ message }: { message: string }) {
+  return (
+    <div className="mb-5 rounded-[24px] border border-[#FF6C7D]/35 bg-[#2A070D]/70 p-5 shadow-[0_0_40px_rgba(255,108,125,0.12)]">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#FF6C7D]/35 bg-[#FF6C7D]/10 text-[#FF6C7D]">
+          <AlertTriangle size={24} />
+        </div>
+        <div>
+          <p className="text-[15px] font-black uppercase tracking-[0.18em] text-[#FF6C7D]">
+            AI Coach Disabled
+          </p>
+          <p className="mt-2 max-w-[960px] text-[15px] font-semibold leading-7 text-white/82">
+            {message}
+          </p>
+          <p className="mt-3 text-[13px] leading-6 text-white/55">
+            AI Nutrition OS cannot answer medical, disease, medication,
+            pregnancy, addiction, emergency, nutrition-plan, or workout-plan
+            questions for this profile.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function Header() {
   return (
@@ -254,6 +422,7 @@ function CoachAvatar() {
 
         <img
           src={AI_GIRL_IMAGE}
+          onError={(event) => { event.currentTarget.style.display = "none"; }}
           alt="AI Coach Nutri"
           className="relative z-10 h-[430px] w-[430px] object-contain drop-shadow-[0_0_48px_rgba(24,211,208,.5)] xl:h-[460px] xl:w-[460px]"
         />
@@ -272,31 +441,31 @@ function CoachAvatar() {
   );
 }
 
-function CoachMessage() {
+function CoachMessage({ data }: { data: ReturnType<typeof getCoachData> }) {
   const notices = [
     {
       color: "#A6FF4D",
       icon: ArrowRight,
-      title: "Your recovery improved 8% this week.",
-      text: "Great job staying consistent with your sleep!",
+      title: "Your recovery score is aligned with your latest plan.",
+      text: `Sleep score: ${data.sleepScore}%. Keep your routine steady.`,
     },
     {
       color: "#FFB347",
       icon: Flame,
-      title: "Protein target was missed yesterday.",
-      text: "Try adding paneer or greek yogurt at breakfast.",
+      title: "Your current protein target is ready.",
+      text: `Aim for ${data.protein}g protein across the day.`,
     },
     {
       color: "#18D3D0",
       icon: Droplets,
-      title: "Hydration goal is 80% complete.",
-      text: "Drink one more glass to hit your daily target.",
+      title: "Hydration target is personalized.",
+      text: `Target: ${data.waterTarget}. Track water consistently.`,
     },
     {
       color: "#A6FF4D",
       icon: CheckCircle2,
-      title: "You're on track to achieve your fat loss goal.",
-      text: "Keep maintaining your calorie deficit!",
+      title: "You're on track for your selected goal.",
+      text: `Goal: ${data.goal}. Calories: ${data.calories} kcal.`,
     },
   ];
 
@@ -305,10 +474,10 @@ function CoachMessage() {
       <div className="flex items-start justify-between gap-5">
         <div>
           <h3 className="text-[25px] font-black tracking-[-0.04em] text-white xl:text-[30px]">
-            Good evening, <span className="text-[#A6FF4D]">Isha!</span> 👋
+            Good evening, <span className="text-[#A6FF4D]">{data.name}!</span> 👋
           </h3>
           <p className="mt-2 text-[14px] leading-6 text-white/70">
-            Here&apos;s what I&apos;ve noticed about you today.
+            Here&apos;s what I&apos;ve noticed from your latest AI plan.
           </p>
         </div>
 
@@ -353,19 +522,41 @@ function CoachMessage() {
       </div>
 
       <div className="mt-4 rounded-xl border border-[#A6FF4D]/30 bg-[#A6FF4D]/5 px-4 py-3 text-[13px] font-medium leading-6 text-white/80">
-        Small consistent choices, big transformation. You&apos;re doing great!❤❤❤
+        {data.message}
       </div>
     </div>
   );
 }
 function InsightPanel({
+  data,
   showAllInsights,
   onToggle,
 }: {
+  data: ReturnType<typeof getCoachData>;
   showAllInsights: boolean;
   onToggle: () => void;
 }) {
-  const visibleInsights = showAllInsights ? insights : insights.slice(0, 4);
+  const personalizedInsights: Insight[] = insights.map((item) => {
+    if (item.id === "recovery") {
+      return { ...item, value: `${data.healthScore}%`, status: data.healthScore >= 85 ? "Excellent" : "Good" };
+    }
+
+    if (item.id === "sleep") {
+      return { ...item, value: `${data.sleepScore}%`, status: data.sleepScore >= 85 ? "Optimal" : "Good" };
+    }
+
+    if (item.id === "nutrition") {
+      return { ...item, value: `${data.protein}g`, status: "Protein" };
+    }
+
+    if (item.id === "activity") {
+      return { ...item, value: `${data.calories.toLocaleString()}`, status: "kcal" };
+    }
+
+    return item;
+  });
+
+  const visibleInsights = showAllInsights ? personalizedInsights : personalizedInsights.slice(0, 4);
 
   return (
    <div className="h-fit rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
@@ -431,7 +622,23 @@ function InsightCard({ insight }: { insight: Insight }) {
     </div>
   );
 }
-function RecommendationPanel() {
+function RecommendationPanel({ data }: { data: ReturnType<typeof getCoachData> }) {
+  const personalizedRecommendations: Recommendation[] = recommendations.map((item) => {
+    if (item.id === "protein") {
+      return { ...item, description: `Hit your current protein target of ${data.protein}g today.` };
+    }
+
+    if (item.id === "hydration") {
+      return { ...item, description: `Work toward your hydration target: ${data.waterTarget}.` };
+    }
+
+    if (item.id === "move") {
+      return { ...item, description: `A 20 min post-meal walk can support your ${data.goal.toLowerCase()} goal.` };
+    }
+
+    return item;
+  });
+
   return (
     <div className="mt-5 rounded-[24px] border border-white/10 bg-[#07110A]/70 p-6">
       <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
@@ -439,7 +646,7 @@ function RecommendationPanel() {
       </p>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {recommendations.map((item) => {
+        {personalizedRecommendations.map((item) => {
           const Icon = item.icon;
 
           return (
@@ -548,6 +755,7 @@ function TipCard() {
       <div className="grid h-28 w-28 shrink-0 place-items-center">
         <img
           src={BULB_IMAGE}
+          onError={(event) => { event.currentTarget.style.display = "none"; }}
           alt="Coaching tip"
           className="h-28 w-28 object-contain drop-shadow-[0_0_35px_rgba(166,255,77,.58)]"
         />

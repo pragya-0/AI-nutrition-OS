@@ -1,0 +1,1239 @@
+[
+  {
+    "success": true,
+    "scanner_mode": "filename_food_match",
+    "filename": "grilled-chicken-brown-rice.png",
+    "detected_food": "Rice",
+    "image_url": "http://127.0.0.1:8000/uploads/1780494797215_grilled-chicken-brown-rice.png",
+    "image": "http://127.0.0.1:8000/uploads/1780494797215_grilled-chicken-brown-rice.png",
+    "food_category": "plain_rice",
+    "confidence": 0.95,
+    "estimated_nutrition": {
+      "calories": 250,
+      "protein": 5,
+      "carbs": 55,
+      "fats": 1,
+      "fiber": 7,
+      "sugar": 10,
+      "sodium": 304,
+      "saturated_fat": 1
+    },
+    "micronutrients": {
+      "calcium": 6,
+      "iron": 10,
+      "vitamin_a": 2,
+      "vitamin_c": 1,
+      "potassium": 14,
+      "magnesium": 18
+    },
+    "meal_type": "Light Meal",
+    "best_time_to_eat": "12:00 PM - 2:00 PM",
+    "health_impact": {
+      "overall_score": 72,
+      "summary": "Food detected from filename.",
+      "metrics": [
+        {
+          "key": "muscle_growth",
+          "label": "Muscle Growth",
+          "value": 44,
+          "status": "Low",
+          "color": "#8CFF2F"
+        },
+        {
+          "key": "fat_loss",
+          "label": "Fat Loss",
+          "value": 85,
+          "status": "High",
+          "color": "#A6FF4D"
+        },
+        {
+          "key": "recovery",
+          "label": "Recovery",
+          "value": 62,
+          "status": "Good",
+          "color": "#18D3D0"
+        },
+        {
+          "key": "energy",
+          "label": "Energy",
+          "value": 84,
+          "status": "High",
+          "color": "#FFE234"
+        },
+        {
+          "key": "heart_health",
+          "label": "Heart Health",
+          "value": 90,
+          "status": "High",
+          "color": "#FF7A1A"
+        },
+        {
+          "key": "digestive_health",
+          "label": "Digestive Health",
+          "value": 78,
+          "status": "High",
+          "color": "#A96BFF"
+        }
+      ],
+      "meal_type": "Light Meal",
+      "best_time_to_eat": "12:00 PM - 2:00 PM",
+      "best_time_label": "Breakfast / Light meal",
+      "pro_tip": "Pair rice with dal, beans, curd, or vegetables to improve protein and fiber.",
+      "source": "backend_calculated",
+      "inputs_used": [
+        "calories",
+        "protein",
+        "carbs",
+        "fats",
+        "fiber",
+        "sugar",
+        "sodium",
+        "saturated_fat",
+        "health_score"
+      ]
+    },
+    "recommendations": {
+      "vegetarian": {
+        "title": "Rajma Rice Bowl with Salad",
+        "image": "/assets/scanner/chickpea-veg-power-bowl.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 370,
+        "protein": 18,
+        "carbs": 47,
+        "fats": 7,
+        "fiber": 12,
+        "score": 92,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Chickpea & Veg Power Bowl",
+        "image": "/assets/scanner/chickpea-veg-power-bowl.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 370,
+        "protein": 16,
+        "carbs": 49,
+        "fats": 8,
+        "fiber": 13,
+        "score": 90,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Grilled Chicken with Brown Rice",
+        "image": "/assets/scanner/grilled-chicken-brown-rice.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 370,
+        "protein": 28,
+        "carbs": 45,
+        "fats": 7,
+        "fiber": 10,
+        "score": 94,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 72,
+    "analysis": "Food detected from filename.",
+    "warnings": [
+      "High carb base if eaten alone"
+    ],
+    "suggestions": [
+      "Pair rice with dal, beans, curd, or vegetables to improve protein and fiber.",
+      "Keep portion size balanced with your goal."
+    ],
+    "message": "Food detected from filename.",
+    "saved_at": "2026-06-03T19:23:17",
+    "created_at": "2026-06-03T19:23:17",
+    "id": "scan_1780494797234"
+  },
+  {
+    "success": true,
+    "scanner_mode": "filename_food_match",
+    "filename": "Paneer.png",
+    "detected_food": "Paneer Curry",
+    "image_url": "http://127.0.0.1:8000/uploads/1780492203789_Paneer.png",
+    "image": "http://127.0.0.1:8000/uploads/1780492203789_Paneer.png",
+    "food_category": "creamy_curry",
+    "confidence": 0.95,
+    "estimated_nutrition": {
+      "calories": 360,
+      "protein": 18,
+      "carbs": 12,
+      "fats": 22,
+      "fiber": 3,
+      "sugar": 2,
+      "sodium": 550,
+      "saturated_fat": 10
+    },
+    "micronutrients": {
+      "calcium": 45,
+      "iron": 16,
+      "vitamin_a": 20,
+      "vitamin_c": 10,
+      "potassium": 28,
+      "magnesium": 18
+    },
+    "meal_type": "Main Course",
+    "best_time_to_eat": "12:00 PM - 2:00 PM / 7:00 PM - 8:30 PM",
+    "health_impact": {
+      "overall_score": 72,
+      "summary": "Food detected from filename.",
+      "metrics": [
+        {
+          "key": "muscle_growth",
+          "label": "Muscle Growth",
+          "value": 67,
+          "status": "Good",
+          "color": "#8CFF2F"
+        },
+        {
+          "key": "fat_loss",
+          "label": "Fat Loss",
+          "value": 67,
+          "status": "Good",
+          "color": "#A6FF4D"
+        },
+        {
+          "key": "recovery",
+          "label": "Recovery",
+          "value": 73,
+          "status": "Good",
+          "color": "#18D3D0"
+        },
+        {
+          "key": "energy",
+          "label": "Energy",
+          "value": 55,
+          "status": "Moderate",
+          "color": "#FFE234"
+        },
+        {
+          "key": "heart_health",
+          "label": "Heart Health",
+          "value": 59,
+          "status": "Moderate",
+          "color": "#FF7A1A"
+        },
+        {
+          "key": "digestive_health",
+          "label": "Digestive Health",
+          "value": 60,
+          "status": "Moderate",
+          "color": "#A96BFF"
+        }
+      ],
+      "meal_type": "Main Course",
+      "best_time_to_eat": "12:00 PM - 2:00 PM / 7:00 PM - 8:30 PM",
+      "best_time_label": "Lunch / Dinner",
+      "pro_tip": "Balance with roti and salad instead of extra rice.",
+      "source": "backend_calculated",
+      "inputs_used": [
+        "calories",
+        "protein",
+        "carbs",
+        "fats",
+        "fiber",
+        "sugar",
+        "sodium",
+        "saturated_fat",
+        "health_score"
+      ]
+    },
+    "recommendations": {
+      "vegetarian": {
+        "title": "Veggie Stir Fry with Tofu",
+        "image": "/assets/scanner/veggie-stir-fry-tofu.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 320,
+        "protein": 20,
+        "carbs": 24,
+        "fats": 15,
+        "fiber": 9,
+        "score": 92,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Lemon Herb Tofu with Quinoa",
+        "image": "/assets/scanner/lemon-herb-tofu-quinoa.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 320,
+        "protein": 18,
+        "carbs": 28,
+        "fats": 16,
+        "fiber": 10,
+        "score": 90,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Grilled Chicken with Brown Rice",
+        "image": "/assets/scanner/grilled-chicken-brown-rice.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 320,
+        "protein": 28,
+        "carbs": 24,
+        "fats": 14,
+        "fiber": 8,
+        "score": 94,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 72,
+    "analysis": "Food detected from filename.",
+    "warnings": [
+      "High saturated fat"
+    ],
+    "suggestions": [
+      "Balance with roti and salad instead of extra rice.",
+      "Use less cream or butter when possible."
+    ],
+    "message": "Food detected from filename.",
+    "saved_at": "2026-06-03T18:40:03",
+    "created_at": "2026-06-03T18:40:03",
+    "id": "scan_1780492203791"
+  },
+  {
+    "success": true,
+    "scanner_mode": "groq_vision",
+    "filename": "Biriyani.png",
+    "detected_food": "Chicken Biryani",
+    "image_url": "http://127.0.0.1:8000/uploads/1780491393994_Biriyani.png",
+    "image": "http://127.0.0.1:8000/uploads/1780491393994_Biriyani.png",
+    "food_category": "rice_main",
+    "confidence": 0.9,
+    "estimated_nutrition": {
+      "calories": 550,
+      "protein": 35,
+      "carbs": 60,
+      "fats": 25,
+      "fiber": 5,
+      "sugar": 5,
+      "sodium": 700,
+      "saturated_fat": 8
+    },
+    "micronutrients": {
+      "calcium": 2,
+      "iron": 3,
+      "vitamin_a": 10,
+      "vitamin_c": 20,
+      "potassium": 55,
+      "magnesium": 25
+    },
+    "meal_type": "Main Course",
+    "best_time_to_eat": "12:00 PM - 2:00 PM",
+    "health_impact": {
+      "overall_score": 65,
+      "summary": "Chicken Biryani is a balanced dish with a good mix of carbohydrates, protein, and fats. However, it is high in sodium and calories.",
+      "metrics": [
+        {
+          "key": "muscle_growth",
+          "label": "Muscle Growth",
+          "value": 95,
+          "status": "High",
+          "color": "#8CFF2F"
+        },
+        {
+          "key": "fat_loss",
+          "label": "Fat Loss",
+          "value": 61,
+          "status": "Moderate",
+          "color": "#A6FF4D"
+        },
+        {
+          "key": "recovery",
+          "label": "Recovery",
+          "value": 92,
+          "status": "High",
+          "color": "#18D3D0"
+        },
+        {
+          "key": "energy",
+          "label": "Energy",
+          "value": 90,
+          "status": "High",
+          "color": "#FFE234"
+        },
+        {
+          "key": "heart_health",
+          "label": "Heart Health",
+          "value": 63,
+          "status": "Good",
+          "color": "#FF7A1A"
+        },
+        {
+          "key": "digestive_health",
+          "label": "Digestive Health",
+          "value": 69,
+          "status": "Good",
+          "color": "#A96BFF"
+        }
+      ],
+      "meal_type": "Main Course",
+      "best_time_to_eat": "12:00 PM - 2:00 PM",
+      "best_time_label": "Lunch / Dinner",
+      "pro_tip": "Consider using brown rice for added fiber",
+      "source": "backend_calculated",
+      "inputs_used": [
+        "calories",
+        "protein",
+        "carbs",
+        "fats",
+        "fiber",
+        "sugar",
+        "sodium",
+        "saturated_fat",
+        "health_score"
+      ]
+    },
+    "recommendations": {
+      "vegetarian": {
+        "title": "Veggie Stir Fry with Tofu",
+        "image": "/assets/scanner/veggie-stir-fry-tofu.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 390,
+        "protein": 32,
+        "carbs": 52,
+        "fats": 15,
+        "fiber": 13,
+        "score": 85,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Lemon Herb Tofu with Quinoa",
+        "image": "/assets/scanner/lemon-herb-tofu-quinoa.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 390,
+        "protein": 28,
+        "carbs": 54,
+        "fats": 16,
+        "fiber": 14,
+        "score": 83,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Grilled Chicken with Brown Rice",
+        "image": "/assets/scanner/grilled-chicken-brown-rice.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 390,
+        "protein": 42,
+        "carbs": 50,
+        "fats": 14,
+        "fiber": 10,
+        "score": 87,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 65,
+    "analysis": "Chicken Biryani is a balanced dish with a good mix of carbohydrates, protein, and fats. However, it is high in sodium and calories.",
+    "warnings": [
+      "High sodium content",
+      "High calorie count",
+      "High carb content",
+      "Moderate sodium"
+    ],
+    "suggestions": [
+      "Consider using brown rice for added fiber",
+      "Add more vegetables to increase nutrient density",
+      "Pair with raita or salad.",
+      "Keep rice portion controlled."
+    ],
+    "message": "Chicken Biryani is a balanced dish with a good mix of carbohydrates, protein, and fats. However, it is high in sodium and calories.",
+    "saved_at": "2026-06-03T18:26:35",
+    "created_at": "2026-06-03T18:26:35",
+    "id": "scan_1780491395152"
+  },
+  {
+    "success": true,
+    "scanner_mode": "groq_vision",
+    "filename": "scanner-good-example-3.png",
+    "detected_food": "Chicken Stir Fry with Brown Rice",
+    "image_url": "http://127.0.0.1:8000/uploads/1780488907336_scanner-good-example-3.png",
+    "image": "http://127.0.0.1:8000/uploads/1780488907336_scanner-good-example-3.png",
+    "food_category": "plain_rice",
+    "confidence": 0.9,
+    "estimated_nutrition": {
+      "calories": 550,
+      "protein": 6,
+      "carbs": 60,
+      "fats": 3,
+      "fiber": 5,
+      "sugar": 10,
+      "sodium": 60,
+      "saturated_fat": 3
+    },
+    "micronutrients": {
+      "calcium": 15,
+      "iron": 3,
+      "vitamin_a": 5,
+      "vitamin_c": 5,
+      "potassium": 25,
+      "magnesium": 30
+    },
+    "meal_type": "Main Course",
+    "best_time_to_eat": "12:00 PM - 2:00 PM",
+    "health_impact": {
+      "overall_score": 76,
+      "summary": "Balanced meal with lean protein, complex carbohydrates, and vegetables.",
+      "metrics": [
+        {
+          "key": "muscle_growth",
+          "label": "Muscle Growth",
+          "value": 46,
+          "status": "Moderate",
+          "color": "#8CFF2F"
+        },
+        {
+          "key": "fat_loss",
+          "label": "Fat Loss",
+          "value": 64,
+          "status": "Good",
+          "color": "#A6FF4D"
+        },
+        {
+          "key": "recovery",
+          "label": "Recovery",
+          "value": 64,
+          "status": "Good",
+          "color": "#18D3D0"
+        },
+        {
+          "key": "energy",
+          "label": "Energy",
+          "value": 90,
+          "status": "High",
+          "color": "#FFE234"
+        },
+        {
+          "key": "heart_health",
+          "label": "Heart Health",
+          "value": 89,
+          "status": "High",
+          "color": "#FF7A1A"
+        },
+        {
+          "key": "digestive_health",
+          "label": "Digestive Health",
+          "value": 67,
+          "status": "Good",
+          "color": "#A96BFF"
+        }
+      ],
+      "meal_type": "Main Course",
+      "best_time_to_eat": "12:00 PM - 2:00 PM",
+      "best_time_label": "Lunch / Dinner",
+      "pro_tip": "Pair rice with dal, beans, curd, or vegetables to improve protein and fiber.",
+      "source": "backend_calculated",
+      "inputs_used": [
+        "calories",
+        "protein",
+        "carbs",
+        "fats",
+        "fiber",
+        "sugar",
+        "sodium",
+        "saturated_fat",
+        "health_score"
+      ]
+    },
+    "recommendations": {
+      "vegetarian": {
+        "title": "Rajma Rice Bowl with Salad",
+        "image": "/assets/scanner/chickpea-veg-power-bowl.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 390,
+        "protein": 18,
+        "carbs": 52,
+        "fats": 7,
+        "fiber": 13,
+        "score": 96,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Chickpea & Veg Power Bowl",
+        "image": "/assets/scanner/chickpea-veg-power-bowl.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 390,
+        "protein": 16,
+        "carbs": 54,
+        "fats": 8,
+        "fiber": 14,
+        "score": 94,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Grilled Chicken with Brown Rice",
+        "image": "/assets/scanner/grilled-chicken-brown-rice.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 390,
+        "protein": 28,
+        "carbs": 50,
+        "fats": 7,
+        "fiber": 10,
+        "score": 96,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 76,
+    "analysis": "Balanced meal with lean protein, complex carbohydrates, and vegetables.",
+    "warnings": [
+      "High carb base if eaten alone"
+    ],
+    "suggestions": [
+      "Pair rice with dal, beans, curd, or vegetables to improve protein and fiber.",
+      "Keep portion size balanced with your goal."
+    ],
+    "message": "Balanced meal with lean protein, complex carbohydrates, and vegetables.",
+    "saved_at": "2026-06-03T17:45:08",
+    "created_at": "2026-06-03T17:45:08",
+    "id": "scan_1780488908436"
+  },
+  {
+    "success": true,
+    "scanner_mode": "groq_vision",
+    "filename": "scanner-good-example-4.png",
+    "detected_food": "Avocado Toast with Egg and Salad",
+    "image_url": "http://127.0.0.1:8000/uploads/1780488493409_scanner-good-example-4.png",
+    "image": "http://127.0.0.1:8000/uploads/1780488493409_scanner-good-example-4.png",
+    "food_category": "high_protein_bowl",
+    "confidence": 0.9,
+    "estimated_nutrition": {
+      "calories": 420,
+      "protein": 20,
+      "carbs": 30,
+      "fats": 24,
+      "fiber": 7,
+      "sugar": 5,
+      "sodium": 200,
+      "saturated_fat": 4
+    },
+    "micronutrients": {
+      "calcium": 20,
+      "iron": 3,
+      "vitamin_a": 10,
+      "vitamin_c": 20,
+      "potassium": 50,
+      "magnesium": 45
+    },
+    "meal_type": "Breakfast",
+    "best_time_to_eat": "8:00 AM - 10:00 AM",
+    "health_impact": {
+      "overall_score": 85,
+      "summary": "Balanced meal with healthy fats, protein, and fiber",
+      "metrics": [
+        {
+          "key": "muscle_growth",
+          "label": "Muscle Growth",
+          "value": 71,
+          "status": "Good",
+          "color": "#8CFF2F"
+        },
+        {
+          "key": "fat_loss",
+          "label": "Fat Loss",
+          "value": 65,
+          "status": "Good",
+          "color": "#A6FF4D"
+        },
+        {
+          "key": "recovery",
+          "label": "Recovery",
+          "value": 79,
+          "status": "High",
+          "color": "#18D3D0"
+        },
+        {
+          "key": "energy",
+          "label": "Energy",
+          "value": 69,
+          "status": "Good",
+          "color": "#FFE234"
+        },
+        {
+          "key": "heart_health",
+          "label": "Heart Health",
+          "value": 86,
+          "status": "High",
+          "color": "#FF7A1A"
+        },
+        {
+          "key": "digestive_health",
+          "label": "Digestive Health",
+          "value": 80,
+          "status": "High",
+          "color": "#A96BFF"
+        }
+      ],
+      "meal_type": "Breakfast",
+      "best_time_to_eat": "8:00 AM - 10:00 AM",
+      "best_time_label": "Snack / Small meal",
+      "pro_tip": "Add more whole grains to increase fiber content",
+      "source": "backend_calculated",
+      "inputs_used": [
+        "calories",
+        "protein",
+        "carbs",
+        "fats",
+        "fiber",
+        "sugar",
+        "sodium",
+        "saturated_fat",
+        "health_score"
+      ]
+    },
+    "recommendations": {
+      "vegetarian": {
+        "title": "Chickpea & Veg Power Bowl",
+        "image": "/assets/scanner/chickpea-veg-power-bowl.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 380,
+        "protein": 18,
+        "carbs": 36,
+        "fats": 15,
+        "fiber": 9,
+        "score": 96,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Lemon Herb Tofu with Quinoa",
+        "image": "/assets/scanner/lemon-herb-tofu-quinoa.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 380,
+        "protein": 20,
+        "carbs": 38,
+        "fats": 16,
+        "fiber": 10,
+        "score": 95,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Grilled Fish with Steamed Veg",
+        "image": "/assets/scanner/grilled-fish-steamed-veg.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 380,
+        "protein": 28,
+        "carbs": 36,
+        "fats": 14,
+        "fiber": 8,
+        "score": 96,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 85,
+    "analysis": "Balanced meal with healthy fats, protein, and fiber",
+    "warnings": [],
+    "suggestions": [
+      "Add more whole grains to increase fiber content",
+      "Consider adding more herbs for extra antioxidants.",
+      "Keep portion size aligned with your daily goal."
+    ],
+    "message": "Balanced meal with healthy fats, protein, and fiber",
+    "saved_at": "2026-06-03T17:38:14",
+    "created_at": "2026-06-03T17:38:14",
+    "id": "scan_1780488494633"
+  },
+  {
+    "success": true,
+    "scanner_mode": "groq_vision",
+    "filename": "Screenshot 2026-05-20 110046.png",
+    "detected_food": "Egg, Mushroom, Tomato, Cucumber, and Quinoa Bowl",
+    "image_url": "http://127.0.0.1:8000/uploads/1780487749936_Screenshot_2026-05-20_110046.png",
+    "image": "http://127.0.0.1:8000/uploads/1780487749936_Screenshot_2026-05-20_110046.png",
+    "food_category": "high_protein_bowl",
+    "confidence": 0.9,
+    "estimated_nutrition": {
+      "calories": 350,
+      "protein": 25,
+      "carbs": 20,
+      "fats": 15,
+      "fiber": 5,
+      "sugar": 5,
+      "sodium": 200,
+      "saturated_fat": 3
+    },
+    "micronutrients": {
+      "calcium": 45,
+      "iron": 3,
+      "vitamin_a": 20,
+      "vitamin_c": 40,
+      "potassium": 50,
+      "magnesium": 45
+    },
+    "meal_type": "Lunch",
+    "best_time_to_eat": "12:00 PM - 1:00 PM",
+    "health_impact": {
+      "overall_score": 85,
+      "summary": "Balanced and nutritious bowl with protein, healthy fats, and complex carbohydrates.",
+      "metrics": [
+        {
+          "key": "muscle_growth",
+          "label": "Muscle Growth",
+          "value": 80,
+          "status": "High",
+          "color": "#8CFF2F"
+        },
+        {
+          "key": "fat_loss",
+          "label": "Fat Loss",
+          "value": 76,
+          "status": "Good",
+          "color": "#A6FF4D"
+        },
+        {
+          "key": "recovery",
+          "label": "Recovery",
+          "value": 85,
+          "status": "High",
+          "color": "#18D3D0"
+        },
+        {
+          "key": "energy",
+          "label": "Energy",
+          "value": 61,
+          "status": "Moderate",
+          "color": "#FFE234"
+        },
+        {
+          "key": "heart_health",
+          "label": "Heart Health",
+          "value": 85,
+          "status": "High",
+          "color": "#FF7A1A"
+        },
+        {
+          "key": "digestive_health",
+          "label": "Digestive Health",
+          "value": 69,
+          "status": "Good",
+          "color": "#A96BFF"
+        }
+      ],
+      "meal_type": "Lunch",
+      "best_time_to_eat": "12:00 PM - 1:00 PM",
+      "best_time_label": "Snack / Small meal",
+      "pro_tip": "Consider adding more herbs for extra antioxidants.",
+      "source": "backend_calculated",
+      "inputs_used": [
+        "calories",
+        "protein",
+        "carbs",
+        "fats",
+        "fiber",
+        "sugar",
+        "sodium",
+        "saturated_fat",
+        "health_score"
+      ]
+    },
+    "recommendations": {
+      "vegetarian": {
+        "title": "Chickpea & Veg Power Bowl",
+        "image": "/assets/scanner/chickpea-veg-power-bowl.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 310,
+        "protein": 23,
+        "carbs": 26,
+        "fats": 15,
+        "fiber": 9,
+        "score": 96,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Lemon Herb Tofu with Quinoa",
+        "image": "/assets/scanner/lemon-herb-tofu-quinoa.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 310,
+        "protein": 21,
+        "carbs": 28,
+        "fats": 15,
+        "fiber": 10,
+        "score": 95,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Grilled Fish with Steamed Veg",
+        "image": "/assets/scanner/grilled-fish-steamed-veg.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 310,
+        "protein": 33,
+        "carbs": 26,
+        "fats": 14,
+        "fiber": 8,
+        "score": 96,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 85,
+    "analysis": "Balanced and nutritious bowl with protein, healthy fats, and complex carbohydrates.",
+    "warnings": [],
+    "suggestions": [
+      "Consider adding more herbs for extra antioxidants.",
+      "Keep portion size aligned with your daily goal."
+    ],
+    "message": "Balanced and nutritious bowl with protein, healthy fats, and complex carbohydrates.",
+    "saved_at": "2026-06-03T17:25:51",
+    "created_at": "2026-06-03T17:25:51",
+    "id": "scan_1780487751454"
+  },
+  {
+    "success": true,
+    "scanner_mode": "groq_vision",
+    "filename": "Screenshot 2026-06-03 133448.png",
+    "detected_food": "Lassi",
+    "image_url": "http://127.0.0.1:8000/uploads/1780484697873_Screenshot_2026-06-03_133448.png",
+    "image": "http://127.0.0.1:8000/uploads/1780484697873_Screenshot_2026-06-03_133448.png",
+    "food_category": "general_meal",
+    "confidence": 0.9,
+    "estimated_nutrition": {
+      "calories": 150,
+      "protein": 10,
+      "carbs": 30,
+      "fats": 5,
+      "fiber": 1,
+      "sugar": 20,
+      "sodium": 50,
+      "saturated_fat": 3
+    },
+    "micronutrients": {
+      "calcium": 55,
+      "iron": 1,
+      "vitamin_a": 10,
+      "vitamin_c": 2,
+      "potassium": 55,
+      "magnesium": 20
+    },
+    "meal_type": "Beverage",
+    "best_time_to_eat": "10:00 AM - 12:00 PM",
+    "recommendations": {
+      "vegetarian": {
+        "title": "Veggie Stir Fry with Tofu",
+        "image": "/assets/scanner/veggie-stir-fry-tofu.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 280,
+        "protein": 18,
+        "carbs": 36,
+        "fats": 7,
+        "fiber": 9,
+        "score": 90,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Lemon Herb Tofu with Quinoa",
+        "image": "/assets/scanner/lemon-herb-tofu-quinoa.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 290,
+        "protein": 16,
+        "carbs": 38,
+        "fats": 8,
+        "fiber": 10,
+        "score": 88,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Grilled Chicken with Brown Rice",
+        "image": "/assets/scanner/grilled-chicken-brown-rice.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 300,
+        "protein": 28,
+        "carbs": 36,
+        "fats": 7,
+        "fiber": 8,
+        "score": 92,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 70,
+    "analysis": "A creamy yogurt-based drink with a good balance of protein and carbs.",
+    "warnings": [],
+    "suggestions": [
+      "Pair with vegetables or salad for better fiber balance.",
+      "Keep portion size aligned with your daily goal."
+    ],
+    "message": "A creamy yogurt-based drink with a good balance of protein and carbs.",
+    "saved_at": "2026-06-03T16:34:58",
+    "created_at": "2026-06-03T16:34:58",
+    "id": "scan_1780484698974"
+  },
+  {
+    "success": true,
+    "scanner_mode": "groq_vision",
+    "filename": "Screenshot 2026-06-03 135658.png",
+    "detected_food": "Pani Puri",
+    "image_url": "http://127.0.0.1:8000/uploads/1780483901503_Screenshot_2026-06-03_135658.png",
+    "image": "http://127.0.0.1:8000/uploads/1780483901503_Screenshot_2026-06-03_135658.png",
+    "food_category": "chaat_snack",
+    "confidence": 0.9,
+    "estimated_nutrition": {
+      "calories": 200,
+      "protein": 3,
+      "carbs": 30,
+      "fats": 10,
+      "fiber": 2,
+      "sugar": 5,
+      "sodium": 550,
+      "saturated_fat": 2
+    },
+    "micronutrients": {
+      "calcium": 20,
+      "iron": 2,
+      "vitamin_a": 10,
+      "vitamin_c": 20,
+      "potassium": 30,
+      "magnesium": 10
+    },
+    "meal_type": "Snack",
+    "best_time_to_eat": "10:00 AM - 6:00 PM",
+    "recommendations": {
+      "vegetarian": {
+        "title": "Moong Dal Chilla with Salad",
+        "image": "/assets/scanner/moong-dal-chilla-salad.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 320,
+        "protein": 18,
+        "carbs": 36,
+        "fats": 10,
+        "fiber": 9,
+        "score": 82,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Chickpea & Veg Power Bowl",
+        "image": "/assets/scanner/chickpea-veg-power-bowl.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 320,
+        "protein": 16,
+        "carbs": 38,
+        "fats": 10,
+        "fiber": 10,
+        "score": 82,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Egg White Veggie Bowl",
+        "image": "/assets/scanner/egg-white-veggie-bowl.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 320,
+        "protein": 28,
+        "carbs": 36,
+        "fats": 10,
+        "fiber": 8,
+        "score": 82,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 58,
+    "analysis": "Pani Puri is a popular Indian street food that is high in carbohydrates and sodium. It is also a good source of potassium and vitamin C.",
+    "warnings": [
+      "High sodium content",
+      "May contain unhealthy fats",
+      "High sodium",
+      "Refined carbs",
+      "Street food hygiene risk"
+    ],
+    "suggestions": [
+      "Eat in moderation",
+      "Balance with other nutrient-dense foods",
+      "Limit portions because chaat water and fillings can be high in sodium.",
+      "Choose homemade pani with less salt when possible.",
+      "Avoid pairing with extra fried snacks or sugary drinks."
+    ],
+    "message": "Pani Puri is a popular Indian street food that is high in carbohydrates and sodium. It is also a good source of potassium and vitamin C.",
+    "saved_at": "2026-06-03T16:21:42",
+    "created_at": "2026-06-03T16:21:42",
+    "id": "scan_1780483902715"
+  },
+  {
+    "success": true,
+    "scanner_mode": "groq_vision",
+    "filename": "Screenshot 2026-06-03 133303.png",
+    "detected_food": "Lamb Biryani",
+    "image_url": "http://127.0.0.1:8000/uploads/1780483884480_Screenshot_2026-06-03_133303.png",
+    "image": "http://127.0.0.1:8000/uploads/1780483884480_Screenshot_2026-06-03_133303.png",
+    "food_category": "rice_main",
+    "confidence": 0.9,
+    "estimated_nutrition": {
+      "calories": 550,
+      "protein": 35,
+      "carbs": 60,
+      "fats": 20,
+      "fiber": 2,
+      "sugar": 1,
+      "sodium": 700,
+      "saturated_fat": 8
+    },
+    "micronutrients": {
+      "calcium": 2,
+      "iron": 3,
+      "vitamin_a": 10,
+      "vitamin_c": 2,
+      "potassium": 55,
+      "magnesium": 20
+    },
+    "meal_type": "Main Course",
+    "best_time_to_eat": "12:00 PM - 2:00 PM",
+    "recommendations": {
+      "vegetarian": {
+        "title": "Veggie Stir Fry with Tofu",
+        "image": "/assets/scanner/veggie-stir-fry-tofu.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 390,
+        "protein": 32,
+        "carbs": 52,
+        "fats": 13,
+        "fiber": 13,
+        "score": 82,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Lemon Herb Tofu with Quinoa",
+        "image": "/assets/scanner/lemon-herb-tofu-quinoa.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 390,
+        "protein": 28,
+        "carbs": 54,
+        "fats": 14,
+        "fiber": 14,
+        "score": 82,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Grilled Chicken with Brown Rice",
+        "image": "/assets/scanner/grilled-chicken-brown-rice.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 390,
+        "protein": 42,
+        "carbs": 50,
+        "fats": 12,
+        "fiber": 10,
+        "score": 82,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 60,
+    "analysis": "High in carbohydrates and protein, moderate in fats.",
+    "warnings": [
+      "High sodium content",
+      "High carb content",
+      "Moderate sodium"
+    ],
+    "suggestions": [
+      "Balance with a side of vegetables",
+      "Pair with raita or salad.",
+      "Keep rice portion controlled."
+    ],
+    "message": "High in carbohydrates and protein, moderate in fats.",
+    "saved_at": "2026-06-03T16:21:25",
+    "created_at": "2026-06-03T16:21:25",
+    "id": "scan_1780483885625"
+  },
+  {
+    "success": true,
+    "scanner_mode": "groq_vision",
+    "filename": "Screenshot 2026-06-03 133303.png",
+    "detected_food": "Mutton Biryani",
+    "image_url": "http://127.0.0.1:8000/uploads/1780483706467_Screenshot_2026-06-03_133303.png",
+    "image": "http://127.0.0.1:8000/uploads/1780483706467_Screenshot_2026-06-03_133303.png",
+    "food_category": "rice_main",
+    "confidence": 0.9,
+    "estimated_nutrition": {
+      "calories": 550,
+      "protein": 35,
+      "carbs": 60,
+      "fats": 20,
+      "fiber": 2,
+      "sugar": 2,
+      "sodium": 700,
+      "saturated_fat": 8
+    },
+    "micronutrients": {
+      "calcium": 2,
+      "iron": 3,
+      "vitamin_a": 10,
+      "vitamin_c": 2,
+      "potassium": 55,
+      "magnesium": 20
+    },
+    "meal_type": "Main Course",
+    "best_time_to_eat": "12:00 PM - 2:00 PM",
+    "recommendations": {
+      "vegetarian": {
+        "title": "Veggie Stir Fry with Tofu",
+        "image": "/assets/scanner/veggie-stir-fry-tofu.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 390,
+        "protein": 32,
+        "carbs": 52,
+        "fats": 13,
+        "fiber": 13,
+        "score": 82,
+        "why_better": "Lighter calories, more vegetables, better fiber, and a cleaner plant-protein profile."
+      },
+      "vegan": {
+        "title": "Lemon Herb Tofu with Quinoa",
+        "image": "/assets/scanner/lemon-herb-tofu-quinoa.png",
+        "serving": "1 Serving",
+        "weight": "400 g",
+        "calories": 390,
+        "protein": 28,
+        "carbs": 54,
+        "fats": 14,
+        "fiber": 14,
+        "score": 82,
+        "why_better": "Fully plant-based, higher fiber, balanced carbs, and lower saturated-fat load."
+      },
+      "non_vegetarian": {
+        "title": "Grilled Chicken with Brown Rice",
+        "image": "/assets/scanner/grilled-chicken-brown-rice.png",
+        "serving": "1 Serving",
+        "weight": "420 g",
+        "calories": 390,
+        "protein": 42,
+        "carbs": 50,
+        "fats": 12,
+        "fiber": 10,
+        "score": 82,
+        "why_better": "More lean protein, controlled fats, and stronger recovery and fitness-goal support."
+      }
+    },
+    "health_score": 60,
+    "analysis": "High calorie and carb content, moderate protein and fat.",
+    "warnings": [
+      "High sodium content",
+      "High carb content",
+      "Moderate sodium"
+    ],
+    "suggestions": [
+      "Balance with a side salad or raita",
+      "Pair with raita or salad.",
+      "Keep rice portion controlled."
+    ],
+    "message": "High calorie and carb content, moderate protein and fat.",
+    "saved_at": "2026-06-03T16:18:28",
+    "created_at": "2026-06-03T16:18:28",
+    "id": "scan_1780483708288"
+  }
+]

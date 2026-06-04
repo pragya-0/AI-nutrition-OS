@@ -27,6 +27,8 @@ from nutrition.calories import calculate_calories
 from nutrition.macros import calculate_macros
 from nutrition.metabolic_engine import determine_metabolic_strategy
 from nutrition.health_score import calculate_dynamic_health_score
+from dotenv import load_dotenv
+load_dotenv()
 
 from nutrition.analytics import (
     calculate_bmr,
@@ -63,9 +65,13 @@ except Exception:
     generate_health_insight = None
 
 try:
-    from services.medical_warning_engine import analyze_medical_risk
+    from services.medical_warning_engine import analyze_medical_risk, MEDICAL_DISCLAIMER
 except Exception:
     analyze_medical_risk = None
+    MEDICAL_DISCLAIMER = (
+        "AI Nutrition OS provides general wellness information only and is not a substitute for medical advice, "
+        "diagnosis, treatment, emergency care, or professional dietary counselling."
+    )
 
 try:
     from services.history_service import save_nutrition_plan
@@ -1335,6 +1341,60 @@ def create_safe_fallback_coach_message(
     )
 
 
+def reduce_meal_repetition(days):
+    """
+    Reduce repeated meal names across multi-day plans without breaking the response shape.
+
+    This runs after sanitize_meal_days(), so it only touches already-cleaned meal text.
+    It keeps the first occurrence of a meal, then tries to replace later duplicates
+    using safe alternatives. If no suitable alternative exists, it keeps the meal.
+    """
+    if not isinstance(days, list):
+        return []
+
+    used_meals = set()
+
+    for day in days:
+        if not isinstance(day, dict):
+            continue
+
+        alternatives = day.get("alternatives", []) or []
+        if not isinstance(alternatives, list):
+            alternatives = []
+
+        for meal_key in ["breakfast", "lunch", "snack", "dinner"]:
+            original_meal = str(day.get(meal_key, "") or "").strip()
+            normalized_meal = original_meal.lower()
+
+            if not normalized_meal:
+                continue
+
+            if normalized_meal in used_meals:
+                replacement = None
+
+                for alternative in alternatives:
+                    alternative_text = str(alternative or "").strip()
+                    normalized_alternative = alternative_text.lower()
+
+                    if alternative_text and normalized_alternative not in used_meals:
+                        replacement = alternative_text
+                        break
+
+                if replacement:
+                    day[meal_key] = replacement
+
+                    if isinstance(day.get("meals"), dict):
+                        day["meals"][meal_key] = replacement
+
+                    used_meals.add(replacement.lower())
+                else:
+                    used_meals.add(normalized_meal)
+            else:
+                used_meals.add(normalized_meal)
+
+    return days
+
+
 @app.get("/")
 def home():
     return {
@@ -1378,6 +1438,8 @@ def health_check():
             "safe_alternatives",
             "dynamic_workout_tip",
             "quality_scores",
+            "public_launch_safety_fields",
+            "substance_use_hard_block",
         ],
         "detected_columns": {
             "food": food_col,
@@ -1479,90 +1541,281 @@ def scan_food(file: UploadFile = File(...)):
     return finalize_scan(fallback_result)
 
 
-@app.post("/generate-plan")
-def generate_plan(user: UserData):
-    # =====================================
-    # MEDICAL HARD-BLOCK GATE
-    # Must run BEFORE BMI, calories, macros, meals, AI coach,
-    # dashboard analytics, routines, and workout generation.
-    # =====================================
+def build_blocked_plan_response(user: UserData, medical_risk: dict):
+    """
+    Public-launch blocked response.
 
-    medical_text = str(getattr(user, "medical_conditions", "") or "").lower()
-    pregnancy_status = str(getattr(user, "pregnancy_status", "") or "").lower()
-    safety_warnings = []
+    This response intentionally contains no meal_plan, no targets, no calories,
+    no macros, no workout plan, no AI coach output, and no saved_plan_id.
+    Frontend should render this as a visible warning and keep the user on inputs.
+    """
+    block_reason = (
+        medical_risk.get("block_reason")
+        or "AI Nutrition OS cannot safely generate recommendations for this profile."
+    )
 
-    medical_safety_warnings = []
-    medical_risk = {
+    warnings = medical_risk.get("warnings", []) or []
+
+    return {
+        "success": False,
+        "blocked": True,
+        "message": block_reason,
+        "warning_title": "Medical Guidance Required",
+        "warning_message": (
+            "A medical or safety concern was detected in your profile. "
+            "AI Nutrition OS provides general wellness information only and cannot generate "
+            "nutrition, workout, calorie, macro, or AI-coach recommendations for this profile. "
+            "Please consult a qualified doctor, registered dietitian, or healthcare professional."
+        ),
+        "medical_disclaimer": medical_risk.get("medical_disclaimer") or MEDICAL_DISCLAIMER,
+        "medical_warnings": list(dict.fromkeys([*warnings, MEDICAL_DISCLAIMER])),
+        "medical_risk": medical_risk,
+        "user_profile": {
+            "name": getattr(user, "name", ""),
+            "city": getattr(user, "city", ""),
+            "blood_group": getattr(user, "blood_group", ""),
+            "weight": getattr(user, "weight", None),
+            "height": getattr(user, "height", None),
+            "age": getattr(user, "age", None),
+            "gender": getattr(user, "gender", ""),
+            "goal": getattr(user, "goal", ""),
+            "diet": getattr(user, "diet", ""),
+            "activity": getattr(user, "activity", ""),
+            "days": getattr(user, "days", None),
+            "medical_conditions": getattr(user, "medical_conditions", ""),
+            "pregnancy_status": getattr(user, "pregnancy_status", ""),
+            "smoker_alcohol": get_smoker_alcohol_value(user),
+        },
+        "next_action": "edit_profile_or_consult_professional",
+    }
+
+
+def fallback_public_launch_medical_risk(user: UserData):
+    """
+    Fail-safe fallback when services.medical_warning_engine cannot import.
+    Public-launch policy: block if any medical text is present except safe empty values.
+    """
+    safe_empty_values = {
+        "", "none", "no", "nil", "na", "n/a", "not applicable", "not_applicable",
+        "not provided", "not_provided", "nothing", "no medical conditions", "healthy",
+    }
+
+    medical_text = str(getattr(user, "medical_conditions", "") or "").lower().replace("_", " ").strip()
+    pregnancy_status = str(getattr(user, "pregnancy_status", "") or "").lower().replace("_", " ").strip()
+    smoker_alcohol = str(
+        get_smoker_alcohol_value(user)
+        or ""
+    ).lower().replace("_", " ").strip()
+    combined = f"{medical_text} {pregnancy_status} {smoker_alcohol}".strip()
+
+    age = int(getattr(user, "age", 0) or 0)
+    gender = str(getattr(user, "gender", "") or "").lower().strip()
+
+    pregnancy_keywords = [
+        "pregnant", "pregnancy", "postpartum", "breastfeeding", "lactating",
+        "trying to conceive", "planning pregnancy", "ttc", "ivf",
+    ]
+    substance_keywords = [
+        "heavy smoker", "chain smoker", "smoking addiction", "alcohol dependency",
+        "alcohol dependence", "alcohol addiction", "alcoholic", "substance abuse",
+        "drug abuse", "drug addiction", "addiction", "rehab", "withdrawal",
+    ]
+    emergency_keywords = [
+        "suicidal", "self harm", "self-harm", "overdose", "chest pain", "heart attack",
+        "stroke", "severe bleeding", "emergency", "can't breathe", "cannot breathe",
+        "difficulty breathing", "unconscious", "fainting",
+    ]
+
+    def matched(words):
+        return sorted({word for word in words if word in combined})
+
+    if age < 18 or age >= 60:
+        return {
+            "risk_level": "high",
+            "warnings": ["AI Nutrition OS currently supports only users aged 18 to 59.", MEDICAL_DISCLAIMER],
+            "detected_conditions": [],
+            "hard_block": True,
+            "block_reason": "AI Nutrition OS currently supports only users aged 18 to 59. Please consult a qualified healthcare professional.",
+            "risk_type": "age_restriction",
+            "medical_disclaimer": MEDICAL_DISCLAIMER,
+        }
+
+    pregnancy_matches = matched(pregnancy_keywords)
+    if gender == "male" and pregnancy_matches:
+        return {
+            "risk_level": "high",
+            "warnings": ["Invalid medical profile detected.", MEDICAL_DISCLAIMER],
+            "detected_conditions": pregnancy_matches,
+            "hard_block": True,
+            "block_reason": "Invalid medical profile detected. Please review the entered details or consult a qualified healthcare professional.",
+            "risk_type": "invalid_profile",
+            "medical_disclaimer": MEDICAL_DISCLAIMER,
+        }
+
+    if pregnancy_matches:
+        return {
+            "risk_level": "high",
+            "warnings": ["Pregnancy-related wellness guidance is currently unavailable.", MEDICAL_DISCLAIMER],
+            "detected_conditions": pregnancy_matches,
+            "hard_block": True,
+            "block_reason": "Pregnancy-related wellness guidance is currently unavailable. Please consult a qualified healthcare professional.",
+            "risk_type": "pregnancy",
+            "medical_disclaimer": MEDICAL_DISCLAIMER,
+        }
+
+    emergency_matches = matched(emergency_keywords)
+    if emergency_matches:
+        return {
+            "risk_level": "high",
+            "warnings": ["Potential urgent medical concern detected.", MEDICAL_DISCLAIMER],
+            "detected_conditions": emergency_matches,
+            "hard_block": True,
+            "block_reason": "Potential urgent medical concern detected. Please contact emergency services or seek immediate medical attention.",
+            "risk_type": "emergency",
+            "medical_disclaimer": MEDICAL_DISCLAIMER,
+        }
+
+    substance_matches = matched(substance_keywords)
+    if substance_matches:
+        return {
+            "risk_level": "high",
+            "warnings": ["Substance use or dependency concern detected.", MEDICAL_DISCLAIMER],
+            "detected_conditions": substance_matches,
+            "hard_block": True,
+            "block_reason": "Substance use or dependency concern detected. Please consult a qualified healthcare professional or addiction-support specialist.",
+            "risk_type": "substance_use",
+            "medical_disclaimer": MEDICAL_DISCLAIMER,
+        }
+
+    if medical_text not in safe_empty_values:
+        return {
+            "risk_level": "high",
+            "warnings": [
+                "A medical condition was detected. Please consult a qualified healthcare professional.",
+                MEDICAL_DISCLAIMER,
+            ],
+            "detected_conditions": [medical_text],
+            "hard_block": True,
+            "block_reason": (
+                "A medical condition was detected. AI Nutrition OS provides general wellness information only "
+                "and cannot generate nutrition or workout recommendations for medical conditions. "
+                "Please consult a qualified doctor, registered dietitian, or healthcare professional."
+            ),
+            "risk_type": "medical_condition",
+            "medical_disclaimer": MEDICAL_DISCLAIMER,
+        }
+
+    return {
         "risk_level": "low",
         "warnings": [],
         "detected_conditions": [],
-        "restrict_aggressive_fat_loss": False,
-        "restrict_intense_workouts": False,
         "hard_block": False,
-        "block_reason": "",
+        "block_reason": None,
+        "risk_type": "none",
+        "medical_disclaimer": MEDICAL_DISCLAIMER,
     }
+
+
+def preserve_public_launch_safety_fields(user: UserData, payload: dict):
+    """
+    UserData may ignore unknown frontend fields.
+    Public-launch safety fields must be preserved manually before medical risk analysis.
+    """
+    if not isinstance(payload, dict):
+        payload = {}
+
+    safety_field_aliases = {
+        "smoker_alcohol": [
+            "smoker_alcohol",
+            "smoker_or_alcohol",
+            "smoking_alcohol",
+            "smoker",
+            "alcohol",
+            "substance_use",
+            "addiction_status",
+        ],
+        "medical_conditions": [
+            "medical_conditions",
+            "medical_condition",
+            "conditions",
+            "health_conditions",
+        ],
+        "pregnancy_status": [
+            "pregnancy_status",
+            "pregnancy",
+        ],
+    }
+
+    for target_field, aliases in safety_field_aliases.items():
+        existing_value = getattr(user, target_field, "")
+
+        selected_value = existing_value
+        for alias in aliases:
+            incoming_value = payload.get(alias)
+            if incoming_value is not None and str(incoming_value).strip() != "":
+                selected_value = incoming_value
+                break
+
+        try:
+            setattr(user, target_field, selected_value)
+        except Exception:
+            object.__setattr__(user, target_field, selected_value)
+
+    return user
+
+
+def build_user_from_payload(payload: dict):
+    """
+    Build the existing UserData model while preserving frontend-only safety fields.
+    This fixes hard-block checks for smoker_alcohol / alcohol dependency / substance abuse.
+    """
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=422, detail="Request body must be a JSON object.")
+
+    try:
+        user = UserData(**payload)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    return preserve_public_launch_safety_fields(user, payload)
+
+
+def get_smoker_alcohol_value(user: UserData):
+    return (
+        getattr(user, "smoker_alcohol", "")
+        or getattr(user, "smoker_or_alcohol", "")
+        or getattr(user, "smoking_alcohol", "")
+        or getattr(user, "smoker", "")
+        or getattr(user, "alcohol", "")
+        or getattr(user, "substance_use", "")
+        or getattr(user, "addiction_status", "")
+        or ""
+    )
+
+
+@app.post("/generate-plan")
+def generate_plan(payload: dict):
+    user = build_user_from_payload(payload)
+
+    # =====================================
+    # PUBLIC-LAUNCH MEDICAL HARD-BLOCK GATE
+    # Must run BEFORE BMI, calories, macros, meals, AI coach,
+    # dashboard analytics, routines, workout generation, and plan saving.
+    # =====================================
+
+    safety_warnings = []
 
     if analyze_medical_risk:
         medical_risk = analyze_medical_risk(user)
-
-        if medical_risk.get("hard_block"):
-            return {
-                "success": False,
-                "blocked": True,
-                "message": medical_risk.get("block_reason"),
-                "medical_warnings": medical_risk.get("warnings", []),
-                "medical_risk": medical_risk,
-            }
     else:
-        # Fail-safe fallback if the medical warning engine import fails.
-        blocked_reasons = []
-
-        if int(getattr(user, "age", 0) or 0) < 18:
-            blocked_reasons.append("users below 18")
-
-        if int(getattr(user, "age", 0) or 0) >= 60:
-            blocked_reasons.append("senior users")
-
-        if pregnancy_status in ["pregnant", "pregnancy"]:
-            blocked_reasons.append("pregnancy")
-
-        if "kidney" in medical_text or "renal" in medical_text or "ckd" in medical_text:
-            blocked_reasons.append("kidney-related conditions")
-
-        if blocked_reasons:
-            medical_risk = {
-                "risk_level": "high",
-                "warnings": [
-                    "A medical safety restriction was detected. Please consult a qualified healthcare professional."
-                ],
-                "detected_conditions": blocked_reasons,
-                "restrict_aggressive_fat_loss": True,
-                "restrict_intense_workouts": True,
-                "hard_block": True,
-                "block_reason": (
-                    "AI Nutrition OS cannot safely generate recommendations for this profile. "
-                    "Please consult a nearby doctor or qualified healthcare professional."
-                ),
-            }
-
-            if medical_risk.get("hard_block"):
-                return {
-                    "success": False,
-                    "blocked": True,
-                    "message": medical_risk.get("block_reason"),
-                    "medical_warnings": medical_risk.get("warnings", []),
-                    "medical_risk": medical_risk,
-                }
-
-    medical_safety_warnings = medical_risk.get("warnings", [])
+        medical_risk = fallback_public_launch_medical_risk(user)
 
     if medical_risk.get("hard_block"):
-        return {
-            "success": False,
-            "blocked": True,
-            "message": medical_risk.get("block_reason"),
-            "medical_warnings": medical_risk.get("warnings", []),
-        }
+        return build_blocked_plan_response(user, medical_risk)
+
+    medical_safety_warnings = medical_risk.get("warnings", [])
+    medical_text = str(getattr(user, "medical_conditions", "") or "").lower()
+    pregnancy_status = str(getattr(user, "pregnancy_status", "") or "").lower()
 
     # After the medical hard-block gate passes, normal plan generation can begin.
     bmi = calculate_bmi(user.weight, user.height)
@@ -1652,15 +1905,10 @@ def generate_plan(user: UserData):
     fats = max(fats, 35)
 
     # =====================================
-    # MEDICAL MACRO SAFETY OVERRIDES
+    # PUBLIC-LAUNCH SAFETY NOTE
     # =====================================
-
-    if "diabetes" in medical_text or "diabetic" in medical_text:
-        carbs = round(carbs * 0.75)
-        carbs = max(carbs, 80)
-        safety_warnings.append(
-            "Diabetes noted: carbohydrate target was reduced for better glycemic control."
-        )
+    # Disease-specific macro adjustments are intentionally disabled.
+    # Any disease/medical condition should have been blocked before this point.
 
     metabolic_age = calculate_metabolic_age(
         bmr,
@@ -1737,6 +1985,7 @@ def generate_plan(user: UserData):
         "preferred_cuisine": getattr(user, "preferred_cuisine", "indian"),
         "medical_conditions": getattr(user, "medical_conditions", ""),
         "pregnancy_status": getattr(user, "pregnancy_status", ""),
+        "smoker_alcohol": get_smoker_alcohol_value(user),
         "metabolic_strategy": strategy,
         "strategy_reason": strategy_data.get("reason", ""),
     }
@@ -1810,6 +2059,8 @@ def generate_plan(user: UserData):
         bmi=bmi,
     )
 
+    clean_meal_days = reduce_meal_repetition(clean_meal_days)
+
     quality_scores = calculate_plan_quality_scores(
         meal_days=clean_meal_days,
         user=user,
@@ -1826,6 +2077,7 @@ def generate_plan(user: UserData):
         "protein": protein,
         "carbs": carbs,
         "fats": fats,
+        "water_target": f"{water_target:.1f} Liters Daily",
     }
 
     if generate_ai_workout_tip is not None:
@@ -1858,8 +2110,11 @@ def generate_plan(user: UserData):
         carbs,
         fats,
     )
-
-    ai_tip = coach_message
+    ai_tip = (
+        f"Today: follow your {targets['calories']} kcal plan, "
+        f"hit {targets['protein']}g protein, drink {targets['water_target']}, "
+        "and complete at least 30 minutes of light activity."
+    )
 
     analytics_data = {
         "bmi": bmi,
@@ -1876,7 +2131,6 @@ def generate_plan(user: UserData):
         "metabolic_strategy": strategy,
         "strategy_details": strategy_data,
     }
-
     if generate_health_insight is not None:
         health_insight = generate_health_insight(
             user,
@@ -1896,6 +2150,7 @@ def generate_plan(user: UserData):
         "safety_warnings": list(dict.fromkeys(safety_warnings)),
         "medical_risk": medical_risk,
         "medical_safety_warnings": medical_safety_warnings,
+        "medical_disclaimer": MEDICAL_DISCLAIMER,
         "user_profile": {
             "name": getattr(user, "name", ""),
             "phone_number": getattr(user, "phone_number", ""),
@@ -1918,6 +2173,7 @@ def generate_plan(user: UserData):
             "preferred_cuisine": getattr(user, "preferred_cuisine", "indian"),
             "medical_conditions": user.medical_conditions,
             "pregnancy_status": getattr(user, "pregnancy_status", ""),
+            "smoker_alcohol": get_smoker_alcohol_value(user),
         },
         "analytics": analytics_data,
         "health_insight": health_insight,

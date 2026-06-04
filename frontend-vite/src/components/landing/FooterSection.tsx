@@ -150,13 +150,16 @@ export default function FooterSection() {
                 Get your personalized nutrition plan now!
               </p>
 
-              <button className="mt-5 flex w-full items-center justify-center gap-3 rounded-[14px] bg-[#A6FF00] px-5 py-3.5 text-[16px] font-black text-black shadow-[0_0_26px_rgba(166,255,0,0.22)] transition hover:scale-[1.01]">
+              <a
+                href="/dashboard/onboarding"
+                className="mt-5 flex w-full items-center justify-center gap-3 rounded-[14px] bg-[#A6FF00] px-5 py-3.5 text-[16px] font-black text-black shadow-[0_0_26px_rgba(166,255,0,0.22)] transition hover:scale-[1.01]"
+              >
                 Start Your Free Assessment
 
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-[#A6FF00]">
                   <ArrowRight className="h-4 w-4" />
                 </span>
-              </button>
+              </a>
 
               <button className="mt-3 flex w-full items-center justify-center gap-3 rounded-[14px] border border-[#A6FF0030] bg-black/20 px-5 py-3.5 text-[15px] font-bold text-white/85 transition hover:border-[#A6FF0060] hover:bg-[#A6FF0008]">
                 <PlayCircle className="h-4 w-4" />

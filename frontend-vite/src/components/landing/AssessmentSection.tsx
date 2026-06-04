@@ -1,8 +1,9 @@
 import type React from "react";
+import { useState } from "react";
 import {
   Activity,
+  AlertTriangle,
   Check,
-  ChevronDown,
   HeartPulse,
   Leaf,
   Lightbulb,
@@ -33,22 +34,67 @@ const diets = [
 
 const preferences = [
   ["Bengali Cuisine", true],
-  ["North Indian", false],
-  ["South Indian", false],
   ["Home-style Food", true],
   ["Eggetarian Options", true],
-  ["No Preference", false],
 ];
 
 const restrictions = [
-  ["Diabetes", false],
-  ["Thyroid", false],
-  ["PCOS", false],
-  ["High Blood Pressure", false],
   ["Lactose Intolerance", true],
-  ["Gluten Intolerance", false],
   ["None", true],
 ];
+
+const MEDICAL_BLOCK_TERMS = [
+  "diabetes",
+  "thyroid",
+  "pcos",
+  "hypertension",
+  "heart disease",
+  "kidney",
+  "renal",
+  "ckd",
+  "fatty liver",
+  "liver disease",
+  "ibs",
+  "gerd",
+  "gastritis",
+  "asthma",
+  "anemia",
+  "arthritis",
+  "depression",
+  "anxiety",
+  "eating disorder",
+  "anorexia",
+  "bulimia",
+  "cancer",
+  "chemotherapy",
+  "stroke",
+  "pregnant",
+  "pregnancy",
+  "breastfeeding",
+  "ttc",
+  "ivf",
+  "heavy smoker",
+  "alcohol dependency",
+  "substance abuse",
+  "addiction",
+];
+
+function getAssessmentSafetyWarning(notes: string) {
+  const text = notes.toLowerCase().replaceAll("_", " ").replaceAll("-", " ").trim();
+
+  if (!text || text === "none" || text === "no" || text === "not applicable") {
+    return "";
+  }
+
+  const hasMedicalTerm = MEDICAL_BLOCK_TERMS.some((term) => text.includes(term));
+
+  if (!hasMedicalTerm) {
+    return "";
+  }
+
+  return "Medical guidance required: if you have a disease, pregnancy-related state, addiction/dependency concern, or medical condition, AI Nutrition OS cannot generate nutrition or workout recommendations. Please consult a qualified doctor, registered dietitian, or healthcare professional.";
+}
+
 
 function GlassCard({
   children,
@@ -66,26 +112,30 @@ function GlassCard({
   );
 }
 
-function Field({
+function InputField({
   label,
   value,
+  onChange,
+  type = "text",
   unit,
 }: {
   label: string;
-  value: string;
+  value: string | number;
+  onChange: (value: string) => void;
+  type?: string;
   unit?: string;
 }) {
   return (
     <div>
       <p className="mb-2 text-xs text-white/65">{label}</p>
-
       <div className="flex h-11 items-center justify-between rounded-xl border border-white/10 bg-[#07120B]/85 px-4 text-sm text-white">
-        <span>{value}</span>
-
-        <div className="flex items-center gap-2 text-white/55">
-          {unit ? <span>{unit}</span> : null}
-          {!unit ? <ChevronDown className="h-4 w-4" /> : null}
-        </div>
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full bg-transparent text-white outline-none placeholder:text-white/35"
+        />
+        {unit ? <span className="ml-2 text-white/55">{unit}</span> : null}
       </div>
     </div>
   );
@@ -95,24 +145,27 @@ function SelectCard({
   title,
   sub,
   active = false,
+  onClick,
 }: {
   title: string;
   sub?: string;
   active?: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <div
-      className={`flex min-h-[52px] items-center justify-between rounded-xl border px-3.5 py-2 transition ${
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex min-h-[52px] w-full items-center justify-between rounded-xl border px-3.5 py-2 text-left transition ${
         active
           ? "border-[#9DFF16]/60 bg-[#9DFF16] text-black shadow-[0_0_18px_rgba(157,255,22,0.22)]"
-          : "border-white/10 bg-[#07120B]/85 text-white"
+          : "border-white/10 bg-[#07120B]/85 text-white hover:border-[#9DFF16]/35"
       }`}
     >
       <div>
         <p className="text-sm font-semibold leading-tight xl:text-[15px]">
           {title}
         </p>
-
         {sub ? (
           <p
             className={`mt-0.5 text-[11px] leading-4 ${
@@ -129,7 +182,7 @@ function SelectCard({
           <Check className="h-3.5 w-3.5" />
         </span>
       ) : null}
-    </div>
+    </button>
   );
 }
 
@@ -145,7 +198,6 @@ function CheckRow({ label, checked }: { label: string; checked: boolean }) {
       >
         {checked ? <Check className="h-3 w-3 stroke-[4]" /> : null}
       </span>
-
       <span className="text-sm leading-none text-white/75 xl:text-[15px]">
         {label}
       </span>
@@ -167,7 +219,6 @@ function FloatingIcon({
       <div className="grid h-[58px] w-[58px] place-items-center rounded-full border border-[#9DFF16]/45 bg-[#06110A]/70 shadow-[0_0_20px_rgba(157,255,22,0.18)] backdrop-blur-xl">
         <Icon className="h-6 w-6 text-[#9DFF16]" />
       </div>
-
       <p className="whitespace-nowrap text-[13px] font-medium text-white/72">
         {label}
       </p>
@@ -176,6 +227,20 @@ function FloatingIcon({
 }
 
 export default function AssessmentSection() {
+  const [age, setAge] = useState("24");
+  const [gender, setGender] = useState("female");
+  const [height, setHeight] = useState("165");
+  const [weight, setWeight] = useState("58");
+  const [selectedGoal, setSelectedGoal] = useState("Weight Loss");
+  const [selectedActivity, setSelectedActivity] = useState("Moderately Active");
+  const [selectedDiet, setSelectedDiet] = useState("Omnivore");
+  const [notes, setNotes] = useState("");
+  const safetyWarning = getAssessmentSafetyWarning(notes);
+
+  function handleContinueToOnboarding() {
+    window.location.href = "/dashboard/onboarding";
+  }
+
   return (
     <section
       id="assessment-preview"
@@ -208,42 +273,17 @@ export default function AssessmentSection() {
               alt=""
               className="absolute left-[10px] top-[55px] h-[34vw] max-h-[560px] min-h-[420px] w-[38vw] min-w-[480px] max-w-[650px] object-contain opacity-75"
             />
-
             <img
               src="/assets/assessment/girl.png"
               alt="Fitness woman using phone"
               className="absolute bottom-[-50px] left-[60px] z-10 h-[42vw] max-h-[680px] min-h-[520px] w-auto object-contain"
             />
 
-            <FloatingIcon
-              icon={Target}
-              label="Your Goals"
-              className="left-[25px] top-[205px]"
-            />
-
-            <FloatingIcon
-              icon={Activity}
-              label="Your Activity"
-              className="right-[40px] top-[120px]"
-            />
-
-            <FloatingIcon
-              icon={Utensils}
-              label="Your Preferences"
-              className="right-[-30px] top-[250px]"
-            />
-
-            <FloatingIcon
-              icon={User}
-              label="Your Profile"
-              className="left-[-10px] bottom-[120px]"
-            />
-
-            <FloatingIcon
-              icon={HeartPulse}
-              label="Your Health"
-              className="right-[30px] bottom-[60px]"
-            />
+            <FloatingIcon icon={Target} label="Your Goals" className="left-[25px] top-[205px]" />
+            <FloatingIcon icon={Activity} label="Your Activity" className="right-[40px] top-[120px]" />
+            <FloatingIcon icon={Utensils} label="Your Preferences" className="right-[-30px] top-[250px]" />
+            <FloatingIcon icon={User} label="Your Profile" className="left-[-10px] bottom-[120px]" />
+            <FloatingIcon icon={HeartPulse} label="Your Health" className="right-[30px] bottom-[60px]" />
           </div>
 
           <GlassCard className="relative z-30 ml-0 mt-8 flex max-w-[560px] items-center gap-4 px-6 py-5">
@@ -282,10 +322,10 @@ export default function AssessmentSection() {
               </h3>
 
               <div className="grid grid-cols-2 gap-x-5 gap-y-4">
-                <Field label="Age" value="24" />
-                <Field label="Gender" value="Female" />
-                <Field label="Height" value="165" unit="cm" />
-                <Field label="Weight" value="58" unit="kg" />
+                <InputField label="Age" value={age} onChange={setAge} type="number" />
+                <InputField label="Gender" value={gender} onChange={setGender} />
+                <InputField label="Height" value={height} onChange={setHeight} type="number" unit="cm" />
+                <InputField label="Weight" value={weight} onChange={setWeight} type="number" unit="kg" />
               </div>
             </div>
 
@@ -296,8 +336,13 @@ export default function AssessmentSection() {
               </h3>
 
               <div className="grid grid-cols-2 gap-4">
-                {goals.map((goal, i) => (
-                  <SelectCard key={goal} title={goal} active={i === 0} />
+                {goals.map((goal) => (
+                  <SelectCard
+                    key={goal}
+                    title={goal}
+                    active={selectedGoal === goal}
+                    onClick={() => setSelectedGoal(goal)}
+                  />
                 ))}
               </div>
             </div>
@@ -311,12 +356,13 @@ export default function AssessmentSection() {
               </h3>
 
               <div className="space-y-2.5">
-                {activities.map(([title, sub], i) => (
+                {activities.map(([title, sub]) => (
                   <SelectCard
                     key={title}
                     title={title}
                     sub={sub}
-                    active={i === 2}
+                    active={selectedActivity === title}
+                    onClick={() => setSelectedActivity(title)}
                   />
                 ))}
               </div>
@@ -329,12 +375,13 @@ export default function AssessmentSection() {
               </h3>
 
               <div className="space-y-2.5">
-                {diets.map(([title, sub], i) => (
+                {diets.map(([title, sub]) => (
                   <SelectCard
                     key={title}
                     title={title}
                     sub={sub}
-                    active={i === 0}
+                    active={selectedDiet === title}
+                    onClick={() => setSelectedDiet(title)}
                   />
                 ))}
               </div>
@@ -348,11 +395,7 @@ export default function AssessmentSection() {
 
               <div className="space-y-3">
                 {preferences.map(([label, checked]) => (
-                  <CheckRow
-                    key={label as string}
-                    label={label as string}
-                    checked={checked as boolean}
-                  />
+                  <CheckRow key={label as string} label={label as string} checked={checked as boolean} />
                 ))}
               </div>
             </GlassCard>
@@ -365,11 +408,7 @@ export default function AssessmentSection() {
 
               <div className="space-y-3">
                 {restrictions.map(([label, checked]) => (
-                  <CheckRow
-                    key={label as string}
-                    label={label as string}
-                    checked={checked as boolean}
-                  />
+                  <CheckRow key={label as string} label={label as string} checked={checked as boolean} />
                 ))}
               </div>
             </GlassCard>
@@ -381,9 +420,27 @@ export default function AssessmentSection() {
                 Anything else we should know?
               </h3>
 
-              <div className="rounded-xl border border-white/10 bg-[#07120B]/85 px-4 py-3.5 text-sm text-white/45">
-                e.g. Allergies, medications, specific conditions...
-              </div>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="e.g. Allergies, medications, specific conditions..."
+                className="min-h-[74px] w-full resize-none rounded-xl border border-white/10 bg-[#07120B]/85 px-4 py-3.5 text-sm text-white outline-none placeholder:text-white/35"
+              />
+
+              {safetyWarning ? (
+                <div className="mt-3 rounded-2xl border border-[#FF6C7D]/35 bg-[#2A070D]/60 px-4 py-3 text-[13px] font-semibold leading-6 text-[#FFD4DA]">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#FF6C7D]" />
+                    <span>{safetyWarning}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-3 text-[12px] leading-5 text-white/45">
+                  AI Nutrition OS provides general wellness information only and
+                  is not a substitute for medical advice, diagnosis, treatment,
+                  emergency care, or professional dietary counselling.
+                </p>
+              )}
 
               <div className="mt-3 flex flex-wrap gap-2">
                 {["Peanut Allergy", "No Red Meat"].map((tag) => (
@@ -413,6 +470,14 @@ export default function AssessmentSection() {
               </div>
             </GlassCard>
           </div>
+
+          <button
+            type="button"
+            onClick={handleContinueToOnboarding}
+            className="mt-5 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[#9DFF16] text-[15px] font-black text-black shadow-[0_0_28px_rgba(157,255,22,0.25)] transition hover:scale-[1.01]"
+          >
+            Continue to Dashboard Inputs
+          </button>
         </GlassCard>
       </div>
     </section>

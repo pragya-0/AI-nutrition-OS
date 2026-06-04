@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Activity,
   Apple,
@@ -7,10 +7,10 @@ import {
   Droplets,
   Flame,
   Info,
+  AlertTriangle,
   Moon,
   RotateCcw,
   Settings,
-  
   Sparkles,
 } from "lucide-react";
 
@@ -30,6 +30,8 @@ type Meal = {
 };
 
 type NutritionPlanData = {
+  selectedDay: number;
+  totalDays: number;
   plan: {
     match: number;
     goal: string;
@@ -61,120 +63,440 @@ type NutritionPlanData = {
   };
 };
 
-const initialData: NutritionPlanData = {
+type StoredGeneratedPlan = {
+  success?: boolean;
+  blocked?: boolean;
+  message?: string;
+  medical_disclaimer?: string;
+  medical_risk?: {
+    block_reason?: string;
+    warnings?: string[];
+    detected_conditions?: string[];
+    hard_block?: boolean;
+  };
+  user_profile?: {
+    name?: string;
+    goal?: string;
+    diet?: string;
+    activity?: string;
+    water_intake?: number;
+  };
+  analytics?: {
+    health_score?: number;
+    health_status?: string;
+    metabolic_strategy?: string;
+    strategy_details?: {
+      reason?: string;
+      recommended_focus?: string[];
+      coaching_focus?: string[];
+    };
+  };
+  targets?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fats?: number;
+    water_target?: string;
+  };
+  meal_plan?: {
+    days?: Array<{
+      day?: number;
+      breakfast?: string;
+      lunch?: string;
+      snack?: string;
+      dinner?: string;
+      alternatives?: string[];
+      water_target?: string;
+      workout_tip?: string;
+      meals?: {
+        breakfast?: string;
+        lunch?: string;
+        snack?: string;
+        dinner?: string;
+      };
+    }>;
+  };
+  coach_message?: string;
+  ai_tip?: string;
+  health_insight?: string;
+  daily_routine?: Record<string, string>;
+};
+
+const fallbackData: NutritionPlanData = {
+  selectedDay: 1,
+  totalDays: 0,
   plan: {
-    match: 92,
-    goal: "Fat Loss",
-    aiConfidence: 94,
+    match: 0,
+    goal: "Personalized Plan",
+    aiConfidence: 0,
     description:
-      "High protein, moderate carbs and healthy fats to keep you full, energized and in calorie deficit.",
-    calorieMode: "Calorie Deficit: ~380 kcal",
+      "Generate your first AI nutrition plan to unlock personalized meals, calories, macros, hydration, and coach insights.",
+    calorieMode: "Waiting for assessment",
   },
   targets: {
-    calories: 1420,
-    protein: 110,
-    carbs: 130,
-    fats: 55,
-    proteinPercent: 30,
-    carbsPercent: 35,
-    fatsPercent: 35,
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
+    proteinPercent: 0,
+    carbsPercent: 0,
+    fatsPercent: 0,
   },
   whyThisPlan: [
-    "Supports fat loss while preserving muscle",
-    "High protein to keep you full longer",
-    "Balanced macros for sustained energy",
-    "AI optimized based on your activity & goals",
+    "Complete assessment to activate your nutrition plan",
+    "AI will personalize your meals based on body profile",
+    "Targets will adapt to your goal and activity",
+    "Dashboard will update after plan generation",
   ],
   meals: [
     {
       id: 1,
       label: "MEAL 1",
       name: "Breakfast",
-      time: "7:30 AM",
+      time: "8:00 AM",
       image: "/assets/breakfast.png",
       icon: "sun",
-      foods: ["Oats with berries", "Greek yogurt (150g)", "Almonds (10g)"],
-      calories: 350,
-      protein: 28,
-      carbs: 38,
-      fats: 9,
+      foods: ["Generate a plan to view breakfast"],
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fats: 0,
       accent: "#FFB347",
     },
     {
       id: 2,
       label: "MEAL 2",
-      name: "Mid-Morning Snack",
-      time: "10:30 AM",
-      image: "/assets/smoothie.png",
+      name: "Lunch",
+      time: "1:00 PM",
+      image: "/assets/lunch.png",
       icon: "sun",
-      foods: ["Protein smoothie", "Banana (1/2)", "Chia seeds (1 tsp)"],
-      calories: 210,
-      protein: 20,
-      carbs: 22,
-      fats: 6,
-      accent: "#FFB347",
+      foods: ["Generate a plan to view lunch"],
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fats: 0,
+      accent: "#18D3D0",
     },
     {
       id: 3,
       label: "MEAL 3",
-      name: "Lunch",
-      time: "1:30 PM",
-      image: "/assets/lunch.png",
+      name: "Snack",
+      time: "5:00 PM",
+      image: "/assets/snack.png",
       icon: "sun",
-      foods: ["Quinoa (1 cup)", "Paneer (100g)", "Mixed Veg Salad"],
-      calories: 420,
-      protein: 32,
-      carbs: 40,
-      fats: 12,
-      accent: "#FFB347",
+      foods: ["Generate a plan to view snack"],
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fats: 0,
+      accent: "#A6FF4D",
     },
     {
       id: 4,
       label: "MEAL 4",
-      name: "Pre-Workout Snack",
-      time: "5:00 PM",
-      image: "/assets/snack.png",
-      icon: "sun",
-      foods: ["Banana (1)", "Peanut butter (1 tbsp)", "Black coffee"],
-      calories: 180,
-      protein: 6,
-      carbs: 24,
-      fats: 7,
-      accent: "#FFB347",
-    },
-    {
-      id: 5,
-      label: "MEAL 5",
       name: "Dinner",
       time: "8:00 PM",
       image: "/assets/dinner.png",
       icon: "moon",
-      foods: ["Moong dal (1 cup)", "Brown rice (1/2 cup)", "Stir-fried veggies"],
-      calories: 260,
-      protein: 24,
-      carbs: 26,
-      fats: 9,
+      foods: ["Generate a plan to view dinner"],
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fats: 0,
       accent: "#A875FF",
     },
   ],
   hydration: {
-    consumed: 2.8,
-    target: 3.0,
+    consumed: 0,
+    target: 2.5,
   },
   aiNotes: [
-    "Try to consume more protein in your dinner for better overnight recovery.",
-    "You’re doing great! 💚",
+    "Your AI notes will appear after generating a plan.",
+    "The plan will use your profile, goals, diet, and health inputs.",
   ],
   swap: {
     beforeImage: "/assets/swap-before.png",
     afterImage: "/assets/swap-after.png",
     title: "Swap Suggestions",
-    description: "Swap ingredients or meals based on your preference.",
+    description: "Smart food swaps will appear after your plan is generated.",
   },
 };
 
+function getStoredGeneratedPlan(): StoredGeneratedPlan | null {
+  try {
+    const raw = localStorage.getItem("ai_nutrition_generated_plan");
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredGeneratedPlan;
+  } catch {
+    return null;
+  }
+}
+
+function getStoredBlockedResponse(): StoredGeneratedPlan | null {
+  try {
+    const raw = localStorage.getItem("ai_nutrition_blocked_response");
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredGeneratedPlan;
+  } catch {
+    return null;
+  }
+}
+
+
+function getGeneratedPlanDayCount(plan?: StoredGeneratedPlan | null) {
+  return plan?.meal_plan?.days?.length || 0;
+}
+
+function clampDayIndex(index: number, totalDays: number) {
+  if (!totalDays || totalDays <= 0) return 0;
+  return Math.min(Math.max(index, 0), totalDays - 1);
+}
+
+function formatLabel(value?: string) {
+  if (!value) return "Personalized Plan";
+
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function parseWaterTarget(value?: string, fallback = 2.5) {
+  if (!value) return fallback;
+
+  const match = value.match(/[\d.]+/);
+  if (!match) return fallback;
+
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function getMacroPercent(value: number, total: number) {
+  if (!total || total <= 0) return 0;
+  return Math.round((value / total) * 100);
+}
+
+function uniqueTextList(values: Array<string | undefined | null>) {
+  return Array.from(
+    new Set(
+      values
+        .map((value) => value?.trim())
+        .filter((value): value is string => Boolean(value)),
+    ),
+  );
+}
+
+function splitMealText(text?: string) {
+  if (!text) return ["Meal details not available"];
+
+  return text
+    .split(/\s+with\s+|\s*,\s*|\s+\+\s+/i)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function buildMeal({
+  id,
+  label,
+  name,
+  time,
+  text,
+  calories,
+  protein,
+  carbs,
+  fats,
+  image,
+  icon,
+  accent,
+}: {
+  id: number;
+  label: string;
+  name: string;
+  time: string;
+  text?: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  image: string;
+  icon: "sun" | "moon";
+  accent: string;
+}): Meal {
+  return {
+    id,
+    label,
+    name,
+    time,
+    image,
+    icon,
+    foods: splitMealText(text),
+    calories,
+    protein,
+    carbs,
+    fats,
+    accent,
+  };
+}
+
+function transformGeneratedPlan(plan: StoredGeneratedPlan, selectedDayIndex = 0): NutritionPlanData {
+  const profile = plan.user_profile || {};
+  const targets = plan.targets || {};
+  const analytics = plan.analytics || {};
+  const totalDays = getGeneratedPlanDayCount(plan);
+  const safeDayIndex = clampDayIndex(selectedDayIndex, totalDays);
+  const dayOne = plan.meal_plan?.days?.[safeDayIndex];
+  const dayMeals = dayOne?.meals || {};
+
+  const calories = targets.calories || 0;
+  const protein = targets.protein || 0;
+  const carbs = targets.carbs || 0;
+  const fats = targets.fats || 0;
+  const macroTotal = protein + carbs + fats;
+
+  const breakfastCalories = Math.round(calories * 0.25);
+  const lunchCalories = Math.round(calories * 0.35);
+  const snackCalories = Math.round(calories * 0.12);
+  const dinnerCalories = Math.max(
+    calories - breakfastCalories - lunchCalories - snackCalories,
+    0,
+  );
+
+  const waterTarget = parseWaterTarget(
+    targets.water_target,
+    profile.water_intake || 2.5,
+  );
+
+  const goal = formatLabel(profile.goal);
+  const healthScore = analytics.health_score || 90;
+
+  const recommendedFocus =
+    analytics.strategy_details?.recommended_focus?.map(formatLabel) || [];
+
+  return {
+    selectedDay: safeDayIndex + 1,
+    totalDays,
+    plan: {
+      match: Math.min(Math.max(healthScore, 70), 99),
+      goal,
+      aiConfidence: Math.min(Math.max(healthScore, 75), 99),
+      description:
+        plan.health_insight ||
+        analytics.strategy_details?.reason ||
+        "Your plan is personalized using your goal, diet, activity, sleep, hydration, and health analytics.",
+      calorieMode: `${calories.toLocaleString()} kcal target`,
+    },
+    targets: {
+      calories,
+      protein,
+      carbs,
+      fats,
+      proteinPercent: getMacroPercent(protein, macroTotal),
+      carbsPercent: getMacroPercent(carbs, macroTotal),
+      fatsPercent: getMacroPercent(fats, macroTotal),
+    },
+    whyThisPlan: [
+      `Built for ${goal}`,
+      `Diet type: ${formatLabel(profile.diet)}`,
+      `Activity level: ${formatLabel(profile.activity)}`,
+      analytics.metabolic_strategy
+        ? `Strategy: ${analytics.metabolic_strategy}`
+        : "AI optimized based on profile and health inputs",
+      ...recommendedFocus.slice(0, 2),
+    ].slice(0, 5),
+    meals: [
+      buildMeal({
+        id: 1,
+        label: "MEAL 1",
+        name: "Breakfast",
+        time: plan.daily_routine?.breakfast_time?.split(" - ")?.[0] || "8:00 AM",
+        text: dayMeals.breakfast || dayOne?.breakfast,
+        calories: breakfastCalories,
+        protein: Math.round(protein * 0.25),
+        carbs: Math.round(carbs * 0.25),
+        fats: Math.round(fats * 0.25),
+        image: "/assets/breakfast.png",
+        icon: "sun",
+        accent: "#FFB347",
+      }),
+      buildMeal({
+        id: 2,
+        label: "MEAL 2",
+        name: "Lunch",
+        time: plan.daily_routine?.lunch_time?.split(" - ")?.[0] || "1:00 PM",
+        text: dayMeals.lunch || dayOne?.lunch,
+        calories: lunchCalories,
+        protein: Math.round(protein * 0.35),
+        carbs: Math.round(carbs * 0.35),
+        fats: Math.round(fats * 0.35),
+        image: "/assets/lunch.png",
+        icon: "sun",
+        accent: "#18D3D0",
+      }),
+      buildMeal({
+        id: 3,
+        label: "MEAL 3",
+        name: "Snack",
+        time: plan.daily_routine?.evening_snack?.split(" - ")?.[0] || "5:00 PM",
+        text: dayMeals.snack || dayOne?.snack,
+        calories: snackCalories,
+        protein: Math.round(protein * 0.12),
+        carbs: Math.round(carbs * 0.12),
+        fats: Math.round(fats * 0.12),
+        image: "/assets/snack.png",
+        icon: "sun",
+        accent: "#A6FF4D",
+      }),
+      buildMeal({
+        id: 4,
+        label: "MEAL 4",
+        name: "Dinner",
+        time: plan.daily_routine?.dinner_time?.split(" - ")?.[0] || "8:00 PM",
+        text: dayMeals.dinner || dayOne?.dinner,
+        calories: dinnerCalories,
+        protein: Math.round(protein * 0.28),
+        carbs: Math.round(carbs * 0.28),
+        fats: Math.round(fats * 0.28),
+        image: "/assets/dinner.png",
+        icon: "moon",
+        accent: "#A875FF",
+      }),
+    ],
+    hydration: {
+      consumed: profile.water_intake || 0,
+      target: waterTarget,
+    },
+    aiNotes: uniqueTextList([
+      plan.coach_message || "AI coach message will appear here.",
+      plan.ai_tip || dayOne?.workout_tip || "Workout and lifestyle tips will appear here.",
+    ]),
+    swap: {
+      beforeImage: "/assets/swap-before.png",
+      afterImage: "/assets/swap-after.png",
+      title: "Swap Suggestions",
+      description:
+        dayOne?.alternatives?.length
+          ? `Try alternatives like ${dayOne.alternatives.slice(0, 3).join(", ")}.`
+          : "Swap ingredients or meals based on preference, diet type, and calorie target.",
+    },
+  };
+}
+
+function loadNutritionPlan(selectedDayIndex = 0): NutritionPlanData {
+  const storedPlan = getStoredGeneratedPlan();
+
+  if (!storedPlan?.success) {
+    return fallbackData;
+  }
+
+  return transformGeneratedPlan(storedPlan, selectedDayIndex);
+}
+
 export default function AINutritionPlan() {
-  const [data, setData] = useState(initialData);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [data, setData] = useState<NutritionPlanData>(() => loadNutritionPlan(0));
+  const [blockedResponse, setBlockedResponse] = useState<StoredGeneratedPlan | null>(() =>
+    getStoredBlockedResponse(),
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [weekOpen, setWeekOpen] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
@@ -182,25 +504,51 @@ export default function AINutritionPlan() {
   const [goalDraft, setGoalDraft] = useState(data.plan.goal);
 
   const hydrationPercent = useMemo(() => {
+    if (!data.hydration.target) return 0;
+
     return Math.min(
       Math.round((data.hydration.consumed / data.hydration.target) * 100),
       100,
     );
   }, [data.hydration]);
 
+  useEffect(() => {
+    const refreshFromStorage = () => {
+      const freshBlocked = getStoredBlockedResponse();
+      setBlockedResponse(freshBlocked);
+
+      const storedPlan = getStoredGeneratedPlan();
+      const totalDays = getGeneratedPlanDayCount(storedPlan);
+      const safeDayIndex = clampDayIndex(selectedDayIndex, totalDays);
+      const freshData = loadNutritionPlan(safeDayIndex);
+      setSelectedDayIndex(safeDayIndex);
+      setData(freshData);
+      setGoalDraft(freshData.plan.goal);
+    };
+
+    window.addEventListener("storage", refreshFromStorage);
+    window.addEventListener("ai-plan-updated", refreshFromStorage);
+
+    return () => {
+      window.removeEventListener("storage", refreshFromStorage);
+      window.removeEventListener("ai-plan-updated", refreshFromStorage);
+    };
+  }, [selectedDayIndex]);
+
+  useEffect(() => {
+    setData(loadNutritionPlan(selectedDayIndex));
+  }, [selectedDayIndex]);
+
   const handleRegenerate = () => {
-    setData((prev) => ({
-      ...prev,
-      plan: {
-        ...prev.plan,
-        match: Math.min(prev.plan.match + 1, 99),
-        aiConfidence: Math.min(prev.plan.aiConfidence + 1, 99),
-      },
-      aiNotes: [
-        "Plan regenerated using your latest profile and activity data.",
-        "AI adjusted protein timing for better recovery. 💚",
-      ],
-    }));
+    const freshData = loadNutritionPlan(selectedDayIndex);
+
+    setData({
+      ...freshData,
+      aiNotes: uniqueTextList([
+        "Plan refreshed from your latest generated assessment data.",
+        ...freshData.aiNotes.slice(0, 1),
+      ]),
+    });
   };
 
   const handleSaveSettings = () => {
@@ -237,6 +585,10 @@ export default function AINutritionPlan() {
               onRegenerate={handleRegenerate}
             />
 
+            {blockedResponse?.blocked ? (
+              <MedicalPlanBlockedNotice response={blockedResponse} />
+            ) : null}
+
             {settingsOpen && (
               <div className="mb-5 rounded-[24px] border border-[#18D3D0]/20 bg-[#07110A]/80 p-5">
                 <p className="text-[18px] font-black text-[#18D3D0]">
@@ -253,9 +605,10 @@ export default function AINutritionPlan() {
                       onChange={(event) => setGoalDraft(event.target.value)}
                       className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-[14px] font-bold text-white outline-none"
                     >
-                      <option>Fat Loss</option>
+                      <option>Weight Loss</option>
                       <option>Muscle Gain</option>
                       <option>Maintenance</option>
+                      <option>Improve Health</option>
                     </select>
                   </label>
 
@@ -274,6 +627,9 @@ export default function AINutritionPlan() {
             <MealTimeline
               meals={data.meals}
               weekOpen={weekOpen}
+              selectedDay={data.selectedDay}
+              totalDays={data.totalDays}
+              onSelectDay={(dayIndex) => setSelectedDayIndex(dayIndex)}
               onToggleWeek={() => setWeekOpen((value) => !value)}
             />
 
@@ -306,6 +662,37 @@ export default function AINutritionPlan() {
   );
 }
 
+
+function MedicalPlanBlockedNotice({ response }: { response: StoredGeneratedPlan }) {
+  const message =
+    response.message ||
+    response.medical_risk?.block_reason ||
+    "Medical guidance is required before using AI nutrition or workout recommendations.";
+
+  return (
+    <div className="mb-5 rounded-[24px] border border-[#FF6C7D]/35 bg-[#2A070D]/70 p-5 shadow-[0_0_40px_rgba(255,108,125,0.12)]">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#FF6C7D]/35 bg-[#FF6C7D]/10 text-[#FF6C7D]">
+          <AlertTriangle size={24} />
+        </div>
+        <div>
+          <p className="text-[15px] font-black uppercase tracking-[0.18em] text-[#FF6C7D]">
+            Medical Guidance Required
+          </p>
+          <p className="mt-2 max-w-[960px] text-[15px] font-semibold leading-7 text-white/82">
+            {message}
+          </p>
+          <p className="mt-3 text-[13px] leading-6 text-white/55">
+            No nutrition plan, workout plan, calorie target, macros, or AI coach
+            recommendation was generated for this profile.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function Header({
   settingsOpen,
   onPlanSettings,
@@ -322,7 +709,7 @@ function Header({
           AI Nutrition Plan
         </h2>
         <p className="mt-2 text-[14px] font-semibold leading-6 text-[#A3B3A3] xl:text-[15px]">
-          Your personalized plan for today, powered by AI.
+          Your personalized plan from the latest generated profile data.
         </p>
       </div>
 
@@ -340,7 +727,7 @@ function Header({
           className="inline-flex items-center gap-2.5 rounded-2xl bg-[#A6FF4D] px-4 py-3 text-[13px] font-black text-black shadow-[0_0_30px_rgba(166,255,77,.28)]"
         >
           <RotateCcw size={17} />
-          Regenerate Plan
+          Refresh Plan
         </button>
       </div>
     </div>
@@ -429,9 +816,9 @@ function TopSummary({ data }: { data: NutritionPlanData }) {
         </p>
 
         <div className="mt-5 space-y-3">
-          {data.whyThisPlan.map((reason) => (
+          {data.whyThisPlan.map((reason, index) => (
             <p
-              key={reason}
+              key={`${index}-${reason.slice(0, 24)}`}
               className="flex items-center gap-2.5 text-[13px] font-medium leading-5 text-white/78"
             >
               <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-[#A6FF4D]/40 text-[12px] text-[#A6FF4D]">
@@ -512,10 +899,16 @@ function TargetMetric({
 function MealTimeline({
   meals,
   weekOpen,
+  selectedDay,
+  totalDays,
+  onSelectDay,
   onToggleWeek,
 }: {
   meals: Meal[];
   weekOpen: boolean;
+  selectedDay: number;
+  totalDays: number;
+  onSelectDay: (dayIndex: number) => void;
   onToggleWeek: () => void;
 }) {
   return (
@@ -523,7 +916,7 @@ function MealTimeline({
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-[16px] font-black uppercase tracking-[0.16em] text-[#A6FF4D] xl:text-[18px]">
-            Today&apos;s Meal Plan
+            Day {selectedDay || 1} Meal Plan
           </p>
 
           <button
@@ -531,7 +924,7 @@ function MealTimeline({
             className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-[12px] font-bold text-white"
           >
             <CalendarDays size={15} />
-            {weekOpen ? "Hide Full Week" : "View Full Week"}
+            {weekOpen ? "Hide Day Selector" : `View ${totalDays || 1} Day Plan`}
           </button>
         </div>
 
@@ -541,16 +934,42 @@ function MealTimeline({
         </p>
       </div>
 
-      {weekOpen && (
-        <div className="mb-5 rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/5 p-4 text-[13px] font-semibold text-[#A6FF4D]">
-          Weekly plan preview activated. Backend week-plan integration can plug
-          into this state.
+      {weekOpen && totalDays > 1 && (
+        <div className="mb-5 rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/5 p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-[12px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
+              Full {totalDays}-day plan selector
+            </p>
+            <p className="text-[12px] font-semibold text-white/60">
+              Showing Day {selectedDay} of {totalDays}
+            </p>
+          </div>
+
+          <div className="flex max-h-[138px] flex-wrap gap-2 overflow-y-auto pr-1">
+            {Array.from({ length: totalDays }, (_, index) => {
+              const active = index + 1 === selectedDay;
+
+              return (
+                <button
+                  key={`plan-day-${index + 1}`}
+                  onClick={() => onSelectDay(index)}
+                  className={`rounded-xl border px-3 py-2 text-[12px] font-black transition ${
+                    active
+                      ? "border-[#A6FF4D] bg-[#A6FF4D] text-black shadow-[0_0_22px_rgba(166,255,77,0.35)]"
+                      : "border-white/10 bg-white/[0.03] text-white/75 hover:border-[#A6FF4D]/45 hover:text-[#A6FF4D]"
+                  }`}
+                >
+                  Day {index + 1}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
       <div className="relative mb-5 hidden h-6 sm:block">
         <div className="absolute left-0 right-0 top-1/2 border-t border-dashed border-white/20" />
-        <div className="grid grid-cols-5">
+        <div className="grid grid-cols-4">
           {meals.map((meal) => (
             <div key={meal.id} className="flex justify-center">
               <span className="relative z-10 h-5 w-5 rounded-full border-[3px] border-[#07110A] bg-[#18D3D0] shadow-[0_0_18px_rgba(24,211,208,.9)]" />
@@ -559,7 +978,7 @@ function MealTimeline({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {meals.map((meal) => (
           <MealCard key={meal.id} meal={meal} />
         ))}
@@ -567,8 +986,8 @@ function MealTimeline({
 
       <div className="mx-auto mt-5 flex w-fit flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[12px] font-medium text-white/70">
         <Activity size={14} />
-        <span className="font-black text-white">Evening Workout</span>
-        <span>• Plan adjusted for your activity window</span>
+        <span className="font-black text-white">Adaptive Routine</span>
+        <span>• Plan adjusted for goal, activity, diet, sleep, and hydration</span>
       </div>
     </div>
   );
@@ -607,9 +1026,9 @@ function MealCard({ meal }: { meal: Meal }) {
         />
 
         <div className="space-y-2">
-          {meal.foods.map((food) => (
+          {meal.foods.map((food, index) => (
             <p
-              key={food}
+              key={`${meal.id}-${index}-${food.slice(0, 24)}`}
               className="flex items-start gap-2 text-[12px] font-medium leading-5 text-white/76"
             >
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#A6FF4D]" />
@@ -647,8 +1066,11 @@ function MacroDistribution({
         <div
           className="h-24 w-24 shrink-0 rounded-full"
           style={{
-            background:
-              "conic-gradient(#A6FF4D 0 30%, #A875FF 30% 65%, #FFB347 65% 100%)",
+            background: `conic-gradient(#A6FF4D 0 ${targets.proteinPercent}%, #A875FF ${targets.proteinPercent}% ${
+              targets.proteinPercent + targets.carbsPercent
+            }%, #FFB347 ${
+              targets.proteinPercent + targets.carbsPercent
+            }% 100%)`,
           }}
         >
           <div className="m-auto mt-5 h-14 w-14 rounded-full bg-[#07110A]" />
@@ -757,8 +1179,8 @@ function AISmartNotes({
       </p>
 
       <div className="mt-5 space-y-3 text-[13px] leading-6 text-white/72">
-        {notes.map((note) => (
-          <p key={note}>{note}</p>
+        {notes.map((note, index) => (
+          <p key={`${index}-${note.slice(0, 24)}`}>{note}</p>
         ))}
       </div>
 

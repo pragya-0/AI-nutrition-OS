@@ -16,28 +16,66 @@ import {
   Target,
 } from "lucide-react";
 
+type StoredPlan = {
+  success?: boolean;
+  user_profile?: {
+    name?: string;
+    city?: string;
+    weight?: number;
+    height?: number;
+    age?: number;
+    gender?: string;
+    goal?: string;
+    diet?: string;
+    activity?: string;
+    sleep_hours?: number;
+    water_intake?: number;
+  };
+  analytics?: {
+    health_score?: number;
+    health_status?: string;
+    sleep_score?: number;
+    hydration_score?: number;
+    bmi?: number;
+    body_fat?: number;
+    metabolic_age?: number;
+  };
+  targets?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fats?: number;
+    water_target?: string;
+  };
+  health_insight?: string;
+  coach_message?: string;
+  ai_tip?: string;
+};
+
 type MiniChartPoint = number;
 
-type DashboardUser = {
-  name: string;
-  avatar?: string;
-  isNewUser: boolean;
-};
-
-type DashboardHealth = {
-  score: number;
-  recovery: number;
-  sleep: string;
-  hydration: number;
-  steps: number;
-  calories: number;
-  proteinDelta: number;
-  lastSync?: string;
-};
-
-type DashboardRecommendation = {
-  title: string;
-  reason: string;
+type DashboardData = {
+  user: {
+    name: string;
+    avatar?: string;
+    isNewUser: boolean;
+  };
+  health: {
+    score: number;
+    recovery: number;
+    sleep: string;
+    hydration: string;
+    steps: number;
+    calories: number;
+    proteinDelta: number;
+    lastSync?: string;
+  };
+  insights: string[];
+  recommendation: {
+    title: string;
+    reason: string;
+  };
+  trend: { day: string; score: number }[];
 };
 
 type DashboardMetric = {
@@ -49,65 +87,27 @@ type DashboardMetric = {
   chart: MiniChartPoint[];
 };
 
-type DashboardData = {
-  user: DashboardUser;
-  health: DashboardHealth;
-  insights: string[];
-  recommendation: DashboardRecommendation;
-  trend: { day: string; score: number }[];
-};
-
-const returningUserData: DashboardData = {
-  user: { name: "Isha", avatar: "/assets/avatar-1.png", isNewUser: false },
-  health: {
-    score: 92,
-    recovery: 96,
-    sleep: "8h 12m",
-    hydration: 2.8,
-    steps: 8420,
-    calories: 850,
-    proteinDelta: 12,
-    lastSync: "2 min ago",
-  },
-  insights: [
-    "Your body is adapting well today.",
-    "Recovery improved 8% this week.",
-    "Sleep consistency improved 11%.",
-    "Protein target achieved 5 days straight.",
-  ],
-  recommendation: {
-    title: "Increase protein intake by 18g",
-    reason: "Breakfast protein has remained below target for the last 3 days.",
-  },
-  trend: [
-    { day: "Mon", score: 84 },
-    { day: "Tue", score: 85 },
-    { day: "Wed", score: 87 },
-    { day: "Thu", score: 89 },
-    { day: "Fri", score: 92 },
-  ],
-};
-
-const _newUserData: DashboardData = {
-  user: { name: "Isha", avatar: "/assets/avatar-1.png", isNewUser: true },
+const fallbackData: DashboardData = {
+  user: { name: "Guest", avatar: "/assets/avatar-1.png", isNewUser: true },
   health: {
     score: 0,
     recovery: 0,
     sleep: "0h",
-    hydration: 0,
+    hydration: "0L",
     steps: 0,
     calories: 0,
     proteinDelta: 0,
+    lastSync: "Waiting",
   },
   insights: [
     "Your AI health system is ready to learn from you.",
-    "No previous health history found.",
-    "Complete your first assessment to unlock your health score.",
-    "Generate a plan to activate AI monitoring.",
+    "Complete your assessment to unlock your health score.",
+    "Generate a nutrition plan to activate dashboard insights.",
+    "Your personalized analytics will appear here.",
   ],
   recommendation: {
     title: "Generate your first AI nutrition plan",
-    reason: "Your AI dashboard will activate after your first assessment.",
+    reason: "Your AI dashboard activates after your first assessment.",
   },
   trend: [
     { day: "Mon", score: 0 },
@@ -118,10 +118,71 @@ const _newUserData: DashboardData = {
   ],
 };
 
-void _newUserData;
-const data = returningUserData;
+function getStoredPlan(): StoredPlan | null {
+  try {
+    const raw = localStorage.getItem("ai_nutrition_generated_plan");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function buildDashboardData(): DashboardData {
+  const plan = getStoredPlan();
+
+  if (!plan?.success) return fallbackData;
+
+  const profile = plan.user_profile || {};
+  const analytics = plan.analytics || {};
+  const targets = plan.targets || {};
+
+  const score = analytics.health_score ?? 0;
+  const sleepHours = profile.sleep_hours ?? 0;
+  const hydrationTarget =
+    targets.water_target || `${profile.water_intake ?? 2.5} Liters`;
+
+  return {
+    user: {
+      name: profile.name || "User",
+      avatar: "/assets/avatar-1.png",
+      isNewUser: false,
+    },
+    health: {
+      score,
+      recovery: analytics.sleep_score ?? score,
+      sleep: `${sleepHours}h`,
+      hydration: hydrationTarget,
+      steps: 8420,
+      calories: targets.calories ?? 0,
+      proteinDelta: targets.protein ?? 0,
+      lastSync: "Just now",
+    },
+    insights: [
+      plan.health_insight || "Your personalized AI health insight is ready.",
+      `BMI: ${analytics.bmi ?? "—"} • Body Fat: ${analytics.body_fat ?? "—"}%`,
+      `Metabolic Age: ${analytics.metabolic_age ?? "—"} years`,
+      `Goal: ${formatLabel(profile.goal || "personalized health")}`,
+    ],
+    recommendation: {
+      title: `Follow your ${targets.calories ?? "AI"} kcal plan today`,
+      reason:
+        plan.ai_tip ||
+        plan.coach_message ||
+        "Your plan is built from your profile, goal, diet, activity, sleep, hydration, and health analytics.",
+    },
+    trend: [
+      { day: "Mon", score: Math.max(score - 8, 0) },
+      { day: "Tue", score: Math.max(score - 6, 0) },
+      { day: "Wed", score: Math.max(score - 4, 0) },
+      { day: "Thu", score: Math.max(score - 2, 0) },
+      { day: "Fri", score },
+    ],
+  };
+}
 
 export default function AIHealthCommandCenter() {
+  const data = buildDashboardData();
   const { user, health, trend, insights, recommendation } = data;
 
   const isNewUser = user.isNewUser;
@@ -140,32 +201,26 @@ export default function AIHealthCommandCenter() {
     {
       title: "Recovery",
       value: `${health.recovery}%`,
-      sub: isNewUser ? "Waiting" : "↑ 8%",
+      sub: isNewUser ? "Waiting" : "Sleep based",
       color: "#A6FF4D",
       icon: <HeartPulse size={18} />,
-      chart: isNewUser
-        ? emptyBars()
-        : [10, 15, 14, 22, 19, 28, 18, 23, 20, 25, 30, 34],
+      chart: isNewUser ? emptyBars() : [10, 15, 14, 22, 19, 28, 18, 23, 20, 25, 30, 34],
     },
     {
       title: "Sleep",
       value: health.sleep,
-      sub: isNewUser ? "No data" : "Optimal",
+      sub: isNewUser ? "No data" : "Logged",
       color: "#7657FF",
       icon: <Moon size={18} />,
-      chart: isNewUser
-        ? emptyBars()
-        : [8, 12, 22, 13, 18, 26, 15, 14, 24, 30, 18, 34],
+      chart: isNewUser ? emptyBars() : [8, 12, 22, 13, 18, 26, 15, 14, 24, 30, 18, 34],
     },
     {
       title: "Hydration",
-      value: `${health.hydration}L`,
-      sub: isNewUser ? "No data" : "↑ 93%",
+      value: health.hydration,
+      sub: isNewUser ? "No data" : "Target",
       color: "#18D3D0",
       icon: <Droplets size={18} />,
-      chart: isNewUser
-        ? emptyBars()
-        : [9, 13, 16, 24, 17, 27, 22, 30, 19, 26, 32, 38],
+      chart: isNewUser ? emptyBars() : [9, 13, 16, 24, 17, 27, 22, 30, 19, 26, 32, 38],
     },
     {
       title: "Activity",
@@ -173,9 +228,7 @@ export default function AIHealthCommandCenter() {
       sub: "Steps",
       color: "#FFB347",
       icon: <Activity size={18} />,
-      chart: isNewUser
-        ? emptyBars()
-        : [12, 18, 20, 14, 24, 32, 22, 36, 28, 34, 30, 40],
+      chart: isNewUser ? emptyBars() : [12, 18, 20, 14, 24, 32, 22, 36, 28, 34, 30, 40],
     },
   ];
 
@@ -224,11 +277,9 @@ export default function AIHealthCommandCenter() {
                 alt={user.name}
                 className="h-10 w-10 rounded-full border border-white/20 object-cover"
               />
-
               <span className="hidden text-[16px] font-black md:block">
                 {user.name}
               </span>
-
               <ChevronDown size={19} className="text-white/70" />
             </div>
           </div>
@@ -252,27 +303,19 @@ export default function AIHealthCommandCenter() {
             <div className="mt-5 flex flex-wrap items-center gap-4 text-[14px]">
               <span className="flex items-center gap-3 font-black text-[#18D3D0]">
                 <span className="h-3.5 w-3.5 rounded-full bg-[#18D3D0] shadow-[0_0_18px_rgba(24,211,208,.9)]" />
-                {isNewUser
-                  ? "AI Monitoring Not Activated"
-                  : "AI Monitoring Active"}
+                {isNewUser ? "AI Monitoring Not Activated" : "AI Monitoring Active"}
               </span>
 
               <span className="font-semibold text-[#A3B3A3]">
-                {isNewUser
-                  ? "Waiting for first plan"
-                  : `Last sync: ${health.lastSync || "Just now"}`}
+                {isNewUser ? "Waiting for first plan" : `Last sync: ${health.lastSync || "Just now"}`}
               </span>
             </div>
 
             <div className="relative mt-5 max-w-[620px] space-y-2 text-[14px] leading-[1.55] xl:text-[15px]">
               {insights.map((insight, index) => (
                 <p
-                  key={insight}
-                  className={
-                    index === 0
-                      ? "font-black text-white"
-                      : "font-medium text-white/85"
-                  }
+                  key={`${insight}-${index}`}
+                  className={index === 0 ? "font-black text-white" : "font-medium text-white/85"}
                 >
                   {insight}
                 </p>
@@ -314,13 +357,16 @@ export default function AIHealthCommandCenter() {
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3 pb-0">
-              <button className="group inline-flex items-center justify-center gap-3 rounded-[18px] bg-[#A6FF4D] px-5 py-3 text-[14px] font-black leading-none text-black shadow-[0_0_34px_rgba(166,255,77,.28)] transition hover:scale-[1.02]">
+              <a
+                href="/#assessment-preview"
+                className="group inline-flex items-center justify-center gap-3 rounded-[18px] bg-[#A6FF4D] px-5 py-3 text-[14px] font-black leading-none text-black shadow-[0_0_34px_rgba(166,255,77,.28)] transition hover:scale-[1.02]"
+              >
                 <Sparkles size={19} />
                 {isNewUser ? "Generate First Plan" : "Generate Today's Plan"}
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-black text-[#A6FF4D] transition group-hover:translate-x-1">
                   →
                 </span>
-              </button>
+              </a>
 
               <a
                 href="/scanner"
@@ -345,44 +391,13 @@ export default function AIHealthCommandCenter() {
               <div className="absolute inset-x-[7%] bottom-4 top-0 rounded-full border border-[#A6FF4D]/10" />
               <div className="absolute h-[clamp(240px,20vw,340px)] w-[clamp(240px,20vw,340px)] rounded-full bg-[#A6FF4D]/10 blur-3xl" />
 
-              <FloatingPill
-                className="left-[8%] top-[12%]"
-                icon={<Droplets size={18} />}
-                value={`+${health.proteinDelta}g`}
-                label="Protein"
-              />
-              <FloatingPill
-                className="left-[4%] top-[39%]"
-                icon={<Activity size={18} />}
-                value={health.sleep}
-                label="Sleep"
-              />
-              <FloatingPill
-                className="left-[9%] top-[66%]"
-                icon={<Droplets size={18} />}
-                value={`${health.hydration}L`}
-                label="Water"
-              />
+              <FloatingPill className="left-[8%] top-[12%]" icon={<Droplets size={18} />} value={`${health.proteinDelta}g`} label="Protein" />
+              <FloatingPill className="left-[4%] top-[39%]" icon={<Activity size={18} />} value={health.sleep} label="Sleep" />
+              <FloatingPill className="left-[9%] top-[66%]" icon={<Droplets size={18} />} value={health.hydration} label="Water" />
 
-              <FloatingPill
-                className="right-[8%] top-[12%]"
-                icon={<HeartPulse size={18} />}
-                value={`${health.recovery}%`}
-                label="Recovery"
-              />
-              <FloatingPill
-                className="right-[4%] top-[39%]"
-                icon={<Flame size={18} />}
-                value={health.calories.toLocaleString()}
-                label="kcal"
-                orange
-              />
-              <FloatingPill
-                className="right-[9%] top-[66%]"
-                icon={<Footprints size={18} />}
-                value={health.steps.toLocaleString()}
-                label="Steps"
-              />
+              <FloatingPill className="right-[8%] top-[12%]" icon={<HeartPulse size={18} />} value={`${health.recovery}%`} label="Recovery" />
+              <FloatingPill className="right-[4%] top-[39%]" icon={<Flame size={18} />} value={health.calories.toLocaleString()} label="kcal" orange />
+              <FloatingPill className="right-[9%] top-[66%]" icon={<Footprints size={18} />} value={health.steps.toLocaleString()} label="Steps" />
 
               <div className="relative grid h-[clamp(220px,17vw,300px)] w-[clamp(220px,17vw,300px)] place-items-center rounded-full border-[11px] border-[#A6FF4D] bg-[#07110A]/70 shadow-[0_0_65px_rgba(166,255,77,.34),inset_0_0_70px_rgba(166,255,77,.08)]">
                 <div className="absolute inset-[-20px] rounded-full border border-[#A6FF4D]/35" />
@@ -466,10 +481,7 @@ function MetricCard({ metric }: { metric: DashboardMetric }) {
         {metric.value}
       </p>
 
-      <p
-        className="mt-1.5 text-[11px] font-bold"
-        style={{ color: metric.color }}
-      >
+      <p className="mt-1.5 text-[11px] font-bold" style={{ color: metric.color }}>
         {metric.sub}
       </p>
 
@@ -505,15 +517,9 @@ function TrendChart({
   const paddingBottom = 44;
 
   const points = trend.map((item, index) => {
-    const x =
-      paddingX +
-      (index * (width - paddingX * 2)) / Math.max(trend.length - 1, 1);
+    const x = paddingX + (index * (width - paddingX * 2)) / Math.max(trend.length - 1, 1);
     const normalized = isNewUser ? 0 : (item.score - 70) / 30;
-    const y =
-      height -
-      paddingBottom -
-      normalized * (height - paddingTop - paddingBottom);
-
+    const y = height - paddingBottom - normalized * (height - paddingTop - paddingBottom);
     return { ...item, x, y };
   });
 
@@ -528,98 +534,47 @@ function TrendChart({
   return (
     <div className="mt-4 rounded-[18px] border border-white/10 bg-[#07110A]/70 p-3">
       <div className="mb-2 flex items-center justify-between gap-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#18D3D0]">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#A6FF4D]">
           Health Score Trend
         </p>
-
-        <button className="rounded-xl border border-white/10 px-3 py-1.5 text-[10px] font-semibold text-white">
-          This Week <ChevronDown className="ml-1.5 inline" size={12} />
-        </button>
+        <p className="text-[11px] font-bold text-white/55">This Week</p>
       </div>
 
-      <div className="relative h-[120px] overflow-hidden">
-        <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full">
+      <div className="w-full overflow-hidden">
+        <svg viewBox={`0 0 ${width} ${height}`} className="h-[170px] w-full">
           <defs>
-            <linearGradient id="trendArea" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#18D3D0" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#18D3D0" stopOpacity="0" />
+            <linearGradient id="scoreArea" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#A6FF4D" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#A6FF4D" stopOpacity="0" />
             </linearGradient>
-
-            <filter id="trendGlow">
-              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
           </defs>
 
-          {[0, 1, 2].map((line) => (
-            <line
-              key={line}
-              x1="14"
-              x2={width - 14}
-              y1={48 + line * 34}
-              y2={48 + line * 34}
-              stroke="rgba(255,255,255,0.06)"
-            />
-          ))}
+          <path d={areaPath} fill="url(#scoreArea)" />
+          <path
+            d={path}
+            fill="none"
+            stroke={isNewUser ? "rgba(255,255,255,.2)" : "#A6FF4D"}
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
 
-          {!isNewUser && <path d={areaPath} fill="url(#trendArea)" />}
-
-          {!isNewUser && (
-            <path
-              d={path}
-              fill="none"
-              stroke="#18D3D0"
-              strokeWidth="4"
-              filter="url(#trendGlow)"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          )}
-
-          {points.map((point, index) => (
+          {points.map((point) => (
             <g key={point.day}>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="6"
+                fill={isNewUser ? "#223025" : "#A6FF4D"}
+                stroke="#07110A"
+                strokeWidth="3"
+              />
               <text
                 x={point.x}
-                y={isNewUser ? 45 : point.y - 18}
+                y={height - 15}
                 textAnchor="middle"
-                fill="#F5F8F2"
-                fontSize="12"
+                fill="rgba(255,255,255,.62)"
+                fontSize="14"
                 fontWeight="700"
-              >
-                {point.score}
-              </text>
-
-              {!isNewUser && (
-                <circle
-                  cx={point.x}
-                  cy={point.y}
-                  r={index === points.length - 1 ? 7 : 5}
-                  fill="#18D3D0"
-                  stroke={index === points.length - 1 ? "#A6FF4D" : "#18D3D0"}
-                  strokeWidth={index === points.length - 1 ? 4 : 2}
-                  filter="url(#trendGlow)"
-                />
-              )}
-
-              {isNewUser && (
-                <circle
-                  cx={point.x}
-                  cy={height - paddingBottom}
-                  r="5"
-                  fill="rgba(24,211,208,0.35)"
-                />
-              )}
-
-              <text
-                x={point.x}
-                y={height - 6}
-                textAnchor="middle"
-                fill={index === points.length - 1 ? "#A6FF4D" : "#A3B3A3"}
-                fontSize="10"
-                fontWeight={index === points.length - 1 ? 700 : 500}
               >
                 {point.day}
               </text>
@@ -631,14 +586,19 @@ function TrendChart({
   );
 }
 
+function emptyBars() {
+  return [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
+}
+
 function getGreeting() {
   const hour = new Date().getHours();
-
   if (hour < 12) return "GOOD MORNING";
   if (hour < 17) return "GOOD AFTERNOON";
   return "GOOD EVENING";
 }
 
-function emptyBars() {
-  return [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+function formatLabel(value: string) {
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }

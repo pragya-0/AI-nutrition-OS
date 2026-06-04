@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
@@ -91,7 +91,147 @@ type ProgressData = {
   };
 };
 
-const progressData: ProgressData = {
+type StoredGeneratedPlan = {
+  success?: boolean;
+  user_profile?: {
+    name?: string;
+    age?: number;
+    gender?: string;
+    weight?: number;
+    height?: number;
+    goal?: string;
+    diet?: string;
+    activity?: string;
+    water_intake?: number;
+    sleep_hours?: number;
+  };
+  analytics?: {
+    bmi?: number;
+    body_fat?: number;
+    metabolic_age?: number;
+    health_score?: number;
+    sleep_score?: number;
+    hydration_score?: number;
+    health_status?: string;
+    metabolic_strategy?: string;
+    strategy_details?: {
+      reason?: string;
+      recommended_focus?: string[];
+      coaching_focus?: string[];
+    };
+  };
+  targets?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fats?: number;
+    water_target?: string;
+  };
+  coach_message?: string;
+  ai_tip?: string;
+  health_insight?: string;
+};
+
+function getStoredGeneratedPlan(): StoredGeneratedPlan | null {
+  try {
+    const raw = localStorage.getItem("ai_nutrition_generated_plan");
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredGeneratedPlan;
+  } catch {
+    return null;
+  }
+}
+
+function formatLabel(value?: string) {
+  if (!value) return "Personalized Goal";
+
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function parseWaterTarget(value?: string, fallback = 2.5) {
+  if (!value) return fallback;
+
+  const match = value.match(/[\d.]+/);
+  if (!match) return fallback;
+
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function formatFutureDate(daysFromNow: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+
+  return `by ${date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })}`;
+}
+
+function buildWeightTrend(currentWeight: number, goalWeight: number): TrendPoint[] {
+  const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const startWeight =
+    goalWeight < currentWeight ? currentWeight + 0.6 : currentWeight - 0.4;
+
+  return labels.map((label, index) => {
+    const progressRatio = index / Math.max(labels.length - 1, 1);
+    const projected =
+      startWeight + (currentWeight - startWeight) * progressRatio;
+
+    return {
+      label,
+      value: Number(projected.toFixed(1)),
+      lastValue: Number((startWeight + 0.4).toFixed(1)),
+      goal: Number(goalWeight.toFixed(1)),
+    };
+  });
+}
+
+function buildSimpleTrend(
+  base: number,
+  target: number,
+  direction: "up" | "down",
+): TrendPoint[] {
+  const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  return labels.map((label, index) => {
+    const ratio = index / Math.max(labels.length - 1, 1);
+    const value =
+      direction === "down"
+        ? base - Math.abs(base - target) * 0.38 * ratio
+        : base + Math.abs(target - base) * 0.38 * ratio;
+
+    return {
+      label,
+      value: Number(value.toFixed(1)),
+      lastValue: Number((base * 0.97).toFixed(1)),
+      goal: Number(target.toFixed(1)),
+    };
+  });
+}
+
+function buildCalorieTrend(calories: number): TrendPoint[] {
+  const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const multipliers = [0.92, 0.95, 0.98, 0.94, 1.02, 0.97, 1];
+
+  return labels.map((label, index) => ({
+    label,
+    value: Math.round(calories * multipliers[index]),
+    lastValue: Math.round(calories * 0.88),
+    goal: calories,
+  }));
+}
+
+function buildForecast(seed: number) {
+  return Array.from({ length: 8 }, (_, index) =>
+    Math.min(92, Math.round(seed + index * 7 + index * index * 0.45)),
+  );
+}
+
+const fallbackProgressData: ProgressData = {
   section: {
     number: "04",
     title: "Progress & Predictions",
@@ -103,140 +243,147 @@ const progressData: ProgressData = {
     { id: "this-month", label: "This Month" },
   ],
   overallProgress: {
-    percentage: 68,
+    percentage: 0,
     label: "Overall Progress",
     cta: "View Detailed Progress",
     stats: [
-      { id: "weight", label: "Weight", value: "-2.4 kg", subtext: "of 5 kg goal", icon: TrendingDown },
-      { id: "body-fat", label: "Body Fat", value: "-2.1%", subtext: "of 5% goal", icon: Percent },
-      { id: "muscle", label: "Muscle Mass", value: "+1.8 kg", subtext: "of 3 kg goal", icon: Dumbbell },
-      { id: "energy", label: "Energy Level", value: "+18%", subtext: "Improved", icon: Zap },
+      {
+        id: "weight",
+        label: "Weight",
+        value: "Not ready",
+        subtext: "generate plan first",
+        icon: TrendingDown,
+      },
+      {
+        id: "body-fat",
+        label: "Body Fat",
+        value: "Waiting",
+        subtext: "analytics pending",
+        icon: Percent,
+      },
+      {
+        id: "muscle",
+        label: "Protein",
+        value: "0g",
+        subtext: "target pending",
+        icon: Dumbbell,
+      },
+      {
+        id: "energy",
+        label: "Energy",
+        value: "Waiting",
+        subtext: "sleep + hydration",
+        icon: Zap,
+      },
     ],
   },
   trendMetrics: [
     {
       id: "weight",
       label: "Weight",
-      value: "70.0",
+      value: "0",
       unit: "kg",
-      change: "▼ 1.2 kg",
+      change: "Generate plan",
       icon: Scale,
-      trend: [
-        { label: "Mon", value: 71.6, lastValue: 68.5, goal: 71.2 },
-        { label: "Tue", value: 71.1, lastValue: 68.5, goal: 71.6 },
-        { label: "Wed", value: 70.8, lastValue: 68.5, goal: 71.9 },
-        { label: "Thu", value: 70.4, lastValue: 68.5, goal: 72.1 },
-        { label: "Fri", value: 69.8, lastValue: 68.5, goal: 72.2 },
-        { label: "Sat", value: 69.3, lastValue: 68.5, goal: 72.2 },
-        { label: "Sun", value: 69.2, lastValue: 68.5, goal: 72.2 },
-      ],
+      trend: buildWeightTrend(70, 65),
     },
     {
       id: "body-fat",
       label: "Body Fat %",
-      value: "28.3",
+      value: "0",
       unit: "%",
-      change: "▼ 1.1%",
+      change: "Generate plan",
       icon: Percent,
-      trend: [
-        { label: "Mon", value: 31.0, lastValue: 27.0, goal: 31.4 },
-        { label: "Tue", value: 30.2, lastValue: 26.6, goal: 31.7 },
-        { label: "Wed", value: 29.6, lastValue: 26.1, goal: 32.0 },
-        { label: "Thu", value: 28.9, lastValue: 25.4, goal: 32.1 },
-        { label: "Fri", value: 28.2, lastValue: 25.2, goal: 32.2 },
-        { label: "Sat", value: 27.2, lastValue: 25.2, goal: 32.2 },
-        { label: "Sun", value: 26.0, lastValue: 25.2, goal: 32.2 },
-      ],
+      trend: buildSimpleTrend(28, 24, "down"),
     },
     {
-      id: "muscle",
-      label: "Muscle Mass",
-      value: "50.2",
-      unit: "kg",
-      change: "▲ 0.8 kg",
+      id: "protein",
+      label: "Protein",
+      value: "0",
+      unit: "g",
+      change: "Generate plan",
       icon: Dumbbell,
-      trend: [
-        { label: "Mon", value: 49.5, lastValue: 48.4, goal: 51.8 },
-        { label: "Tue", value: 49.4, lastValue: 48.3, goal: 51.9 },
-        { label: "Wed", value: 49.6, lastValue: 48.2, goal: 52.0 },
-        { label: "Thu", value: 50.7, lastValue: 48.7, goal: 52.1 },
-        { label: "Fri", value: 50.4, lastValue: 48.5, goal: 52.2 },
-        { label: "Sat", value: 50.3, lastValue: 48.5, goal: 52.2 },
-        { label: "Sun", value: 51.8, lastValue: 48.4, goal: 52.2 },
-      ],
+      trend: buildSimpleTrend(70, 100, "up"),
     },
     {
       id: "calories",
       label: "Calories",
-      value: "1,842",
+      value: "0",
       unit: "kcal",
-      change: "▲ 120 kcal",
+      change: "Generate plan",
       icon: Flame,
-      trend: [
-        { label: "Mon", value: 1790, lastValue: 1650, goal: 1940 },
-        { label: "Tue", value: 1760, lastValue: 1650, goal: 1950 },
-        { label: "Wed", value: 1860, lastValue: 1665, goal: 1960 },
-        { label: "Thu", value: 1785, lastValue: 1650, goal: 1975 },
-        { label: "Fri", value: 1980, lastValue: 1650, goal: 1980 },
-        { label: "Sat", value: 1850, lastValue: 1650, goal: 1980 },
-        { label: "Sun", value: 1885, lastValue: 1650, goal: 1980 },
-      ],
+      trend: buildCalorieTrend(1800),
     },
   ],
   predictions: [
     {
       id: "weight-prediction",
       title: "Weight Prediction",
-      description: "You will reach your goal of",
-      value: "65.0 kg",
-      date: "by 20 July 2024",
-      confidence: 92,
+      description: "Generate a plan to estimate your target of",
+      value: "-- kg",
+      date: formatFutureDate(45),
+      confidence: 0,
       icon: Scale,
       theme: "lime",
-      forecast: [24, 26, 29, 36, 47, 56, 63, 70],
+      forecast: buildForecast(20),
     },
     {
       id: "body-fat-prediction",
       title: "Body Fat Prediction",
-      description: "You will reach your goal of",
-      value: "24.0%",
-      date: "by 15 Aug 2024",
-      confidence: 89,
+      description: "Generate a plan to estimate your target of",
+      value: "--%",
+      date: formatFutureDate(60),
+      confidence: 0,
       icon: Percent,
       theme: "purple",
-      forecast: [25, 27, 31, 38, 49, 58, 66, 73],
+      forecast: buildForecast(22),
     },
     {
-      id: "muscle-prediction",
-      title: "Muscle Gain Prediction",
-      description: "You will reach your goal of",
-      value: "52.0 kg",
-      date: "by 10 Aug 2024",
-      confidence: 85,
+      id: "protein-prediction",
+      title: "Protein Consistency",
+      description: "Generate a plan to estimate your target of",
+      value: "--g",
+      date: formatFutureDate(21),
+      confidence: 0,
       icon: Dumbbell,
       theme: "cyan",
-      forecast: [27, 30, 35, 44, 54, 62, 70, 80],
+      forecast: buildForecast(24),
     },
     {
       id: "energy-prediction",
       title: "Energy Level Prediction",
-      description: "Your energy level will improve to",
-      value: "85%",
-      date: "by 30 Jun 2024",
-      confidence: 90,
+      description: "Generate a plan to estimate your target of",
+      value: "--%",
+      date: formatFutureDate(30),
+      confidence: 0,
       icon: Zap,
       theme: "amber",
-      forecast: [26, 29, 34, 43, 52, 60, 69, 78],
+      forecast: buildForecast(26),
     },
   ],
   aiInsight: {
     title: "AI Insight",
     message:
-      "You're on the right track. Protein consistency and workouts are driving great results. Keep focusing on sleep to improve recovery even more.",
+      "Generate a nutrition plan first. Progress predictions will then use your profile, calorie target, protein target, hydration, sleep, and health score.",
     recommendations: [
-      { id: "sleep", icon: Moon, label: "Improve sleep by", highlight: "15–20 min" },
-      { id: "water", icon: Droplets, label: "Increase water intake by", highlight: "0.5L" },
-      { id: "protein", icon: Dumbbell, label: "Add", highlight: "15g more protein daily" },
+      {
+        id: "sleep",
+        icon: Moon,
+        label: "Set sleep target",
+        highlight: "during onboarding",
+      },
+      {
+        id: "water",
+        icon: Droplets,
+        label: "Add hydration target",
+        highlight: "in profile",
+      },
+      {
+        id: "protein",
+        icon: Dumbbell,
+        label: "Generate plan for",
+        highlight: "protein goal",
+      },
     ],
     cta: "View AI Recommendations",
   },
@@ -244,42 +391,306 @@ const progressData: ProgressData = {
     detailedProgress: {
       title: "Detailed Progress",
       points: [
-        "Weight is down by 2.4 kg toward the current 5 kg goal.",
-        "Body fat has improved by 2.1% with strong weekly consistency.",
-        "Energy level is up by 18%, mostly driven by sleep and hydration.",
+        "Generate a plan to activate personalized progress tracking.",
+        "Progress history will become more accurate after scan, hydration, sleep, and workout logs are connected.",
       ],
     },
     allMetrics: {
       title: "All Metrics Overview",
       points: [
-        "Weight, body fat, muscle mass, calories, hydration, sleep, and recovery are available for full analytics.",
-        "Backend connection can later replace this local state with real user metrics.",
+        "Weight, body fat, protein, calories, hydration, sleep, and recovery are prepared for generated-plan data.",
+        "Database-backed history can later replace these generated estimates.",
       ],
     },
     predictionsInfo: {
       title: "How AI Predictions Work",
       points: [
-        "Predictions use recent progress, nutrition consistency, activity pattern, and recovery quality.",
-        "Confidence percentage changes when more scan, sleep, hydration, and workout data is available.",
+        "Predictions use your generated profile, target calories, protein, health score, hydration, and sleep values.",
+        "Confidence improves when real historical progress logs are available.",
       ],
     },
     recommendations: {
       title: "AI Recommendations",
       points: [
-        "Increase water intake by 0.5L today.",
-        "Add 15g more protein daily to support muscle retention.",
-        "Improve sleep by 15–20 minutes to strengthen recovery score.",
+        "Complete onboarding and generate a plan.",
+        "Connect scanner and progress logs for stronger predictions.",
       ],
     },
     exportReport: {
       title: "Export Report",
       points: [
-        "Progress report prepared for the selected date range.",
+        "Progress report will be prepared from your latest generated plan.",
         "Later this button can download a PDF or CSV from the backend API.",
       ],
     },
   },
 };
+
+function buildProgressDataFromPlan(plan: StoredGeneratedPlan): ProgressData {
+  if (!plan?.success) return fallbackProgressData;
+
+  const profile = plan.user_profile || {};
+  const analytics = plan.analytics || {};
+  const targets = plan.targets || {};
+
+  const currentWeight = profile.weight || 70;
+  const goal = profile.goal || "weight_loss";
+  const formattedGoal = formatLabel(goal);
+  const calories = targets.calories || 0;
+  const protein = targets.protein || 0;
+  const waterTarget = parseWaterTarget(targets.water_target, profile.water_intake || 2.5);
+  const healthScore = analytics.health_score || 80;
+  const sleepScore = analytics.sleep_score || 75;
+  const hydrationScore = analytics.hydration_score || 80;
+  const bodyFat = analytics.body_fat || 25;
+  const bmi = analytics.bmi || 0;
+
+  const isWeightLoss = goal.includes("weight") || goal.includes("fat");
+  const isMuscleGain = goal.includes("muscle");
+
+  const targetWeight = isWeightLoss
+    ? Math.max(currentWeight - 4, 45)
+    : isMuscleGain
+      ? currentWeight + 3
+      : currentWeight;
+
+  const targetBodyFat = isWeightLoss
+    ? Math.max(bodyFat - 3, 12)
+    : Math.max(bodyFat - 1, 10);
+
+  const targetProtein = protein || Math.round(currentWeight * 1.6);
+  const energyTarget = Math.min(Math.round((sleepScore + hydrationScore + healthScore) / 3), 100);
+
+  const progressPercentage = Math.min(Math.max(healthScore, 35), 96);
+
+  const weightChange = isWeightLoss
+    ? `▼ ${(currentWeight - targetWeight).toFixed(1)} kg goal`
+    : isMuscleGain
+      ? `▲ ${(targetWeight - currentWeight).toFixed(1)} kg goal`
+      : "Maintain current range";
+
+  const proteinChange = protein
+    ? `${protein}g target`
+    : "Target pending";
+
+  const generatedInsight =
+    plan.health_insight ||
+    analytics.strategy_details?.reason ||
+    `Your generated ${formattedGoal} plan is active. Progress predictions are now based on your current profile, ${calories.toLocaleString()} kcal target, ${protein}g protein target, hydration, sleep, and health score.`;
+
+  const focus =
+    analytics.strategy_details?.recommended_focus ||
+    analytics.strategy_details?.coaching_focus ||
+    [];
+
+  return {
+    section: fallbackProgressData.section,
+    rangeOptions: fallbackProgressData.rangeOptions,
+    overallProgress: {
+      percentage: progressPercentage,
+      label: "Plan-Based Progress",
+      cta: "View Detailed Progress",
+      stats: [
+        {
+          id: "weight",
+          label: "Weight Target",
+          value: `${targetWeight.toFixed(1)} kg`,
+          subtext: weightChange,
+          icon: TrendingDown,
+        },
+        {
+          id: "body-fat",
+          label: "Body Fat",
+          value: `${bodyFat.toFixed(1)}%`,
+          subtext: `target ${targetBodyFat.toFixed(1)}%`,
+          icon: Percent,
+        },
+        {
+          id: "protein",
+          label: "Protein",
+          value: `${protein || targetProtein}g`,
+          subtext: proteinChange,
+          icon: Dumbbell,
+        },
+        {
+          id: "energy",
+          label: "Energy",
+          value: `${energyTarget}%`,
+          subtext: "sleep + hydration",
+          icon: Zap,
+        },
+      ],
+    },
+    trendMetrics: [
+      {
+        id: "weight",
+        label: "Weight",
+        value: currentWeight.toFixed(1),
+        unit: "kg",
+        change: isWeightLoss
+          ? `▼ target ${targetWeight.toFixed(1)} kg`
+          : isMuscleGain
+            ? `▲ target ${targetWeight.toFixed(1)} kg`
+            : "Maintain",
+        icon: Scale,
+        trend: buildWeightTrend(currentWeight, targetWeight),
+      },
+      {
+        id: "body-fat",
+        label: "Body Fat %",
+        value: bodyFat.toFixed(1),
+        unit: "%",
+        change: `target ${targetBodyFat.toFixed(1)}%`,
+        icon: Percent,
+        trend: buildSimpleTrend(bodyFat, targetBodyFat, "down"),
+      },
+      {
+        id: "protein",
+        label: "Protein",
+        value: `${protein || targetProtein}`,
+        unit: "g",
+        change: `${protein || targetProtein}g daily target`,
+        icon: Dumbbell,
+        trend: buildSimpleTrend(
+          Math.max((protein || targetProtein) * 0.75, 1),
+          protein || targetProtein,
+          "up",
+        ),
+      },
+      {
+        id: "calories",
+        label: "Calories",
+        value: calories ? calories.toLocaleString() : "0",
+        unit: "kcal",
+        change: calories ? `${calories.toLocaleString()} kcal target` : "target pending",
+        icon: Flame,
+        trend: buildCalorieTrend(calories || 1800),
+      },
+    ],
+    predictions: [
+      {
+        id: "weight-prediction",
+        title: "Weight Prediction",
+        description: isWeightLoss
+          ? "With consistency, you can move toward"
+          : isMuscleGain
+            ? "With protein consistency, you can move toward"
+            : "Your plan aims to maintain",
+        value: `${targetWeight.toFixed(1)} kg`,
+        date: formatFutureDate(isWeightLoss ? 60 : 75),
+        confidence: Math.min(progressPercentage + 2, 96),
+        icon: Scale,
+        theme: "lime",
+        forecast: buildForecast(28),
+      },
+      {
+        id: "body-fat-prediction",
+        title: "Body Fat Prediction",
+        description: "Your target body-fat direction is",
+        value: `${targetBodyFat.toFixed(1)}%`,
+        date: formatFutureDate(70),
+        confidence: Math.min(progressPercentage, 94),
+        icon: Percent,
+        theme: "purple",
+        forecast: buildForecast(25),
+      },
+      {
+        id: "protein-prediction",
+        title: "Protein Consistency",
+        description: "Your current protein target is",
+        value: `${protein || targetProtein}g`,
+        date: formatFutureDate(14),
+        confidence: Math.min(progressPercentage + 4, 97),
+        icon: Dumbbell,
+        theme: "cyan",
+        forecast: buildForecast(32),
+      },
+      {
+        id: "energy-prediction",
+        title: "Energy Level Prediction",
+        description: "Sleep and hydration can support",
+        value: `${energyTarget}%`,
+        date: formatFutureDate(30),
+        confidence: Math.min(progressPercentage + 1, 95),
+        icon: Zap,
+        theme: "amber",
+        forecast: buildForecast(30),
+      },
+    ],
+    aiInsight: {
+      title: "AI Insight",
+      message: generatedInsight,
+      recommendations: [
+        {
+          id: "sleep",
+          icon: Moon,
+          label: "Maintain sleep around",
+          highlight: `${profile.sleep_hours || 8}h`,
+        },
+        {
+          id: "water",
+          icon: Droplets,
+          label: "Hydration target",
+          highlight: `${waterTarget}L daily`,
+        },
+        {
+          id: "protein",
+          icon: Dumbbell,
+          label: "Protein target",
+          highlight: `${protein || targetProtein}g daily`,
+        },
+      ],
+      cta: "View AI Recommendations",
+    },
+    panels: {
+      detailedProgress: {
+        title: "Detailed Progress",
+        points: [
+          `Current plan goal: ${formattedGoal}.`,
+          `Current weight: ${currentWeight.toFixed(1)} kg. Plan target: ${targetWeight.toFixed(1)} kg.`,
+          `Health score is ${healthScore}/100. BMI ${bmi ? bmi.toFixed(1) : "will appear after analytics"} is used for progress interpretation.`,
+        ],
+      },
+      allMetrics: {
+        title: "All Metrics Overview",
+        points: [
+          `Calories: ${calories ? calories.toLocaleString() : "pending"} kcal.`,
+          `Protein: ${protein || targetProtein}g.`,
+          `Hydration target: ${waterTarget}L.`,
+          `Sleep score: ${sleepScore}/100. Hydration score: ${hydrationScore}/100.`,
+        ],
+      },
+      predictionsInfo: {
+        title: "How AI Predictions Work",
+        points: [
+          "These are generated-plan estimates, not medical predictions.",
+          "They use current weight, target calories, protein, sleep, hydration, and health score.",
+          "Accuracy will improve after database-backed progress logs are connected.",
+        ],
+      },
+      recommendations: {
+        title: "AI Recommendations",
+        points: [
+          plan.coach_message || "Follow your latest AI coach message.",
+          ...focus.map(formatLabel).slice(0, 3),
+        ].filter(Boolean),
+      },
+      exportReport: {
+        title: "Export Report",
+        points: [
+          "Generated-plan progress report prepared for the current dashboard data.",
+          "PDF/CSV export can be connected when backend report generation is added.",
+        ],
+      },
+    },
+  };
+}
+
+function loadProgressData(): ProgressData {
+  const storedPlan = getStoredGeneratedPlan();
+  return storedPlan?.success ? buildProgressDataFromPlan(storedPlan) : fallbackProgressData;
+}
+
 
 const themeStyles = {
   lime: {
@@ -317,7 +728,7 @@ const themeStyles = {
 };
 
 export default function ProgressPredictions() {
-  const [data] = useState<ProgressData>(progressData);
+  const [data, setData] = useState<ProgressData>(() => loadProgressData());
   const [selectedRange, setSelectedRange] = useState(data.rangeOptions[0]);
   const [rangeOpen, setRangeOpen] = useState(false);
   const [activePanel, setActivePanel] = useState<keyof ProgressData["panels"] | null>(null);
@@ -327,6 +738,20 @@ export default function ProgressPredictions() {
   }, [data.overallProgress.percentage]);
 
   const activePanelData = activePanel ? data.panels[activePanel] : null;
+
+  useEffect(() => {
+    const refreshFromStorage = () => {
+      setData(loadProgressData());
+    };
+
+    window.addEventListener("storage", refreshFromStorage);
+    window.addEventListener("ai-plan-updated", refreshFromStorage);
+
+    return () => {
+      window.removeEventListener("storage", refreshFromStorage);
+      window.removeEventListener("ai-plan-updated", refreshFromStorage);
+    };
+  }, []);
 
   return (
     <section className="relative overflow-x-hidden overflow-y-visible bg-[#030805] px-4 py-4 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
@@ -401,8 +826,8 @@ export default function ProgressPredictions() {
                 </h3>
 
                 <ul className="mt-4 grid gap-3">
-                  {activePanelData.points.map((point) => (
-                    <li key={point} className="flex gap-3 text-[13px] font-semibold leading-6 text-[#D9E5D9]">
+                  {activePanelData.points.map((point, index) => (
+                    <li key={`${activePanelData.title}-${index}`} className="flex gap-3 text-[13px] font-semibold leading-6 text-[#D9E5D9]">
                       <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#A6FF4D]" />
                       {point}
                     </li>
