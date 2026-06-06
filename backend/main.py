@@ -15,6 +15,7 @@ import json
 import base64
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 from google import genai
