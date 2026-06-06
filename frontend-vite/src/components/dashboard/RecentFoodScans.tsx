@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useState, type ElementType } from "react";
 import {
+  AlertTriangle,
   ArrowRight,
   BarChart3,
   CalendarDays,
   ChevronDown,
   ChevronRight,
   Crosshair,
+  Loader2,
   Plus,
   Scale,
   ScanLine,
   Sparkles,
   Utensils,
 } from "lucide-react";
+import { getScanHistory as fetchScanHistory, getRecentScans } from "@/services/api";
 
 const FOOD_HOLOGRAM = "/assets/food-insight-hologram.png";
 
@@ -72,9 +75,6 @@ type StoredScan = {
 
 type StoredPlan = {
   success?: boolean;
-  user_profile?: {
-    goal?: string;
-  };
   targets?: {
     calories?: number;
     protein?: number;
@@ -98,53 +98,35 @@ type StoredPlan = {
 };
 
 const quickActions: QuickAction[] = [
-  {
-    id: "scan",
-    title: "Scan Food",
-    subtitle: "Instant AI analysis",
-    icon: ScanLine,
-    href: "/scanner",
-  },
-  {
-    id: "manual",
-    title: "Add Manually",
-    subtitle: "Log your meal",
-    icon: Plus,
-  },
-  {
-    id: "compare",
-    title: "Compare Meals",
-    subtitle: "See better options",
-    icon: Scale,
-  },
-  {
-    id: "suggest",
-    title: "Meal Suggestions",
-    subtitle: "AI recommended",
-    icon: Utensils,
-  },
+  { id: "scan", title: "Scan Food", subtitle: "Instant AI analysis", icon: ScanLine, href: "/scanner" },
+  { id: "manual", title: "Add Manually", subtitle: "Progress log next", icon: Plus },
+  { id: "compare", title: "Compare Meals", subtitle: "Coming after history", icon: Scale },
+  { id: "suggest", title: "Meal Suggestions", subtitle: "From current plan", icon: Utensils },
 ];
 
 function getStoredJson<T>(key: string): T | null {
   try {
     const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    return JSON.parse(raw) as T;
+    return raw ? (JSON.parse(raw) as T) : null;
   } catch {
     return null;
   }
 }
 
+function unwrapArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (value && typeof value === "object") {
+    const obj = value as { data?: T[]; scans?: T[]; history?: T[]; items?: T[] };
+    return obj.data || obj.scans || obj.history || obj.items || [];
+  }
+  return [];
+}
+
 function formatTime(value?: string) {
   if (!value) return "Just now";
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-
-  return date.toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
 }
 
 function normalizeIngredients(value?: string[] | string) {
@@ -186,28 +168,13 @@ function mapScan(scan: StoredScan, index: number): ScanMeal {
   };
 }
 
-function getScanHistory(): ScanMeal[] {
-  const keys = [
-    "ai_nutrition_scan_history",
-    "ai_nutrition_recent_scans",
-    "scanner_history",
-    "recent_food_scans",
-  ];
+function getLocalScanHistory(): ScanMeal[] {
+  const keys = ["ai_nutrition_scan_history", "ai_nutrition_recent_scans", "scanner_history", "recent_food_scans"];
 
   for (const key of keys) {
-    const value = getStoredJson<StoredScan[] | { scans?: StoredScan[]; data?: StoredScan[] }>(key);
-
-    if (Array.isArray(value)) {
-      return value.map(mapScan);
-    }
-
-    if (value?.scans && Array.isArray(value.scans)) {
-      return value.scans.map(mapScan);
-    }
-
-    if (value?.data && Array.isArray(value.data)) {
-      return value.data.map(mapScan);
-    }
+    const value = getStoredJson<StoredScan[] | { scans?: StoredScan[]; data?: StoredScan[]; history?: StoredScan[] }>(key);
+    const rows = unwrapArray<StoredScan>(value);
+    if (rows.length) return rows.map(mapScan);
   }
 
   return [];
@@ -228,38 +195,10 @@ function getPlanBasedMeals(): ScanMeal[] {
   const fats = targets.fats || 0;
 
   const source = [
-    {
-      id: "plan-breakfast",
-      time: "8:00 AM",
-      type: "Breakfast",
-      name: meals.breakfast || dayOne?.breakfast,
-      image: "/assets/breakfast.png",
-      ratio: 0.25,
-    },
-    {
-      id: "plan-lunch",
-      time: "1:00 PM",
-      type: "Lunch",
-      name: meals.lunch || dayOne?.lunch,
-      image: "/assets/lunch.png",
-      ratio: 0.35,
-    },
-    {
-      id: "plan-snack",
-      time: "5:00 PM",
-      type: "Snack",
-      name: meals.snack || dayOne?.snack,
-      image: "/assets/snack.png",
-      ratio: 0.12,
-    },
-    {
-      id: "plan-dinner",
-      time: "8:00 PM",
-      type: "Dinner",
-      name: meals.dinner || dayOne?.dinner,
-      image: "/assets/dinner.png",
-      ratio: 0.28,
-    },
+    { id: "plan-breakfast", time: "8:00 AM", type: "Breakfast", name: meals.breakfast || dayOne?.breakfast, image: "/assets/breakfast.png", ratio: 0.25 },
+    { id: "plan-lunch", time: "1:00 PM", type: "Lunch", name: meals.lunch || dayOne?.lunch, image: "/assets/lunch.png", ratio: 0.35 },
+    { id: "plan-snack", time: "5:00 PM", type: "Snack", name: meals.snack || dayOne?.snack, image: "/assets/snack.png", ratio: 0.12 },
+    { id: "plan-dinner", time: "8:00 PM", type: "Dinner", name: meals.dinner || dayOne?.dinner, image: "/assets/dinner.png", ratio: 0.28 },
   ].filter((meal) => meal.name);
 
   return source.map((meal) => ({
@@ -278,22 +217,6 @@ function getPlanBasedMeals(): ScanMeal[] {
       { label: "Fats", value: Math.round(fats * meal.ratio), color: "#FFB347" },
     ],
   }));
-}
-
-function loadScanMeals() {
-  const realScans = getScanHistory();
-
-  if (realScans.length) {
-    return {
-      meals: realScans,
-      source: "scan-history" as const,
-    };
-  }
-
-  return {
-    meals: getPlanBasedMeals(),
-    source: "plan-preview" as const,
-  };
 }
 
 function average(values: number[]) {
@@ -323,11 +246,65 @@ export default function RecentFoodScans() {
   const [filter, setFilter] = useState("All Meals");
   const [showInsight, setShowInsight] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<ScanMeal | null>(null);
-  const [scanState, setScanState] = useState(() => loadScanMeals());
+  const [meals, setMeals] = useState<ScanMeal[]>(() => getLocalScanHistory());
+  const [source, setSource] = useState<"backend" | "local" | "plan">(() => (getLocalScanHistory().length ? "local" : "plan"));
+  const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  const loadScanMeals = async () => {
+    setLoading(true);
+    setNotice("");
+
+    try {
+      const [historyResponse, recentResponse] = await Promise.allSettled([
+        fetchScanHistory(30),
+        getRecentScans(10),
+      ]);
+
+      const backendRows =
+        historyResponse.status === "fulfilled"
+          ? unwrapArray<StoredScan>(historyResponse.value)
+          : recentResponse.status === "fulfilled"
+            ? unwrapArray<StoredScan>(recentResponse.value)
+            : [];
+
+      if (backendRows.length) {
+        setMeals(backendRows.map(mapScan));
+        setSource("backend");
+        return;
+      }
+
+      const localRows = getLocalScanHistory();
+      if (localRows.length) {
+        setMeals(localRows);
+        setSource("local");
+        setNotice("Backend scan history is empty. Showing locally saved scanner history.");
+        return;
+      }
+
+      setMeals(getPlanBasedMeals());
+      setSource("plan");
+      setNotice("No real scan history yet. Showing labelled plan meals until the user scans food.");
+    } catch {
+      const localRows = getLocalScanHistory();
+      if (localRows.length) {
+        setMeals(localRows);
+        setSource("local");
+        setNotice("Backend scan history is unavailable. Showing locally saved scanner history.");
+      } else {
+        setMeals(getPlanBasedMeals());
+        setSource("plan");
+        setNotice("Backend scan history is unavailable. Showing labelled plan meals.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const refresh = () => setScanState(loadScanMeals());
+    loadScanMeals();
 
+    const refresh = () => loadScanMeals();
     window.addEventListener("storage", refresh);
     window.addEventListener("ai-plan-updated", refresh);
     window.addEventListener("ai-scan-updated", refresh);
@@ -339,19 +316,11 @@ export default function RecentFoodScans() {
     };
   }, []);
 
-  const hasRealScans = scanState.source === "scan-history";
-  const meals = scanState.meals;
+  const hasRealScans = source === "backend" || source === "local";
 
-  const nutritionScore = useMemo(
-    () => average(meals.map((meal) => meal.score)),
-    [meals],
-  );
+  const nutritionScore = useMemo(() => average(meals.map((meal) => meal.score)), [meals]);
 
-  const filteredMeals =
-    filter === "All Meals"
-      ? meals
-      : meals.filter((meal) => meal.type === filter);
-
+  const filteredMeals = filter === "All Meals" ? meals : meals.filter((meal) => meal.type === filter);
   const filters = ["All Meals", ...Array.from(new Set(meals.map((meal) => meal.type)))];
 
   return (
@@ -360,52 +329,17 @@ export default function RecentFoodScans() {
         <BackgroundFX />
 
         <div className="relative z-10">
-          <Header />
+          <Header loading={loading} source={source} />
 
-          {!hasRealScans && (
-            <div className="mt-4 rounded-[22px] border border-[#18D3D0]/25 bg-[#18D3D0]/5 p-4">
-              <p className="text-[12px] font-black uppercase tracking-[0.16em] text-[#18D3D0]">
-                Scanner History Not Started Yet
-              </p>
-              <p className="mt-2 text-[13px] leading-6 text-white/70">
-                This section is showing your latest AI meal-plan preview until you scan real food.
-                Once the scanner saves history, real scan rows will appear here automatically.
-              </p>
-            </div>
-          )}
+          {notice && <Notice message={notice} />}
 
           {selectedMeal && (
-            <div className="mt-4 rounded-[22px] border border-[#A6FF4D]/25 bg-[#A6FF4D]/5 p-4">
-              <div className="flex items-start justify-between gap-5">
-                <div>
-                  <p className="text-[12px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
-                    Selected {hasRealScans ? "Scan" : "Plan Meal"}
-                  </p>
-                  <h3 className="mt-2 text-[20px] font-black text-white">
-                    {selectedMeal.name}
-                  </h3>
-                  <p className="mt-1 text-[13px] text-white/65">
-                    {selectedMeal.ingredients}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setSelectedMeal(null)}
-                  className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-[12px] font-black text-white"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+            <SelectedMeal meal={selectedMeal} hasRealScans={hasRealScans} onClose={() => setSelectedMeal(null)} />
           )}
 
           <div className="mt-4 grid items-start gap-5 xl:grid-cols-[0.74fr_1.45fr_0.58fr]">
             <div className="grid content-start gap-5">
-              <ScanSummary
-                score={nutritionScore}
-                meals={meals}
-                hasRealScans={hasRealScans}
-              />
+              <ScanSummary score={nutritionScore} meals={meals} hasRealScans={hasRealScans} source={source} />
               <TopFoods foods={buildTopFoods(meals)} hasRealScans={hasRealScans} />
             </div>
 
@@ -421,11 +355,7 @@ export default function RecentFoodScans() {
             </div>
 
             <div className="grid content-start gap-5">
-              <FoodInsights
-                showInsight={showInsight}
-                hasRealScans={hasRealScans}
-                onToggle={() => setShowInsight((value) => !value)}
-              />
+              <FoodInsights showInsight={showInsight} source={source} onToggle={() => setShowInsight((value) => !value)} />
               <ScanTrends meals={meals} hasRealScans={hasRealScans} />
             </div>
           </div>
@@ -437,7 +367,10 @@ export default function RecentFoodScans() {
   );
 }
 
-function Header() {
+function Header({ loading, source }: { loading: boolean; source: "backend" | "local" | "plan" }) {
+  const sourceLabel =
+    source === "backend" ? "Backend history" : source === "local" ? "Local scan cache" : "Plan preview";
+
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
@@ -445,52 +378,58 @@ function Header() {
           Recent Food Scans
           <ScanLine className="text-[#A6FF4D]" size={26} />
         </h2>
-
         <p className="mt-2 text-[14px] font-semibold leading-6 text-[#A3B3A3] xl:text-[15px]">
-          Your food history, scanned by AI. Track, analyze and improve.
+          Backend-first scanner history with clear fallback labels.
         </p>
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <a
-          href="/scanner"
-          className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-[14px] font-black text-white transition hover:border-[#18D3D0]/40 hover:text-[#18D3D0]"
-        >
+        <span className="inline-flex items-center gap-3 rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/8 px-4 py-3 text-[13px] font-black text-[#A6FF4D]">
+          {loading ? <Loader2 className="animate-spin" size={17} /> : <BarChart3 size={17} />}
+          {sourceLabel}
+        </span>
+        <a href="/scanner" className="inline-flex items-center gap-3 rounded-2xl bg-[#A6FF4D] px-5 py-3 text-[14px] font-black text-black shadow-[0_0_34px_rgba(166,255,77,.28)] transition hover:scale-[1.02]">
           <ScanLine size={18} />
           Scan Food
         </a>
+      </div>
+    </div>
+  );
+}
 
-        <button
-          onClick={() => alert("Manual meal logging panel coming next.")}
-          className="inline-flex items-center gap-3 rounded-2xl bg-[#A6FF4D] px-5 py-3 text-[14px] font-black text-black shadow-[0_0_34px_rgba(166,255,77,.28)] transition hover:scale-[1.02]"
-        >
-          <Plus size={20} />
-          Add Manually
+function Notice({ message }: { message: string }) {
+  return (
+    <div className="mt-4 rounded-[22px] border border-[#FFB347]/25 bg-[#2A1A05]/45 p-4">
+      <p className="flex items-center gap-3 text-[13px] font-bold leading-6 text-[#FFB347]">
+        <AlertTriangle size={18} />
+        {message}
+      </p>
+    </div>
+  );
+}
+
+function SelectedMeal({ meal, hasRealScans, onClose }: { meal: ScanMeal; hasRealScans: boolean; onClose: () => void }) {
+  return (
+    <div className="mt-4 rounded-[22px] border border-[#A6FF4D]/25 bg-[#A6FF4D]/5 p-4">
+      <div className="flex items-start justify-between gap-5">
+        <div>
+          <p className="text-[12px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">Selected {hasRealScans ? "Scan" : "Plan Meal"}</p>
+          <h3 className="mt-2 text-[20px] font-black text-white">{meal.name}</h3>
+          <p className="mt-1 text-[13px] text-white/65">{meal.ingredients}</p>
+        </div>
+        <button onClick={onClose} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-[12px] font-black text-white">
+          Close
         </button>
       </div>
     </div>
   );
 }
 
-function ScanSummary({
-  score,
-  meals,
-  hasRealScans,
-}: {
-  score: number;
-  meals: ScanMeal[];
-  hasRealScans: boolean;
-}) {
+function ScanSummary({ score, meals, hasRealScans, source }: { score: number; meals: ScanMeal[]; hasRealScans: boolean; source: "backend" | "local" | "plan" }) {
   const totalCalories = sum(meals.map((meal) => meal.calories));
-  const totalProtein = sum(
-    meals.map((meal) => meal.macros.find((macro) => macro.label === "Protein")?.value || 0),
-  );
-  const totalCarbs = sum(
-    meals.map((meal) => meal.macros.find((macro) => macro.label === "Carbs")?.value || 0),
-  );
-  const totalFats = sum(
-    meals.map((meal) => meal.macros.find((macro) => macro.label === "Fats")?.value || 0),
-  );
+  const totalProtein = sum(meals.map((meal) => meal.macros.find((macro) => macro.label === "Protein")?.value || 0));
+  const totalCarbs = sum(meals.map((meal) => meal.macros.find((macro) => macro.label === "Carbs")?.value || 0));
+  const totalFats = sum(meals.map((meal) => meal.macros.find((macro) => macro.label === "Fats")?.value || 0));
 
   return (
     <div className="rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
@@ -502,43 +441,21 @@ function ScanSummary({
       <div className="grid items-center gap-4 xl:grid-cols-[145px_1fr]">
         <div
           className="grid h-[145px] w-[145px] place-items-center rounded-full shadow-[0_0_50px_rgba(166,255,77,.22)]"
-          style={{
-            background: `conic-gradient(#A6FF4D ${
-              score * 3.6
-            }deg, rgba(255,255,255,.08) 0deg)`,
-          }}
+          style={{ background: `conic-gradient(#A6FF4D ${score * 3.6}deg, rgba(255,255,255,.08) 0deg)` }}
         >
           <div className="grid h-[110px] w-[110px] place-items-center rounded-full bg-[#07110A]">
             <div className="text-center">
               <p className="text-[32px] font-black leading-none">{score}%</p>
-              <p className="mt-1 text-[12px] text-white/75">
-                Nutrition Score
-              </p>
-              <p className="mt-1 text-[12px] font-bold text-[#A6FF4D]">
-                {score >= 90 ? "Excellent" : "Good"}
-              </p>
+              <p className="mt-1 text-[12px] text-white/75">Nutrition Score</p>
+              <p className="mt-1 text-[12px] font-bold text-[#A6FF4D]">{source === "backend" ? "Live" : source === "local" ? "Cached" : "Preview"}</p>
             </div>
           </div>
         </div>
 
         <div className="grid gap-3">
-          <SummaryStat
-            label={hasRealScans ? "Total Scans" : "Plan Meals"}
-            value={String(meals.length)}
-            sub={hasRealScans ? "Saved history" : "Generated plan"}
-          />
-          <SummaryStat
-            label="Total Calories"
-            value={`${totalCalories.toLocaleString()} kcal`}
-            sub={hasRealScans ? "From scans" : "From plan target"}
-            green
-          />
-          <SummaryStat
-            label="Goal Match"
-            value={`${score}%`}
-            sub={hasRealScans ? "Avg scan score" : "Plan-aligned"}
-            green
-          />
+          <SummaryStat label={hasRealScans ? "Total Scans" : "Plan Meals"} value={String(meals.length)} sub={source === "backend" ? "Backend history" : source === "local" ? "Local cache" : "Generated plan"} />
+          <SummaryStat label="Total Calories" value={`${totalCalories.toLocaleString()} kcal`} sub={hasRealScans ? "From scans" : "From plan target"} green />
+          <SummaryStat label="Goal Match" value={`${score}%`} sub={hasRealScans ? "Avg scan score" : "Plan-aligned"} green />
         </div>
       </div>
 
@@ -548,7 +465,6 @@ function ScanSummary({
           <MacroSummary color="#18D3D0" label="Carbs" value={`${totalCarbs}g`} sub="total" />
           <MacroSummary color="#FFB347" label="Fats" value={`${totalFats}g`} sub="total" />
         </div>
-
         <div className="flex h-2.5 overflow-hidden rounded-full bg-white/10">
           <span className="w-[33%] bg-[#A6FF4D]" />
           <span className="w-[45%] bg-[#18D3D0]" />
@@ -559,45 +475,17 @@ function ScanSummary({
   );
 }
 
-function SummaryStat({
-  label,
-  value,
-  sub,
-  green,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-  green?: boolean;
-}) {
+function SummaryStat({ label, value, sub, green }: { label: string; value: string; sub: string; green?: boolean }) {
   return (
     <div>
       <p className="text-[12px] text-white/60">{label}</p>
-      <p className="mt-1 text-[20px] font-black leading-none text-white">
-        {value}
-      </p>
-      <p
-        className={`mt-1 text-[11px] font-semibold ${
-          green ? "text-[#A6FF4D]" : "text-white/55"
-        }`}
-      >
-        {sub}
-      </p>
+      <p className="mt-1 text-[20px] font-black leading-none text-white">{value}</p>
+      <p className={`mt-1 text-[11px] font-semibold ${green ? "text-[#A6FF4D]" : "text-white/55"}`}>{sub}</p>
     </div>
   );
 }
 
-function MacroSummary({
-  color,
-  label,
-  value,
-  sub,
-}: {
-  color: string;
-  label: string;
-  value: string;
-  sub: string;
-}) {
+function MacroSummary({ color, label, value, sub }: { color: string; label: string; value: string; sub: string }) {
   return (
     <div>
       <p className="flex items-center gap-2 text-[12px] text-white/75">
@@ -610,22 +498,13 @@ function MacroSummary({
   );
 }
 
-function TopFoods({
-  foods,
-  hasRealScans,
-}: {
-  foods: TopFood[];
-  hasRealScans: boolean;
-}) {
+function TopFoods({ foods, hasRealScans }: { foods: TopFood[]; hasRealScans: boolean }) {
   return (
     <div className="rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
-          {hasRealScans ? "Top Foods This Week" : "Top Plan Meals"}
-        </p>
-
+        <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">{hasRealScans ? "Top Foods" : "Top Plan Meals"}</p>
         <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-white/80">
-          By Nutrition Score
+          Score
           <ChevronDown size={14} />
         </button>
       </div>
@@ -634,20 +513,10 @@ function TopFoods({
         {foods.length ? (
           foods.map((food) => (
             <div key={food.id} className="flex items-center gap-3">
-              <img
-                src={food.image}
-                alt={food.name}
-                className="h-9 w-9 rounded-full border border-white/10 object-cover"
-              />
-
-              <p className="min-w-0 flex-1 truncate text-[13px] font-black text-white">
-                {food.name}
-              </p>
-
+              <img src={food.image} alt={food.name} className="h-9 w-9 rounded-full border border-white/10 object-cover" />
+              <p className="min-w-0 flex-1 truncate text-[13px] font-black text-white">{food.name}</p>
               <div className="text-right">
-                <p className="text-[15px] font-black leading-none text-white">
-                  {food.score}
-                </p>
+                <p className="text-[15px] font-black leading-none text-white">{food.score}</p>
                 <p className="text-[10px] text-[#A6FF4D]">{food.label}</p>
               </div>
             </div>
@@ -658,14 +527,6 @@ function TopFoods({
           </p>
         )}
       </div>
-
-      <a
-        href="/scanner"
-        className="mt-5 flex w-full items-center justify-end gap-2 text-[13px] font-black text-[#A6FF4D]"
-      >
-        Open Scanner
-        <ArrowRight size={15} />
-      </a>
     </div>
   );
 }
@@ -688,21 +549,11 @@ function RecentScans({
   return (
     <div className="h-fit rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
-          {hasRealScans ? "Recent Scans" : "Generated Plan Meals"}
-        </p>
-
+        <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">{hasRealScans ? "Recent Scans" : "Generated Plan Meals"}</p>
         <div className="flex gap-3">
-          <select
-            value={filter}
-            onChange={(event) => onFilter(event.target.value)}
-            className="rounded-xl border border-white/10 bg-[#07110A] px-4 py-2.5 text-[12px] font-bold text-white outline-none"
-          >
-            {filters.map((item) => (
-              <option key={item}>{item}</option>
-            ))}
+          <select value={filter} onChange={(event) => onFilter(event.target.value)} className="rounded-xl border border-white/10 bg-[#07110A] px-4 py-2.5 text-[12px] font-bold text-white outline-none">
+            {filters.map((item) => <option key={item}>{item}</option>)}
           </select>
-
           <button className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.03] text-white/80">
             <CalendarDays size={16} />
           </button>
@@ -710,163 +561,83 @@ function RecentScans({
       </div>
 
       <div className="space-y-2.5">
-        {meals.length ? (
-          meals.map((meal) => (
-            <ScanRow
-              key={meal.id}
-              meal={meal}
-              onSelectMeal={() => onSelectMeal(meal)}
-            />
-          ))
-        ) : (
-          <div className="rounded-[22px] border border-[#18D3D0]/25 bg-[#18D3D0]/5 p-6 text-center">
-            <ScanLine className="mx-auto text-[#18D3D0]" size={34} />
-            <h3 className="mt-3 text-[20px] font-black text-white">
-              No food scans yet
-            </h3>
-            <p className="mx-auto mt-2 max-w-[520px] text-[13px] leading-6 text-white/65">
-              Scan your first meal to unlock food score, macros, calories, and recent history.
-            </p>
-            <a
-              href="/scanner"
-              className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#A6FF4D] px-5 py-3 text-[13px] font-black text-black"
-            >
-              <ScanLine size={16} />
-              Scan Food Now
-            </a>
-          </div>
-        )}
+        {meals.length ? meals.map((meal) => <ScanRow key={meal.id} meal={meal} onSelectMeal={() => onSelectMeal(meal)} />) : <EmptyScans />}
       </div>
     </div>
   );
 }
 
-function ScanRow({
-  meal,
-  onSelectMeal,
-}: {
-  meal: ScanMeal;
-  onSelectMeal: () => void;
-}) {
+function EmptyScans() {
   return (
-    <button
-      onClick={onSelectMeal}
-      className="grid w-full items-center gap-3 rounded-[18px] border border-white/10 bg-white/[0.035] p-2.5 text-left transition hover:border-[#A6FF4D]/30 hover:bg-white/[0.055] lg:grid-cols-[0.18fr_0.18fr_1fr_0.16fr_0.11fr_0.04fr]"
-    >
+    <div className="rounded-[22px] border border-[#18D3D0]/25 bg-[#18D3D0]/5 p-6 text-center">
+      <ScanLine className="mx-auto text-[#18D3D0]" size={34} />
+      <h3 className="mt-3 text-[20px] font-black text-white">No food scans yet</h3>
+      <p className="mx-auto mt-2 max-w-[520px] text-[13px] leading-6 text-white/65">Scan your first meal to unlock food score, macros, calories, and recent history.</p>
+      <a href="/scanner" className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#A6FF4D] px-5 py-3 text-[13px] font-black text-black">
+        <ScanLine size={16} />
+        Scan Food Now
+      </a>
+    </div>
+  );
+}
+
+function ScanRow({ meal, onSelectMeal }: { meal: ScanMeal; onSelectMeal: () => void }) {
+  return (
+    <button onClick={onSelectMeal} className="grid w-full items-center gap-3 rounded-[18px] border border-white/10 bg-white/[0.035] p-2.5 text-left transition hover:border-[#A6FF4D]/30 hover:bg-white/[0.055] lg:grid-cols-[0.18fr_0.18fr_1fr_0.16fr_0.11fr_0.04fr]">
       <div>
         <p className="text-[12px] text-white/70">{meal.time}</p>
         <p className="mt-1.5 text-[13px] font-black text-white">{meal.type}</p>
       </div>
-
-      <img
-        src={meal.image}
-        alt={meal.name}
-        className="h-[58px] w-[58px] rounded-2xl border border-white/10 object-cover"
-      />
-
+      <img src={meal.image} alt={meal.name} className="h-[58px] w-[58px] rounded-2xl border border-white/10 object-cover" />
       <div className="min-w-0">
-        <p className="truncate text-[15px] font-black text-white">
-          {meal.name}
-        </p>
-        <p className="mt-1 truncate text-[12px] text-white/60">
-          {meal.ingredients}
-        </p>
-
+        <p className="truncate text-[15px] font-black text-white">{meal.name}</p>
+        <p className="mt-1 truncate text-[12px] text-white/60">{meal.ingredients}</p>
         <div className="mt-2.5 flex flex-wrap gap-2">
           {meal.macros.map((macro) => (
-            <span
-              key={macro.label}
-              className="rounded-lg border px-2.5 py-1.5 text-[10px] font-bold"
-              style={{
-                borderColor: `${macro.color}40`,
-                color: macro.color,
-                backgroundColor: `${macro.color}10`,
-              }}
-            >
-              {macro.value}g
-              <span className="ml-1 text-white/50">{macro.label}</span>
+            <span key={macro.label} className="rounded-lg border px-2.5 py-1.5 text-[10px] font-bold" style={{ borderColor: `${macro.color}40`, color: macro.color, backgroundColor: `${macro.color}10` }}>
+              {macro.value}g <span className="ml-1 text-white/50">{macro.label}</span>
             </span>
           ))}
         </div>
       </div>
-
       <div className="text-right">
-        <p className="text-[16px] font-black text-white">
-          {meal.calories}
-          <span className="ml-1 text-[11px] font-medium text-white/70">
-            kcal
-          </span>
-        </p>
-        <p className="mt-1.5 text-[11px] font-bold text-[#A6FF4D]">
-          {meal.status}
-        </p>
+        <p className="text-[16px] font-black text-white">{meal.calories}<span className="ml-1 text-[11px] font-medium text-white/70">kcal</span></p>
+        <p className="mt-1.5 text-[11px] font-bold text-[#A6FF4D]">{meal.status}</p>
       </div>
-
-      <div
-        className="grid h-12 w-12 place-items-center rounded-full border-[3px] bg-[#07110A]"
-        style={{
-          borderColor: meal.status === "Excellent" ? "#A6FF4D" : "#9FFF42",
-        }}
-      >
+      <div className="grid h-12 w-12 place-items-center rounded-full border-[3px] bg-[#07110A]" style={{ borderColor: meal.status === "Excellent" ? "#A6FF4D" : "#9FFF42" }}>
         <span className="text-[16px] font-black text-white">{meal.score}</span>
       </div>
-
       <ChevronRight size={20} className="text-white/80" />
     </button>
   );
 }
 
-function FoodInsights({
-  showInsight,
-  hasRealScans,
-  onToggle,
-}: {
-  showInsight: boolean;
-  hasRealScans: boolean;
-  onToggle: () => void;
-}) {
+function FoodInsights({ showInsight, source, onToggle }: { showInsight: boolean; source: "backend" | "local" | "plan"; onToggle: () => void }) {
+  const hasBackend = source === "backend";
+
   return (
     <div className="rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
       <p className="mb-4 flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
         <Crosshair size={17} />
         AI Food Insights
       </p>
-
       <div className="grid items-center gap-4 xl:grid-cols-[135px_1fr]">
-        <img
-          src={FOOD_HOLOGRAM}
-          alt="AI food insights"
-          className="h-[135px] w-[135px] object-contain drop-shadow-[0_0_38px_rgba(166,255,77,.25)]"
-        />
-
+        <img src={FOOD_HOLOGRAM} alt="AI food insights" className="h-[135px] w-[135px] object-contain drop-shadow-[0_0_38px_rgba(166,255,77,.25)]" />
         <div className="space-y-3">
-          <FoodInsightDot
-            title={hasRealScans ? "Scan-Based Insights" : "Plan-Based Preview"}
-            sub={hasRealScans ? "Real scan history active" : "Scanner history pending"}
-          />
+          <FoodInsightDot title={hasBackend ? "Backend Scan Insights" : "Fallback Mode"} sub={hasBackend ? "Real scan history active" : "Backend history pending"} />
           <FoodInsightDot title="Macro Tracking" sub="Protein, carbs and fats ready" />
           <FoodInsightDot title="Goal Alignment" sub="Compared with latest plan" />
         </div>
       </div>
-
       <p className="mt-4 text-[13px] leading-6 text-white/75">
-        {hasRealScans
-          ? "Your scanned foods are being compared with your current nutrition goal."
-          : "Scan real meals to replace this plan preview with live food history."}
+        {hasBackend ? "Your scanned foods are being loaded from backend scanner history." : "Real backend scanner history will replace this fallback automatically."}
       </p>
-
       {showInsight && (
         <p className="mt-3 rounded-xl border border-[#A6FF4D]/25 bg-[#A6FF4D]/5 px-4 py-3 text-[12px] font-semibold leading-6 text-white/80">
-          {hasRealScans
-            ? "AI will identify meal timing, macro quality, and repeated food patterns from your saved scans."
-            : "Your latest meal plan is being used as a temporary preview until scanner history is saved."}
+          Production rule: plan preview is clearly labelled and never presented as real scan history.
         </p>
       )}
-
-      <button
-        onClick={onToggle}
-        className="mt-4 flex w-full items-center justify-between rounded-xl border border-[#A6FF4D]/25 bg-[#A6FF4D]/5 px-4 py-3 text-[13px] font-black text-[#A6FF4D] transition hover:bg-[#A6FF4D]/10"
-      >
+      <button onClick={onToggle} className="mt-4 flex w-full items-center justify-between rounded-xl border border-[#A6FF4D]/25 bg-[#A6FF4D]/5 px-4 py-3 text-[13px] font-black text-[#A6FF4D] transition hover:bg-[#A6FF4D]/10">
         {showInsight ? "Hide Detailed Insights" : "View Detailed Insights"}
         <ArrowRight size={17} />
       </button>
@@ -886,50 +657,24 @@ function FoodInsightDot({ title, sub }: { title: string; sub: string }) {
   );
 }
 
-function ScanTrends({
-  meals,
-  hasRealScans,
-}: {
-  meals: ScanMeal[];
-  hasRealScans: boolean;
-}) {
-  const values = meals.length
-    ? meals.slice(0, 7).map((meal) => meal.score)
-    : [0, 0, 0, 0, 0, 0, 0];
-
-  const normalized =
-    values.length >= 7 ? values.slice(0, 7) : [...values, ...Array(7 - values.length).fill(values.at(-1) || 0)];
+function ScanTrends({ meals, hasRealScans }: { meals: ScanMeal[]; hasRealScans: boolean }) {
+  const values = meals.length ? meals.slice(0, 7).map((meal) => meal.score) : [0, 0, 0, 0, 0, 0, 0];
+  const normalized = values.length >= 7 ? values.slice(0, 7) : [...values, ...Array(7 - values.length).fill(values.at(-1) || 0)];
 
   return (
     <div className="rounded-[24px] border border-white/10 bg-[#07110A]/70 p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
-          {hasRealScans ? "Scan Trends" : "Plan Meal Trends"}
-        </p>
-
-        <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-white/80">
-          This Week
-          <ChevronDown size={14} />
-        </button>
+        <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">{hasRealScans ? "Scan Scores" : "Plan Meal Scores"}</p>
+        <span className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-white/80">Latest 7</span>
       </div>
-
       <div className="flex h-[130px] items-end justify-between gap-4 border-l border-b border-white/10 px-5 pt-4">
         {normalized.map((bar, index) => (
-          <div
-            key={index}
-            className="flex h-full flex-col items-center justify-end gap-2"
-          >
-            <div
-              className="w-5 rounded-t-lg bg-gradient-to-t from-[#7BE929] to-[#A6FF4D] shadow-[0_0_20px_rgba(166,255,77,.35)]"
-              style={{ height: `${Math.max(bar, 8)}%` }}
-            />
-            <span className="text-[10px] text-white/60">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index]}
-            </span>
+          <div key={index} className="flex h-full flex-col items-center justify-end gap-2">
+            <div className="w-5 rounded-t-lg bg-gradient-to-t from-[#7BE929] to-[#A6FF4D] shadow-[0_0_20px_rgba(166,255,77,.35)]" style={{ height: `${Math.max(bar, 8)}%` }} />
+            <span className="text-[10px] text-white/60">{index + 1}</span>
           </div>
         ))}
       </div>
-
       <p className="mt-4 flex items-center justify-center gap-2 text-[12px] font-bold text-[#A6FF4D]">
         <span className="h-2.5 w-2.5 rounded-full bg-[#A6FF4D]" />
         Nutrition Score
@@ -945,59 +690,31 @@ function QuickActions() {
         <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#A6FF4D]/10 text-[#A6FF4D]">
           <Sparkles size={30} />
         </div>
-
         <div>
-          <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">
-            Quick Actions
-          </p>
-          <p className="mt-1 text-[13px] text-white/65">
-            Make smarter choices in real time.
-          </p>
+          <p className="text-[15px] font-black uppercase tracking-[0.16em] text-[#A6FF4D]">Quick Actions</p>
+          <p className="mt-1 text-[13px] text-white/65">Make smarter choices in real time.</p>
         </div>
       </div>
-
       {quickActions.map((action) => {
         const Icon = action.icon;
-
         const content = (
           <>
             <div className="flex items-center gap-4">
               <Icon size={28} className="text-[#A6FF4D]" />
               <div>
-                <p className="text-[14px] font-black text-white">
-                  {action.title}
-                </p>
-                <p className="mt-1 text-[12px] text-white/60">
-                  {action.subtitle}
-                </p>
+                <p className="text-[14px] font-black text-white">{action.title}</p>
+                <p className="mt-1 text-[12px] text-white/60">{action.subtitle}</p>
               </div>
             </div>
-
             <ChevronRight size={20} className="text-white/80" />
           </>
         );
 
         if (action.href) {
-          return (
-            <a
-              key={action.id}
-              href={action.href}
-              className="flex items-center justify-between rounded-[18px] border border-white/10 bg-white/[0.04] px-5 py-4 text-left transition hover:border-[#A6FF4D]/30 hover:bg-white/[0.06]"
-            >
-              {content}
-            </a>
-          );
+          return <a key={action.id} href={action.href} className="flex items-center justify-between rounded-[18px] border border-white/10 bg-white/[0.04] px-5 py-4 text-left transition hover:border-[#A6FF4D]/30 hover:bg-white/[0.06]">{content}</a>;
         }
 
-        return (
-          <button
-            key={action.id}
-            onClick={() => alert(action.title)}
-            className="flex items-center justify-between rounded-[18px] border border-white/10 bg-white/[0.04] px-5 py-4 text-left transition hover:border-[#A6FF4D]/30 hover:bg-white/[0.06]"
-          >
-            {content}
-          </button>
-        );
+        return <button key={action.id} onClick={() => alert(`${action.title} coming next.`)} className="flex items-center justify-between rounded-[18px] border border-white/10 bg-white/[0.04] px-5 py-4 text-left transition hover:border-[#A6FF4D]/30 hover:bg-white/[0.06]">{content}</button>;
       })}
     </div>
   );
@@ -1007,7 +724,7 @@ function BackgroundFX() {
   return (
     <>
       <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_22%_42%,rgba(24,211,208,0.08),transparent_34%),radial-gradient(circle_at_78%_58%,rgba(166,255,77,0.1),transparent_34%)]" />
-      <div className="pointer-events-none absolute inset-0 rounded-[30px] opacity-[0.13] [background-image:linear-gradient(rgba(166,255,77,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(166,255,77,.11)_1px)] [background-size:78px_78px]" />
+      <div className="pointer-events-none absolute inset-0 rounded-[30px] opacity-[0.13] [background-image:linear-gradient(rgba(166,255,77,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(166,255,77,.11)_1px,transparent_1px)] [background-size:78px_78px]" />
     </>
   );
 }

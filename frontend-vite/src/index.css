@@ -2,8 +2,34 @@
 
 :root {
   font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
-  color: #ffffff;
-  background: #030805;
+
+  /* ===========================
+     AI NUTRITION OS COLOR LOCK
+     Primary Green: Pistachio #93C572
+  =========================== */
+
+  --bg-main: #030805;
+  --bg-deep: #020604;
+  --bg-surface: #0d1410;
+  --bg-card: #101a14;
+
+  --text-main: #f4f6f2;
+  --text-muted: #a7b0aa;
+  --text-soft: rgba(244, 246, 242, 0.68);
+
+  --primary: #93c572;
+  --primary-hover: #a2d27f;
+  --primary-soft: rgba(147, 197, 114, 0.1);
+  --primary-border: rgba(147, 197, 114, 0.18);
+  --primary-glow: rgba(147, 197, 114, 0.14);
+
+  --success: #6cb45a;
+  --analytics: #18d3d0;
+  --warning: #f5b942;
+  --danger: #e96b6b;
+
+  color: var(--text-main);
+  background: var(--bg-main);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -16,20 +42,20 @@
 
 html {
   scroll-behavior: smooth;
-  background: #030805;
+  background: var(--bg-main);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #030805;
-  color: #ffffff;
+  background: var(--bg-main);
+  color: var(--text-main);
 }
 
 #root {
   min-height: 100vh;
-  background: #030805;
+  background: var(--bg-main);
 }
 
 a {
@@ -54,6 +80,70 @@ img {
 }
 
 ::selection {
-  background: rgba(166, 255, 0, 0.25);
-  color: #f5f8f2;
+  background: rgba(147, 197, 114, 0.24);
+  color: var(--text-main);
+}
+
+/* ===========================
+   GLOBAL UTILITY HELPERS
+   Use these gradually in components
+=========================== */
+
+.ai-bg-main {
+  background: var(--bg-main);
+}
+
+.ai-bg-surface {
+  background: var(--bg-surface);
+}
+
+.ai-bg-card {
+  background: var(--bg-card);
+}
+
+.ai-text-main {
+  color: var(--text-main);
+}
+
+.ai-text-muted {
+  color: var(--text-muted);
+}
+
+.ai-text-primary {
+  color: var(--primary);
+}
+
+.ai-border-primary {
+  border-color: var(--primary-border);
+}
+
+.ai-glow-primary {
+  box-shadow: 0 0 24px var(--primary-glow);
+}
+
+.ai-primary-button {
+  background: var(--primary);
+  color: #07110a;
+  box-shadow: 0 0 24px var(--primary-glow);
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.ai-primary-button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 0 28px rgba(147, 197, 114, 0.18);
+}
+
+.ai-secondary-button {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-secondary-button:hover {
+  background: rgba(255, 255, 255, 0.065);
+  border-color: rgba(147, 197, 114, 0.22);
 }

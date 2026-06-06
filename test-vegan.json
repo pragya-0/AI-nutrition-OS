@@ -1,0 +1,1242 @@
+﻿{
+    "success":  true,
+    "ai_mode":  "openrouter_ai",
+    "quality_scores":  {
+                           "meal_variety":  97,
+                           "family_variety_score":  0,
+                           "protein_rotation_score":  96,
+                           "slot_realism_score":  100,
+                           "dairy_balance_score":  100,
+                           "alternative_variety_score":  21,
+                           "human_realism_score":  68,
+                           "nutritionist_quality_score":  68,
+                           "max_repeat":  3,
+                           "consecutive_repeats":  0,
+                           "max_family_repeat":  18,
+                           "family_recent_violations":  62,
+                           "wrong_slot_count":  0,
+                           "dairy_counts":  {
+
+                                            },
+                           "protein_counts":  {
+                                                  "dal":  26,
+                                                  "chana":  18,
+                                                  "plant_mix":  42,
+                                                  "sprouts":  6,
+                                                  "egg":  1,
+                                                  "soy":  5,
+                                                  "beans":  11,
+                                                  "tofu":  11
+                                              },
+                           "alternative_max_repeat":  9,
+                           "unique_meals":  116,
+                           "unique_families":  23,
+                           "total_meal_slots":  120,
+                           "requested_days":  30,
+                           "generated_days":  30,
+                           "diet_validation_passed":  true,
+                           "diet_violations":  [
+
+                                               ],
+                           "production_ready_meal_quality":  false,
+                           "quality_gate":  "public_release_v8_slot_family_protein_dairy_alternative_scored",
+                           "meal_quality_source":  "sanitized_generator_output",
+                           "final_enforcement":  {
+                                                     "diet_violations":  [
+
+                                                                         ],
+                                                     "replacements_made":  1
+                                                 },
+                           "repetition_stats":  {
+                                                    "requested_days":  30,
+                                                    "generated_days":  30,
+                                                    "total_meal_slots":  120,
+                                                    "unique_meals":  117,
+                                                    "max_repeat":  2,
+                                                    "consecutive_repeats":  0,
+                                                    "repeated_meals":  {
+                                                                           "moong dal chilla tomato salad":  2,
+                                                                           "roasted chana cucumber bowl":  2,
+                                                                           "roasted black chana":  2
+                                                                       },
+                                                    "quality_gate":  "public_release_v9_signature_safe_repetition_stats"
+                                                },
+                           "safe_user_failure_prevented":  true,
+                           "text_cleaned":  true,
+                           "grocery_cleaned":  true,
+                           "diagnostics_shape_stable":  true,
+                           "final_public_gate":  {
+                                                     "version":  "v8",
+                                                     "passed":  true,
+                                                     "slot_specific_pools":  true,
+                                                     "meal_family_rotation":  true,
+                                                     "protein_source_rotation":  true,
+                                                     "dairy_frequency_caps":  true,
+                                                     "alternatives_rotated":  true,
+                                                     "wrong_slot_fallback_rejected":  true,
+                                                     "quality_scored_plan":  true,
+                                                     "legal_disclaimer_required":  true
+                                                 }
+                       },
+    "meal_quality":  {
+                         "meal_variety":  97,
+                         "family_variety_score":  0,
+                         "protein_rotation_score":  96,
+                         "slot_realism_score":  100,
+                         "dairy_balance_score":  100,
+                         "alternative_variety_score":  21,
+                         "human_realism_score":  68,
+                         "nutritionist_quality_score":  68,
+                         "max_repeat":  3,
+                         "consecutive_repeats":  0,
+                         "max_family_repeat":  18,
+                         "family_recent_violations":  62,
+                         "wrong_slot_count":  0,
+                         "dairy_counts":  {
+
+                                          },
+                         "protein_counts":  {
+                                                "dal":  26,
+                                                "chana":  18,
+                                                "plant_mix":  42,
+                                                "sprouts":  6,
+                                                "egg":  1,
+                                                "soy":  5,
+                                                "beans":  11,
+                                                "tofu":  11
+                                            },
+                         "alternative_max_repeat":  9,
+                         "unique_meals":  116,
+                         "unique_families":  23,
+                         "total_meal_slots":  120,
+                         "requested_days":  30,
+                         "generated_days":  30,
+                         "diet_validation_passed":  true,
+                         "diet_violations":  [
+
+                                             ],
+                         "production_ready_meal_quality":  false,
+                         "quality_gate":  "public_release_v8_slot_family_protein_dairy_alternative_scored",
+                         "meal_quality_source":  "sanitized_generator_output",
+                         "final_enforcement":  {
+                                                   "diet_violations":  [
+
+                                                                       ],
+                                                   "replacements_made":  1
+                                               },
+                         "repetition_stats":  {
+                                                  "requested_days":  30,
+                                                  "generated_days":  30,
+                                                  "total_meal_slots":  120,
+                                                  "unique_meals":  117,
+                                                  "max_repeat":  2,
+                                                  "consecutive_repeats":  0,
+                                                  "repeated_meals":  {
+                                                                         "moong dal chilla tomato salad":  2,
+                                                                         "roasted chana cucumber bowl":  2,
+                                                                         "roasted black chana":  2
+                                                                     },
+                                                  "quality_gate":  "public_release_v9_signature_safe_repetition_stats"
+                                              },
+                         "safe_user_failure_prevented":  true,
+                         "text_cleaned":  true,
+                         "grocery_cleaned":  true,
+                         "diagnostics_shape_stable":  true,
+                         "final_public_gate":  {
+                                                   "version":  "v8",
+                                                   "passed":  true,
+                                                   "slot_specific_pools":  true,
+                                                   "meal_family_rotation":  true,
+                                                   "protein_source_rotation":  true,
+                                                   "dairy_frequency_caps":  true,
+                                                   "alternatives_rotated":  true,
+                                                   "wrong_slot_fallback_rejected":  true,
+                                                   "quality_scored_plan":  true,
+                                                   "legal_disclaimer_required":  true
+                                               }
+                     },
+    "safety_warnings":  [
+
+                        ],
+    "medical_risk":  {
+                         "risk_level":  "low",
+                         "warnings":  [
+                                          "AI Nutrition OS provides general wellness information only and is not a substitute for medical advice, diagnosis, treatment, emergency care, or professional dietary counselling."
+                                      ],
+                         "detected_conditions":  [
+
+                                                 ],
+                         "hard_block":  false,
+                         "limited_mode":  false,
+                         "full_mode":  true,
+                         "block_reason":  null,
+                         "limited_reason":  null,
+                         "risk_type":  "none",
+                         "medical_disclaimer":  "AI Nutrition OS provides general wellness information only and is not a substitute for medical advice, diagnosis, treatment, emergency care, or professional dietary counselling.",
+                         "professional_consult_recommended":  false,
+                         "medical_claims_allowed":  false,
+                         "diagnosis_allowed":  false,
+                         "treatment_advice_allowed":  false
+                     },
+    "medical_safety_warnings":  [
+                                    "AI Nutrition OS provides general wellness information only and is not a substitute for medical advice, diagnosis, treatment, emergency care, or professional dietary counselling."
+                                ],
+    "medical_disclaimer":  "AI Nutrition OS provides general wellness information only and is not a substitute for medical advice, diagnosis, treatment, emergency care, or professional dietary counselling.",
+    "user_profile":  {
+                         "name":  "Ananya",
+                         "phone_number":  "",
+                         "email":  "",
+                         "city":  "",
+                         "blood_group":  "",
+                         "weight":  60.0,
+                         "height":  165.0,
+                         "age":  26,
+                         "gender":  "female",
+                         "goal":  "fat_loss",
+                         "diet":  "vegan",
+                         "activity":  "moderate",
+                         "days":  30,
+                         "sleep_time":  "23:00",
+                         "wake_time":  "07:00",
+                         "sleep_hours":  8.0,
+                         "water_intake":  2.5,
+                         "fitness_level":  "beginner",
+                         "preferred_cuisine":  "indian",
+                         "medical_conditions":  "",
+                         "pregnancy_status":  "not_applicable",
+                         "smoker_alcohol":  ""
+                     },
+    "analytics":  {
+                      "bmi":  22.0,
+                      "bmr":  1340,
+                      "tdee":  2077,
+                      "body_fat":  27.0,
+                      "metabolic_age":  28,
+                      "hydration_score":  80,
+                      "sleep_score":  95,
+                      "health_score":  95,
+                      "health_status":  "Excellent",
+                      "health_breakdown":  {
+                                               "bmi":  4,
+                                               "activity":  2,
+                                               "hydration":  2,
+                                               "sleep":  4,
+                                               "medical_conditions":  0,
+                                               "goal_alignment":  0,
+                                               "age":  0
+                                           },
+                      "macro_ratio":  {
+                                          "protein_ratio":  432,
+                                          "carbs_ratio":  904,
+                                          "fats_ratio":  441
+                                      },
+                      "metabolic_strategy":  "Controlled Fat Reduction",
+                      "strategy_details":  {
+                                               "strategy":  "Controlled Fat Reduction",
+                                               "calorie_adjustment":  -300,
+                                               "protein_multiplier":  1.8,
+                                               "risk_level":  "low",
+                                               "reason":  "A controlled calorie deficit can support gradual fat loss without harming energy or muscle mass.",
+                                               "recommended_focus":  [
+                                                                         "high satiety meals",
+                                                                         "moderate deficit",
+                                                                         "daily movement",
+                                                                         "strength training"
+                                                                     ],
+                                               "coaching_focus":  [
+                                                                      "Controlled calorie deficit",
+                                                                      "High satiety meals",
+                                                                      "Muscle preservation"
+                                                                  ],
+                                               "consistency_score":  70
+                                           },
+                      "meal_quality":  {
+                                           "meal_variety":  97,
+                                           "family_variety_score":  0,
+                                           "protein_rotation_score":  96,
+                                           "slot_realism_score":  100,
+                                           "dairy_balance_score":  100,
+                                           "alternative_variety_score":  40,
+                                           "human_realism_score":  69,
+                                           "nutritionist_quality_score":  69,
+                                           "max_repeat":  2,
+                                           "consecutive_repeats":  0,
+                                           "max_family_repeat":  19,
+                                           "family_recent_violations":  61,
+                                           "wrong_slot_count":  0,
+                                           "dairy_counts":  {
+
+                                                            },
+                                           "protein_counts":  {
+                                                                  "dal":  25,
+                                                                  "chana":  18,
+                                                                  "plant_mix":  43,
+                                                                  "sprouts":  6,
+                                                                  "egg":  1,
+                                                                  "soy":  5,
+                                                                  "beans":  11,
+                                                                  "tofu":  11
+                                                              },
+                                           "alternative_max_repeat":  3,
+                                           "unique_meals":  116,
+                                           "unique_families":  23,
+                                           "total_meal_slots":  120,
+                                           "requested_days":  30,
+                                           "generated_days":  30,
+                                           "diet_validation_passed":  false,
+                                           "diet_violations":  [
+                                                                   {
+                                                                       "day":  1,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Black chana curry with brown rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  1,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Vegetable dal with jowar roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  2,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Millet khichdi with vegetables",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  2,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Lobia curry with roti and salad",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  2,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Sprouted moong curry with rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  3,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Kala chana salad thali",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  3,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Chana dal with pumpkin sabzi and millet roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  4,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Tofu tikka bowl with brown rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  4,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Mixed bean curry with red rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  4,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Masoor dal with lauki sabzi and roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  6,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Puffed rice bhel with sprouts",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  9,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Tofu stir-fry with brown rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  10,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Masoor dal soup with roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  10,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Moong khichdi with vegetables",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  11,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Lauki dal with millet roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  12,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Chana spinach stew with roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  12,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Bottle gourd chana dal with millet roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  13,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Black chana curry with brown rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  13,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Vegetable dal with jowar roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  14,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Millet khichdi with vegetables",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  14,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Lobia curry with roti and salad",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  14,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Sprouted moong curry with rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  15,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Kala chana salad thali",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  15,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Chana dal with pumpkin sabzi and millet roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  16,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Tofu tikka bowl with brown rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  16,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Mixed bean curry with red rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  16,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Masoor dal with lauki sabzi and roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  18,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Puffed rice bhel with sprouts",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  21,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Tofu stir-fry with brown rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  22,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Masoor dal soup with roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  22,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Moong khichdi with vegetables",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  23,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Lauki dal with millet roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  24,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Chana spinach stew with roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  24,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Bottle gourd chana dal with millet roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  25,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Black chana curry with brown rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  25,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Vegetable dal with jowar roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  26,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Millet khichdi with vegetables",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  26,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Lobia curry with roti and salad",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  26,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Sprouted moong curry with rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  27,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Kala chana salad thali",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  27,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Chana dal with pumpkin sabzi and millet roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  28,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Tofu tikka bowl with brown rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  28,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Mixed bean curry with red rice",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  28,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Masoor dal with lauki sabzi and roti",
+                                                                       "reason":  "bad_alternative"
+                                                                   },
+                                                                   {
+                                                                       "day":  30,
+                                                                       "slot":  "alternative",
+                                                                       "meal":  "Puffed rice bhel with sprouts",
+                                                                       "reason":  "bad_alternative"
+                                                                   }
+                                                               ],
+                                           "production_ready_meal_quality":  false,
+                                           "quality_gate":  "public_release_v8_slot_family_protein_dairy_alternative_scored",
+                                           "meal_quality_source":  "sanitized_generator_output",
+                                           "final_enforcement":  {
+                                                                     "diet_violations":  [
+
+                                                                                         ],
+                                                                     "replacements_made":  1
+                                                                 },
+                                           "repetition_stats":  {
+                                                                    "requested_days":  30,
+                                                                    "generated_days":  30,
+                                                                    "total_meal_slots":  120,
+                                                                    "unique_meals":  117,
+                                                                    "max_repeat":  2,
+                                                                    "consecutive_repeats":  0,
+                                                                    "repeated_meals":  {
+                                                                                           "moong dal chilla tomato salad":  2,
+                                                                                           "roasted chana cucumber bowl":  2,
+                                                                                           "roasted black chana":  2
+                                                                                       },
+                                                                    "quality_gate":  "public_release_v9_signature_safe_repetition_stats"
+                                                                }
+                                       }
+                  },
+    "health_insight":  "Your wellness insights show excellent hydration and sleep scores, which are great for overall health. To support your fat loss goal, focus on incorporating high-satiety meals and daily movement. Consider adding more variety to your meals, especially in protein sources, to enhance your diet quality. This can help you stay on track while enjoying a diverse and satisfying vegan diet!",
+    "targets":  {
+                    "calories":  1777,
+                    "protein":  108,
+                    "carbs":  226,
+                    "fats":  49,
+                    "water_target":  "2.3 Liters Daily"
+                },
+    "meal_plan":  {
+                      "days":  [
+                                   {
+                                       "day":  1,
+                                       "breakfast":  "Moong dal chilla tomato salad",
+                                       "lunch":  "Kala chana salad thali",
+                                       "snack":  "Fresh fruit seed bowl",
+                                       "dinner":  "Bajra roti moong dal",
+                                       "alternatives":  [
+                                                            "Roasted chana cucumber bowl",
+                                                            "Makhana light spice bowl",
+                                                            "Fruit seed bowl"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Moong dal chilla tomato salad",
+                                                     "lunch":  "Kala chana salad thali",
+                                                     "snack":  "Fresh fruit seed bowl",
+                                                     "dinner":  "Bajra roti moong dal"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  2,
+                                       "breakfast":  "Poha sprouts peanut bowl",
+                                       "lunch":  "Millet khichdi vegetable bowl",
+                                       "snack":  "Makhana seed mix",
+                                       "dinner":  "Chana spinach roti stew",
+                                       "alternatives":  [
+                                                            "Sprouts lemon chaat",
+                                                            "Coconut water roasted chana",
+                                                            "Carrot cucumber hummus sticks"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Poha sprouts peanut bowl",
+                                                     "lunch":  "Millet khichdi vegetable bowl",
+                                                     "snack":  "Makhana seed mix",
+                                                     "dinner":  "Chana spinach roti stew"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  3,
+                                       "breakfast":  "Tofu bhurji millet roti",
+                                       "lunch":  "Soy keema phulka greens",
+                                       "snack":  "Beet carrot salad cup",
+                                       "dinner":  "Vegetable clear soup moong",
+                                       "alternatives":  [
+                                                            "Roasted soy nuts",
+                                                            "Tomato cucumber chaat",
+                                                            "Watermelon mint bowl"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Tofu bhurji millet roti",
+                                                     "lunch":  "Soy keema phulka greens",
+                                                     "snack":  "Beet carrot salad cup",
+                                                     "dinner":  "Vegetable clear soup moong"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  4,
+                                       "breakfast":  "Idli sambar plate",
+                                       "lunch":  "Moth bean curry red rice",
+                                       "snack":  "Cucumber carrot sticks",
+                                       "dinner":  "Vegetable dalia sprouts",
+                                       "alternatives":  [
+                                                            "Watermelon mint bowl",
+                                                            "Lemon sprouts bowl",
+                                                            "Moth bean sprouts cup"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Idli sambar plate",
+                                                     "lunch":  "Moth bean curry red rice",
+                                                     "snack":  "Cucumber carrot sticks",
+                                                     "dinner":  "Vegetable dalia sprouts"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  5,
+                                       "breakfast":  "Sprouts lemon vegetable bowl",
+                                       "lunch":  "Ragi mudde vegetable sambar",
+                                       "snack":  "Vegetable hummus sticks",
+                                       "dinner":  "Sambar vegetable millet bowl",
+                                       "alternatives":  [
+                                                            "Fresh fruit seed bowl",
+                                                            "Makhana seed mix",
+                                                            "Roasted black chana"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Sprouts lemon vegetable bowl",
+                                                     "lunch":  "Ragi mudde vegetable sambar",
+                                                     "snack":  "Vegetable hummus sticks",
+                                                     "dinner":  "Sambar vegetable millet bowl"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  6,
+                                       "breakfast":  "Tofu millet wrap",
+                                       "lunch":  "Tofu chana cucumber bowl",
+                                       "snack":  "Moong sprouts tomato bowl",
+                                       "dinner":  "Tofu pepper vegetable plate",
+                                       "alternatives":  [
+                                                            "Vegetable hummus sticks",
+                                                            "Moong sprouts tomato bowl",
+                                                            "Soy nut trail mix"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Tofu millet wrap",
+                                                     "lunch":  "Tofu chana cucumber bowl",
+                                                     "snack":  "Moong sprouts tomato bowl",
+                                                     "dinner":  "Tofu pepper vegetable plate"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  7,
+                                       "breakfast":  "Jowar vegetable cheela",
+                                       "lunch":  "Chana dal pumpkin millet roti",
+                                       "snack":  "Lotus seed herbal tea",
+                                       "dinner":  "Millet roti tofu vegetable curry",
+                                       "alternatives":  [
+                                                            "Corn vegetable chaat",
+                                                            "Mint cucumber sticks",
+                                                            "Chana cucumber chaat"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Jowar vegetable cheela",
+                                                     "lunch":  "Chana dal pumpkin millet roti",
+                                                     "snack":  "Lotus seed herbal tea",
+                                                     "dinner":  "Millet roti tofu vegetable curry"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  8,
+                                       "breakfast":  "Dalia vegetable bowl",
+                                       "lunch":  "Vegetable khichdi salad",
+                                       "snack":  "Soy nut trail mix",
+                                       "dinner":  "Tofu brown rice stir bowl",
+                                       "alternatives":  [
+                                                            "Roasted chana cucumber bowl",
+                                                            "Makhana light spice bowl",
+                                                            "Fruit seed bowl"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Dalia vegetable bowl",
+                                                     "lunch":  "Vegetable khichdi salad",
+                                                     "snack":  "Soy nut trail mix",
+                                                     "dinner":  "Tofu brown rice stir bowl"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  9,
+                                       "breakfast":  "Sattu roasted chana breakfast",
+                                       "lunch":  "Bajra mixed dal sabzi",
+                                       "snack":  "Corn vegetable chaat",
+                                       "dinner":  "Moong dal vegetable soup",
+                                       "alternatives":  [
+                                                            "Sprouts lemon chaat",
+                                                            "Coconut water roasted chana",
+                                                            "Carrot cucumber hummus sticks"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Sattu roasted chana breakfast",
+                                                     "lunch":  "Bajra mixed dal sabzi",
+                                                     "snack":  "Corn vegetable chaat",
+                                                     "dinner":  "Moong dal vegetable soup"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  10,
+                                       "breakfast":  "Millet vegetable dosa",
+                                       "lunch":  "Quinoa chole vegetable bowl",
+                                       "snack":  "Peanut chana chaat",
+                                       "dinner":  "Vegetable dalia salad bowl",
+                                       "alternatives":  [
+                                                            "Roasted soy nuts",
+                                                            "Tomato cucumber chaat",
+                                                            "Watermelon mint bowl"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Millet vegetable dosa",
+                                                     "lunch":  "Quinoa chole vegetable bowl",
+                                                     "snack":  "Peanut chana chaat",
+                                                     "dinner":  "Vegetable dalia salad bowl"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  11,
+                                       "breakfast":  "Broken wheat vegetable bowl",
+                                       "lunch":  "Sambar millet vegetable plate",
+                                       "snack":  "Coconut water sprouts cup",
+                                       "dinner":  "Mixed vegetable millet stew",
+                                       "alternatives":  [
+                                                            "Watermelon mint bowl",
+                                                            "Lemon sprouts bowl",
+                                                            "Moth bean sprouts cup"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Broken wheat vegetable bowl",
+                                                     "lunch":  "Sambar millet vegetable plate",
+                                                     "snack":  "Coconut water sprouts cup",
+                                                     "dinner":  "Mixed vegetable millet stew"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  12,
+                                       "breakfast":  "Bajra tofu scramble roll",
+                                       "lunch":  "Dal vegetable millet bowl",
+                                       "snack":  "Orange seed bowl",
+                                       "dinner":  "Dal sauteed greens",
+                                       "alternatives":  [
+                                                            "Fresh fruit seed bowl",
+                                                            "Makhana seed mix",
+                                                            "Roasted black chana"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Bajra tofu scramble roll",
+                                                     "lunch":  "Dal vegetable millet bowl",
+                                                     "snack":  "Orange seed bowl",
+                                                     "dinner":  "Dal sauteed greens"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  13,
+                                       "breakfast":  "Chana dal dhokla plate",
+                                       "lunch":  "Moong dal millet rice plate",
+                                       "snack":  "Chana cucumber chaat",
+                                       "dinner":  "Lauki chana dal roti",
+                                       "alternatives":  [
+                                                            "Vegetable hummus sticks",
+                                                            "Moong sprouts tomato bowl",
+                                                            "Soy nut trail mix"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Chana dal dhokla plate",
+                                                     "lunch":  "Moong dal millet rice plate",
+                                                     "snack":  "Chana cucumber chaat",
+                                                     "dinner":  "Lauki chana dal roti"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  14,
+                                       "breakfast":  "Ragi porridge seed bowl",
+                                       "lunch":  "Dal khichdi vegetable salad",
+                                       "snack":  "Fruit roasted peanut bowl",
+                                       "dinner":  "Vegetable sambar idli dinner",
+                                       "alternatives":  [
+                                                            "Corn vegetable chaat",
+                                                            "Mint cucumber sticks",
+                                                            "Chana cucumber chaat"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Ragi porridge seed bowl",
+                                                     "lunch":  "Dal khichdi vegetable salad",
+                                                     "snack":  "Fruit roasted peanut bowl",
+                                                     "dinner":  "Vegetable sambar idli dinner"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  15,
+                                       "breakfast":  "Green moong sprouts poha",
+                                       "lunch":  "Chana masala jowar roti",
+                                       "snack":  "Mint cucumber sticks",
+                                       "dinner":  "Clear lentil vegetable soup",
+                                       "alternatives":  [
+                                                            "Roasted chana cucumber bowl",
+                                                            "Makhana light spice bowl",
+                                                            "Fruit seed bowl"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Green moong sprouts poha",
+                                                     "lunch":  "Chana masala jowar roti",
+                                                     "snack":  "Mint cucumber sticks",
+                                                     "dinner":  "Clear lentil vegetable soup"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  16,
+                                       "breakfast":  "Oats idli sambar plate",
+                                       "lunch":  "Rajma rice salad",
+                                       "snack":  "Sprouts pomegranate bowl",
+                                       "dinner":  "Vegetable millet upma bowl",
+                                       "alternatives":  [
+                                                            "Sprouts lemon chaat",
+                                                            "Coconut water roasted chana",
+                                                            "Carrot cucumber hummus sticks"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Oats idli sambar plate",
+                                                     "lunch":  "Rajma rice salad",
+                                                     "snack":  "Sprouts pomegranate bowl",
+                                                     "dinner":  "Vegetable millet upma bowl"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  17,
+                                       "breakfast":  "Moth bean sprouts bowl",
+                                       "lunch":  "Vegetable sambar rice bowl",
+                                       "snack":  "Roasted chana cucumber bowl",
+                                       "dinner":  "Rajma vegetable millet stew",
+                                       "alternatives":  [
+                                                            "Roasted soy nuts",
+                                                            "Tomato cucumber chaat",
+                                                            "Watermelon mint bowl"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Moth bean sprouts bowl",
+                                                     "lunch":  "Vegetable sambar rice bowl",
+                                                     "snack":  "Roasted chana cucumber bowl",
+                                                     "dinner":  "Rajma vegetable millet stew"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  18,
+                                       "breakfast":  "Vegetable sevai upma",
+                                       "lunch":  "Bottle gourd chana dal millet roti",
+                                       "snack":  "Makhana light spice bowl",
+                                       "dinner":  "Spinach dal brown rice",
+                                       "alternatives":  [
+                                                            "Watermelon mint bowl",
+                                                            "Lemon sprouts bowl",
+                                                            "Moth bean sprouts cup"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Vegetable sevai upma",
+                                                     "lunch":  "Bottle gourd chana dal millet roti",
+                                                     "snack":  "Makhana light spice bowl",
+                                                     "dinner":  "Spinach dal brown rice"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  19,
+                                       "breakfast":  "Lauki besan chilla salad",
+                                       "lunch":  "Tofu palak millet roti",
+                                       "snack":  "Sprouts lemon chaat",
+                                       "dinner":  "Bottle gourd dal roti",
+                                       "alternatives":  [
+                                                            "Fresh fruit seed bowl",
+                                                            "Makhana seed mix",
+                                                            "Roasted black chana"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Lauki besan chilla salad",
+                                                     "lunch":  "Tofu palak millet roti",
+                                                     "snack":  "Sprouts lemon chaat",
+                                                     "dinner":  "Bottle gourd dal roti"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  20,
+                                       "breakfast":  "Quinoa vegetable upma",
+                                       "lunch":  "Black chana brown rice salad",
+                                       "snack":  "Coconut water roasted chana",
+                                       "dinner":  "Chickpea vegetable soup",
+                                       "alternatives":  [
+                                                            "Vegetable hummus sticks",
+                                                            "Moong sprouts tomato bowl",
+                                                            "Soy nut trail mix"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Quinoa vegetable upma",
+                                                     "lunch":  "Black chana brown rice salad",
+                                                     "snack":  "Coconut water roasted chana",
+                                                     "dinner":  "Chickpea vegetable soup"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  21,
+                                       "breakfast":  "Millet upma vegetable bowl",
+                                       "lunch":  "Brown rice dal vegetable thali",
+                                       "snack":  "Carrot cucumber hummus sticks",
+                                       "dinner":  "Tofu palak phulka plate",
+                                       "alternatives":  [
+                                                            "Corn vegetable chaat",
+                                                            "Mint cucumber sticks",
+                                                            "Chana cucumber chaat"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Millet upma vegetable bowl",
+                                                     "lunch":  "Brown rice dal vegetable thali",
+                                                     "snack":  "Carrot cucumber hummus sticks",
+                                                     "dinner":  "Tofu palak phulka plate"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  22,
+                                       "breakfast":  "Red rice idli sambar",
+                                       "lunch":  "Chickpea curry millet roti",
+                                       "snack":  "Apple peanut slices",
+                                       "dinner":  "Masoor dal roti soup",
+                                       "alternatives":  [
+                                                            "Roasted chana cucumber bowl",
+                                                            "Makhana light spice bowl",
+                                                            "Fruit seed bowl"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Red rice idli sambar",
+                                                     "lunch":  "Chickpea curry millet roti",
+                                                     "snack":  "Apple peanut slices",
+                                                     "dinner":  "Masoor dal roti soup"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  23,
+                                       "breakfast":  "Soy granule poha",
+                                       "lunch":  "Rajma brown rice cucumber salad",
+                                       "snack":  "Roasted soy nuts",
+                                       "dinner":  "Green gram vegetable stew",
+                                       "alternatives":  [
+                                                            "Sprouts lemon chaat",
+                                                            "Coconut water roasted chana",
+                                                            "Carrot cucumber hummus sticks"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Soy granule poha",
+                                                     "lunch":  "Rajma brown rice cucumber salad",
+                                                     "snack":  "Roasted soy nuts",
+                                                     "dinner":  "Green gram vegetable stew"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  24,
+                                       "breakfast":  "Vegetable oats upma",
+                                       "lunch":  "Tofu quinoa vegetable bowl",
+                                       "snack":  "Tomato cucumber chaat",
+                                       "dinner":  "Millet roti mixed vegetable curry",
+                                       "alternatives":  [
+                                                            "Roasted soy nuts",
+                                                            "Tomato cucumber chaat",
+                                                            "Watermelon mint bowl"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Vegetable oats upma",
+                                                     "lunch":  "Tofu quinoa vegetable bowl",
+                                                     "snack":  "Tomato cucumber chaat",
+                                                     "dinner":  "Millet roti mixed vegetable curry"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  25,
+                                       "breakfast":  "Besan cheela cucumber salad",
+                                       "lunch":  "Lentil vegetable pulao salad",
+                                       "snack":  "Watermelon mint bowl",
+                                       "dinner":  "Tofu vegetable curry millet roti",
+                                       "alternatives":  [
+                                                            "Watermelon mint bowl",
+                                                            "Lemon sprouts bowl",
+                                                            "Moth bean sprouts cup"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Besan cheela cucumber salad",
+                                                     "lunch":  "Lentil vegetable pulao salad",
+                                                     "snack":  "Watermelon mint bowl",
+                                                     "dinner":  "Tofu vegetable curry millet roti"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  26,
+                                       "breakfast":  "Ragi dosa sambar plate",
+                                       "lunch":  "Lobia curry jowar roti",
+                                       "snack":  "Lemon sprouts bowl",
+                                       "dinner":  "Lobia tomato roti plate",
+                                       "alternatives":  [
+                                                            "Fresh fruit seed bowl",
+                                                            "Makhana seed mix",
+                                                            "Roasted black chana"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Ragi dosa sambar plate",
+                                                     "lunch":  "Lobia curry jowar roti",
+                                                     "snack":  "Lemon sprouts bowl",
+                                                     "dinner":  "Lobia tomato roti plate"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  27,
+                                       "breakfast":  "Quinoa vegetable poha",
+                                       "lunch":  "Vegetable rajma quinoa bowl",
+                                       "snack":  "Moth bean sprouts cup",
+                                       "dinner":  "Soy chunk vegetable soup",
+                                       "alternatives":  [
+                                                            "Vegetable hummus sticks",
+                                                            "Moong sprouts tomato bowl",
+                                                            "Soy nut trail mix"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Quinoa vegetable poha",
+                                                     "lunch":  "Vegetable rajma quinoa bowl",
+                                                     "snack":  "Moth bean sprouts cup",
+                                                     "dinner":  "Soy chunk vegetable soup"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  28,
+                                       "breakfast":  "Masala oats tofu bowl",
+                                       "lunch":  "Sprouted moong rice bowl",
+                                       "snack":  "Roasted black chana",
+                                       "dinner":  "Pumpkin dal phulka plate",
+                                       "alternatives":  [
+                                                            "Corn vegetable chaat",
+                                                            "Mint cucumber sticks",
+                                                            "Chana cucumber chaat"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Masala oats tofu bowl",
+                                                     "lunch":  "Sprouted moong rice bowl",
+                                                     "snack":  "Roasted black chana",
+                                                     "dinner":  "Pumpkin dal phulka plate"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  29,
+                                       "breakfast":  "Moong dal chilla tomato salad",
+                                       "lunch":  "Masoor lauki roti plate",
+                                       "snack":  "Roasted chana cucumber bowl",
+                                       "dinner":  "Mixed bean jowar stew",
+                                       "alternatives":  [
+                                                            "Roasted chana cucumber bowl",
+                                                            "Makhana light spice bowl",
+                                                            "Fruit seed bowl"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Moong dal chilla tomato salad",
+                                                     "lunch":  "Masoor lauki roti plate",
+                                                     "snack":  "Roasted chana cucumber bowl",
+                                                     "dinner":  "Mixed bean jowar stew"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   },
+                                   {
+                                       "day":  30,
+                                       "breakfast":  "Moong dal chilla tomato salad",
+                                       "lunch":  "Mixed bean red rice bowl",
+                                       "snack":  "Roasted chana cucumber bowl",
+                                       "dinner":  "Tomato moong soup roti",
+                                       "alternatives":  [
+                                                            "Sprouts lemon chaat",
+                                                            "Coconut water roasted chana",
+                                                            "Carrot cucumber hummus sticks"
+                                                        ],
+                                       "meals":  {
+                                                     "breakfast":  "Moong dal chilla tomato salad",
+                                                     "lunch":  "Mixed bean red rice bowl",
+                                                     "snack":  "Roasted chana cucumber bowl",
+                                                     "dinner":  "Tomato moong soup roti"
+                                                 },
+                                       "water_target":  "2.3 Liters Daily",
+                                       "workout_tip":  "Do 30 minutes brisk walking and 15 minutes strength training for better fat loss."
+                                   }
+                               ]
+                  },
+    "avoid_foods":  [
+                        "Fast Food",
+                        "Ice Cream",
+                        "Soft Drinks"
+                    ],
+    "coach_message":  "Hi Ananya! To support your fat loss journey, focus on incorporating a variety of whole foods in your meals. Today, try adding a colorful vegetable stir-fry to your lunch for extra nutrients and fiber. Remember to stay hydrated and listen to your body\u0027s hunger cues. Enjoy your meals, and keep up the great work with your moderate activity! You\u0027ve got this!",
+    "ai_tip":  "Today: follow your 1777 kcal plan, hit 108g protein, drink 2.3 Liters Daily, and complete at least 30 minutes of light activity.",
+    "daily_routine":  {
+                          "wake_up":  "7:00 AM - Wake up and hydrate",
+                          "morning_hydration":  "Drink 400-500ml water after waking up",
+                          "breakfast_time":  "8:00 AM - Balanced breakfast with protein and fiber",
+                          "mid_morning":  "10:00 AM - Fruit, sprouts, nuts, or a light planned snack",
+                          "lunch_time":  "1:00 PM - Balanced lunch with protein, fiber, and controlled carbs",
+                          "evening_snack":  "5:00 PM - Protein or fiber-rich snack",
+                          "workout_time":  "6:00 PM - 25-30 mins brisk walking + beginner strength basics",
+                          "dinner_time":  "8:00 PM - Light balanced dinner",
+                          "hydration_tip":  "Maintain consistent hydration throughout the day.",
+                          "focus_tip":  "Keep lunch protein-forward and make dinner lighter but satisfying.",
+                          "medical_tip":  "",
+                          "sleep_tip":  "Sleep by 11:00 PM to support recovery, energy, and routine consistency.",
+                          "disclaimer":  "General wellness routine only. This is not medical advice, diagnosis, treatment, rehabilitation, pregnancy guidance, or emergency care."
+                      },
+    "grocery_list":  [
+                         "Dal / Lentils",
+                         "Chickpeas / Chana",
+                         "Rajma / Beans",
+                         "Lobia / Mixed beans",
+                         "Tofu / Soy chunks",
+                         "Brown rice / Red rice",
+                         "Millets / Ragi / Bajra / Jowar",
+                         "Roti / Phulka",
+                         "Oats / Dalia",
+                         "Leafy greens",
+                         "Vegetables",
+                         "Fruits",
+                         "Nuts / Seeds",
+                         "Makhana / Roasted chana",
+                         "Sprouts"
+                     ],
+    "scanner":  {
+                    "enabled":  true,
+                    "endpoint":  "/scan-food"
+                },
+    "generator_source":  "deterministic_public_safe_v8_slot_family_rotation_final_gate",
+    "meal_generation_source":  "deterministic_public_safe_v8_slot_family_rotation_final_gate",
+    "saved_plan_id":  112
+}

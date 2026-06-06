@@ -118,6 +118,14 @@ export default function ScannerHeroUpload({
       onScanComplete?.(enrichedResult);
 
       window.dispatchEvent(
+        new CustomEvent("ai-scan-updated", {
+          detail: enrichedResult,
+        })
+      );
+
+      // Backward-compatible event for older scanner widgets still listening
+      // to the previous event name.
+      window.dispatchEvent(
         new CustomEvent("scan-history-updated", {
           detail: enrichedResult,
         })

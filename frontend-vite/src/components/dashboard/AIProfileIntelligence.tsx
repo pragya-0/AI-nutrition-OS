@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Activity,
   AlertTriangle,
@@ -60,6 +60,16 @@ type ProfileData = {
   missing: { city: string; medical: string; bloodGroup: string };
 };
 
+
+type MealQuality = {
+  requested_days?: number;
+  generated_days?: number;
+  production_ready_meal_quality?: boolean;
+  nutritionist_quality_score?: number;
+  family_variety_score?: number;
+  alternative_variety_score?: number;
+};
+
 type StoredGeneratedPlan = {
   success?: boolean;
   user_profile?: {
@@ -82,6 +92,7 @@ type StoredGeneratedPlan = {
     preferred_cuisine?: string;
     medical_conditions?: string | string[];
     pregnancy_status?: string;
+    smoker_alcohol?: string;
   };
 };
 
@@ -89,6 +100,7 @@ type StoredAssessmentProfile = GeneratePlanPayload & {
   name?: string;
   city?: string;
   blood_group?: string;
+  smoker_alcohol?: string;
 };
 
 const planDurations = [1, 7, 15, 30];
@@ -119,11 +131,7 @@ function sanitizeText(value?: string) {
 
   const normalized = value.trim();
 
-  if (
-    !normalized ||
-    normalized.toLowerCase() === "not provided" ||
-    normalized.toLowerCase() === "none"
-  ) {
+  if (!normalized || normalized.toLowerCase() === "not provided") {
     return "";
   }
 
@@ -381,6 +389,154 @@ function getFrontendSafetyBlock(profile: ProfileData) {
 }
 
 
+function isMissingDisplayValue(value?: string) {
+  const normalized = normalizeSafetyText(value);
+
+  return (
+    !normalized ||
+    normalized === "not provided" ||
+    normalized === "not applicable" ||
+    normalized === "not_applicable"
+  );
+}
+
+type ProfileIssue = {
+  id: string;
+  label: string;
+  helper: string;
+  severity: "required" | "consent";
+};
+
+function getProfileIssues(profile: ProfileData, consentAccepted: boolean): ProfileIssue[] {
+  const issues: ProfileIssue[] = [];
+
+  if (!getNumberFromText(profile.body.age)) {
+    issues.push({
+      id: "age",
+      label: "Age is required",
+      helper: "Open Body Profile and enter your age, for example 24 years.",
+      severity: "required",
+    });
+  }
+
+  if (!getNumberFromText(profile.body.height)) {
+    issues.push({
+      id: "height",
+      label: "Height is required",
+      helper: "Open Body Profile and enter your height in cm, for example 165 cm.",
+      severity: "required",
+    });
+  }
+
+  if (!getNumberFromText(profile.body.weight)) {
+    issues.push({
+      id: "weight",
+      label: "Weight is required",
+      helper: "Open Body Profile and enter your weight in kg, for example 58 kg.",
+      severity: "required",
+    });
+  }
+
+  if (isMissingDisplayValue(profile.body.gender)) {
+    issues.push({
+      id: "gender",
+      label: "Gender is required",
+      helper: "Open Body Profile and choose male, female, or other.",
+      severity: "required",
+    });
+  }
+
+  if (isMissingDisplayValue(profile.nutrition.primaryGoal)) {
+    issues.push({
+      id: "goal",
+      label: "Primary goal is required",
+      helper: "Open Nutrition and choose weight loss, muscle gain, maintenance, or improve health.",
+      severity: "required",
+    });
+  }
+
+  if (isMissingDisplayValue(profile.nutrition.dietPreference)) {
+    issues.push({
+      id: "diet",
+      label: "Diet preference is required",
+      helper: "Open Nutrition and choose omnivore, vegetarian, vegan, eggetarian, or Jain.",
+      severity: "required",
+    });
+  }
+
+  if (isMissingDisplayValue(profile.nutrition.activityLevel)) {
+    issues.push({
+      id: "activity",
+      label: "Activity level is required",
+      helper: "Open Nutrition and choose sedentary, light, moderate, active, or extra active.",
+      severity: "required",
+    });
+  }
+
+  if (!sanitizeText(profile.missing.city)) {
+    issues.push({
+      id: "city",
+      label: "City is required",
+      helper: "Add your city in Profile Complete, for example Kolkata.",
+      severity: "required",
+    });
+  }
+
+  const medicalInput =
+    sanitizeText(profile.missing.medical) ||
+    sanitizeText(profile.health.medicalConditions);
+
+  if (!medicalInput) {
+    issues.push({
+      id: "medical",
+      label: "Medical condition status is required",
+      helper: "Type none if you do not have any medical condition. This is required for safety.",
+      severity: "required",
+    });
+  }
+
+  const smokerAlcoholInput = sanitizeText(profile.health.smokerAlcohol);
+
+  if (!smokerAlcoholInput) {
+    issues.push({
+      id: "smokerAlcohol",
+      label: "Smoker / alcohol status is required",
+      helper: "Open Health and type none if smoking or alcohol is not applicable.",
+      severity: "required",
+    });
+  }
+
+  const bloodGroupInput =
+    sanitizeText(profile.missing.bloodGroup) ||
+    sanitizeText(profile.health.bloodGroup);
+
+  if (!bloodGroupInput) {
+    issues.push({
+      id: "bloodGroup",
+      label: "Blood group is required",
+      helper: "Add your blood group in Profile Complete, for example A+ or B+.",
+      severity: "required",
+    });
+  }
+
+  if (!consentAccepted) {
+    issues.push({
+      id: "consent",
+      label: "Wellness consent is required",
+      helper: "Tick the consent checkbox before generating your plan.",
+      severity: "consent",
+    });
+  }
+
+  return issues;
+}
+
+function formatProfileIssues(issues: ProfileIssue[]) {
+  if (!issues.length) return "";
+  return issues.map((issue) => `${issue.label}: ${issue.helper}`).join(" ");
+}
+
+
 function getStoredGeneratedPlan(): StoredGeneratedPlan | null {
   try {
     const raw = localStorage.getItem("ai_nutrition_generated_plan");
@@ -487,7 +643,7 @@ function buildProfileData(): ProfileData {
       medicalConditions: getMedicalText(profile.medical_conditions),
       bloodGroup: profile.blood_group || "Not Provided",
       pregnancyStatus: formatLabel(profile.pregnancy_status || "not_applicable"),
-      smokerAlcohol: "Not Provided",
+      smokerAlcohol: profile.smoker_alcohol || "Not Provided",
       updatedAt: today(),
     },
     missing: {
@@ -541,16 +697,22 @@ export default function AIProfileIntelligence() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateMessage, setGenerateMessage] = useState("");
   const [selectedDays, setSelectedDays] = useState(7);
+  const [consentAccepted, setConsentAccepted] = useState(false);
 
   const safetyBlock = useMemo(() => getFrontendSafetyBlock(profile), [profile]);
 
-  const missingCount = useMemo(
-    () => Object.values(profile.missing).filter((value) => !value.trim()).length,
-    [profile.missing],
+  const profileIssues = useMemo(
+    () => getProfileIssues(profile, consentAccepted),
+    [profile, consentAccepted],
   );
 
-  const completed = 17 - missingCount;
+  const missingCount = useMemo(
+    () => profileIssues.filter((issue) => issue.severity === "required").length,
+    [profileIssues],
+  );
+
   const total = 17;
+  const completed = Math.max(0, total - missingCount);
   const completion = Math.round((completed / total) * 100);
 
   const handleEdit = (card: CardKey) => {
@@ -603,6 +765,13 @@ export default function AIProfileIntelligence() {
     try {
       setIsGenerating(true);
       setGenerateMessage("");
+
+      const activeProfileIssues = getProfileIssues(profile, consentAccepted);
+
+      if (activeProfileIssues.length > 0) {
+        setGenerateMessage(formatProfileIssues(activeProfileIssues));
+        return;
+      }
 
       const gender =
         profile.body.gender.toLowerCase() === "male"
@@ -704,13 +873,28 @@ export default function AIProfileIntelligence() {
       window.dispatchEvent(new Event("ai-plan-updated"));
 
       const returnedDays = result?.meal_plan?.days?.length;
-      const dayMessage =
-        typeof returnedDays === "number"
-          ? `${returnedDays} day${returnedDays === 1 ? "" : "s"} received`
-          : "plan received";
+      const quality = (
+        result?.meal_quality ||
+        result?.quality_scores ||
+        result?.analytics?.meal_quality ||
+        {}
+      ) as MealQuality;
+
+      const requestedDays = quality?.requested_days || selectedDays;
+      const generatedDays = quality?.generated_days || returnedDays;
+      const productionReady = quality?.production_ready_meal_quality === true;
+      const nutritionistScore = quality?.nutritionist_quality_score;
+      const familyScore = quality?.family_variety_score;
+      const alternativeScore = quality?.alternative_variety_score;
+
+      const qualityWarning = productionReady
+        ? ""
+        : ` Quality review needed: family variety ${familyScore ?? "N/A"}/100, alternatives ${alternativeScore ?? "N/A"}/100, nutritionist score ${nutritionistScore ?? "N/A"}/100.`;
 
       setGenerateMessage(
-        `${selectedDays}-day plan generated successfully (${dayMessage}). Opening your dashboard...`,
+        productionReady
+          ? `${requestedDays}-day plan generated successfully (${generatedDays ?? "plan"} days received). Opening your dashboard...`
+          : `${requestedDays}-day plan generated with quality warnings (${generatedDays ?? "plan"} days received).${qualityWarning} Opening your dashboard...`,
       );
 
       setTimeout(() => {
@@ -722,6 +906,55 @@ export default function AIProfileIntelligence() {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const fillSafeTestProfile = () => {
+    const safeProfile: ProfileData = {
+      ...profile,
+      body: {
+        ...profile.body,
+        height: "165 cm",
+        weight: "58 kg",
+        age: "24 years",
+        gender: "Female",
+        updatedAt: today(),
+      },
+      lifestyle: {
+        ...profile.lifestyle,
+        sleepTime: "23:00",
+        wakeTime: "07:00",
+        waterIntake: "2.5 L / day",
+        fitnessLevel: "Beginner",
+        updatedAt: today(),
+      },
+      nutrition: {
+        ...profile.nutrition,
+        primaryGoal: "Weight Loss",
+        dietPreference: "Omnivore",
+        preferredCuisine: "Indian",
+        activityLevel: "Moderate",
+        updatedAt: today(),
+      },
+      health: {
+        ...profile.health,
+        medicalConditions: "none",
+        bloodGroup: "A+",
+        pregnancyStatus: "Not Applicable",
+        smokerAlcohol: "none",
+        updatedAt: today(),
+      },
+      missing: {
+        city: "Kolkata",
+        medical: "none",
+        bloodGroup: "A+",
+      },
+    };
+
+    setProfile(safeProfile);
+    setDraft(safeProfile);
+    setEditingCard(null);
+    setConsentAccepted(true);
+    setGenerateMessage("Safe dev-test profile filled. You can generate a plan now.");
   };
 
   return (
@@ -912,8 +1145,18 @@ export default function AIProfileIntelligence() {
               onChange={updateMissing}
             />
 
+            {profileIssues.length > 0 && !safetyBlock.blocked ? (
+              <ProfileIssuesPanel issues={profileIssues} />
+            ) : null}
+
             {generateMessage ? (
-              <div className="mt-5 rounded-2xl border border-[#A6FF4D]/20 bg-[#A6FF4D]/5 px-5 py-3 text-sm font-semibold text-[#A6FF4D]">
+              <div
+                className={`mt-5 rounded-2xl border px-5 py-3 text-sm font-semibold ${
+                  generateMessage.toLowerCase().includes("successfully")
+                    ? "border-[#A6FF4D]/20 bg-[#A6FF4D]/5 text-[#A6FF4D]"
+                    : "border-[#FFB347]/25 bg-[#2A1A05]/55 text-[#FFD79A]"
+                }`}
+              >
                 {generateMessage}
               </div>
             ) : null}
@@ -936,11 +1179,60 @@ export default function AIProfileIntelligence() {
               isNewUser={profile.user.isNewUser}
               selectedDays={selectedDays}
               safetyBlocked={safetyBlock.blocked}
+              safetyMessage={safetyBlock.message}
+              profileIssues={profileIssues}
+              consentAccepted={consentAccepted}
+              onConsentChange={setConsentAccepted}
+              onFillSafeTestProfile={fillSafeTestProfile}
             />
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+
+function ProfileIssuesPanel({ issues }: { issues: ProfileIssue[] }) {
+  return (
+    <div className="mt-5 rounded-[24px] border border-[#FFB347]/30 bg-[#2A1A05]/60 p-5 shadow-[0_0_40px_rgba(255,179,71,0.1)]">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#FFB347]/35 bg-[#FFB347]/10 text-[#FFB347]">
+          <AlertTriangle size={24} />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className="text-[16px] font-black uppercase tracking-[0.18em] text-[#FFB347]">
+            Complete These Before Generating
+          </p>
+          <p className="mt-2 max-w-[980px] text-[15px] font-semibold leading-7 text-white/82">
+            Your plan button is active, but generation will not continue until
+            these safety and profile details are fixed.
+          </p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {issues.map((issue) => (
+              <div
+                key={issue.id}
+                className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+              >
+                <p className="text-[13px] font-black text-[#FFB347]">
+                  {issue.label}
+                </p>
+                <p className="mt-1 text-[12px] font-semibold leading-5 text-white/62">
+                  {issue.helper}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-4 text-[13px] leading-6 text-white/55">
+            This prevents dashboard activation with demo-like fallback values,
+            missing medical status, or unchecked consent.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1369,13 +1661,36 @@ function FinalCTA({
   isNewUser,
   selectedDays,
   safetyBlocked,
+  safetyMessage,
+  profileIssues,
+  consentAccepted,
+  onConsentChange,
+  onFillSafeTestProfile,
 }: {
   onGenerate: () => void;
   isGenerating: boolean;
   isNewUser: boolean;
   selectedDays: number;
   safetyBlocked: boolean;
+  safetyMessage: string;
+  profileIssues: ProfileIssue[];
+  consentAccepted: boolean;
+  onConsentChange: (accepted: boolean) => void;
+  onFillSafeTestProfile: () => void;
 }) {
+  const hasIssues = profileIssues.length > 0;
+  const blockerCount = profileIssues.length + (safetyBlocked ? 1 : 0);
+
+  const buttonLabel = isGenerating
+    ? `Generating ${selectedDays}-Day Plan...`
+    : safetyBlocked
+      ? "Review Medical Guidance"
+      : hasIssues
+        ? `Review ${blockerCount} Required ${blockerCount === 1 ? "Item" : "Items"}`
+        : isNewUser
+          ? `Generate First ${selectedDays}-Day Plan`
+          : `Generate ${selectedDays}-Day AI Nutrition Plan`;
+
   return (
     <div className="mt-5 grid items-center gap-4 rounded-[26px] border border-[#A6FF4D]/30 bg-[#07110A]/80 p-5 xl:grid-cols-[0.14fr_0.9fr_1.1fr]">
       <div className="grid h-20 w-20 place-items-center rounded-full border border-[#A6FF4D]/25 bg-[#A6FF4D]/10 text-[#A6FF4D] shadow-[0_0_32px_rgba(166,255,77,.24)]">
@@ -1393,36 +1708,77 @@ function FinalCTA({
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row xl:justify-end">
-        <button
-          onClick={onGenerate}
-          disabled={isGenerating || safetyBlocked}
-          className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#A6FF4D] px-5 py-3.5 text-black shadow-[0_0_34px_rgba(166,255,77,.3)] disabled:cursor-not-allowed disabled:opacity-45"
-        >
-          <span className="text-[14px] font-black">
-            {safetyBlocked
-              ? "Medical Guidance Required"
-              : isGenerating
-                ? `Generating ${selectedDays}-Day Plan...`
-                : isNewUser
-                  ? `Generate First ${selectedDays}-Day Plan`
-                  : `Generate ${selectedDays}-Day AI Nutrition Plan`}
+      <div className="space-y-3 xl:col-span-3">
+        {(hasIssues || safetyBlocked) ? (
+          <div className="rounded-2xl border border-[#FFB347]/25 bg-[#2A1A05]/45 px-4 py-3 text-[12px] font-semibold leading-6 text-[#FFDF9E]">
+            <p className="font-black uppercase tracking-[0.14em] text-[#FFB347]">
+              Why generation cannot continue yet
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {safetyBlocked ? (
+                <li>{safetyMessage || "Medical guidance is required for this profile."}</li>
+              ) : null}
+              {profileIssues.map((issue) => (
+                <li key={issue.id}>
+                  <span className="font-black">{issue.label}:</span> {issue.helper}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-[12px] font-semibold leading-5 text-white/70">
+          <input
+            type="checkbox"
+            checked={consentAccepted}
+            onChange={(event) => onConsentChange(event.target.checked)}
+            className="mt-1 h-4 w-4 accent-[#A6FF4D]"
+          />
+          <span>
+            I understand AI Nutrition OS provides general wellness guidance only,
+            not medical advice, diagnosis, treatment, emergency care, or
+            professional dietary counselling. I consent to using my profile inputs
+            to generate a wellness plan.
           </span>
+        </label>
 
-          <Sparkles size={17} />
+        <div className="flex flex-col gap-3 sm:flex-row xl:justify-end">
+          {import.meta.env.DEV ? (
+            <button
+              type="button"
+              onClick={onFillSafeTestProfile}
+              className="inline-flex items-center justify-center gap-3 rounded-2xl border border-[#18D3D0]/30 bg-[#18D3D0]/10 px-5 py-3.5 text-[14px] font-black text-[#18D3D0] transition hover:scale-[1.01]"
+            >
+              Fill Safe Test Profile
+              <Sparkles size={17} />
+            </button>
+          ) : null}
 
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-black text-[16px] text-[#A6FF4D]">
-            →
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={onGenerate}
+            disabled={isGenerating}
+            className={`inline-flex items-center justify-center gap-3 rounded-2xl px-5 py-3.5 text-black shadow-[0_0_34px_rgba(166,255,77,.3)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60 ${
+              hasIssues || safetyBlocked || !consentAccepted
+                ? "bg-[#FFB347]"
+                : "bg-[#A6FF4D]"
+            }`}
+          >
+            <span className="text-[14px] font-black">{buttonLabel}</span>
+            <Sparkles size={17} />
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-black text-[16px] text-[#A6FF4D]">
+              →
+            </span>
+          </button>
 
-        <a
-          href="/scanner"
-          className="inline-flex items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/[0.03] px-5 py-3.5 text-[14px] font-black text-white"
-        >
-          <ScanLine size={18} />
-          Open Food Scanner
-        </a>
+          <Link
+            to="/scanner"
+            className="inline-flex items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/[0.03] px-5 py-3.5 text-[14px] font-black text-white"
+          >
+            <ScanLine size={18} />
+            Open Food Scanner
+          </Link>
+        </div>
       </div>
     </div>
   );

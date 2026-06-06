@@ -1,100 +1,50 @@
-import type React from "react";
-import { useState } from "react";
+"use client";
+
+import { Link } from "react-router-dom";
 import {
   Activity,
-  AlertTriangle,
-  Check,
+  ArrowRight,
   HeartPulse,
-  Leaf,
-  Lightbulb,
+  
   ShieldCheck,
+  Sparkles,
   Target,
   User,
   Utensils,
-  X,
 } from "lucide-react";
 
-const goals = ["Weight Loss", "Muscle Gain", "Maintain Weight", "Improve Health"];
+const ONBOARDING_LINK = "/dashboard/onboarding";
 
-const activities = [
-  ["Sedentary", "Little or no exercise"],
-  ["Lightly Active", "1–3 days per week"],
-  ["Moderately Active", "3–5 days per week"],
-  ["Very Active", "6–7 days per week"],
-  ["Extra Active", "Very intense daily activity"],
+const steps = [
+  {
+    title: "Profile",
+    text: "Age, height, weight, gender, city, and body metrics.",
+    icon: User,
+  },
+  {
+    title: "Lifestyle",
+    text: "Activity level, sleep routine, hydration, and fitness level.",
+    icon: Activity,
+  },
+  {
+    title: "Diet",
+    text: "Goal, cuisine, diet preference, and meal duration.",
+    icon: Utensils,
+  },
+  {
+    title: "Safety",
+    text: "Medical guardrails, pregnancy check, and wellness-only consent.",
+    icon: ShieldCheck,
+  },
 ];
 
-const diets = [
-  ["Omnivore", "Includes all foods"],
-  ["Vegetarian", "No meat or fish"],
-  ["Vegan", "No animal products"],
-  ["Eggetarian", "Includes eggs"],
-  ["Jain", "No onion, garlic, root veggies"],
+const floatingItems = [
+  { label: "Your Goals", icon: Target, className: "left-[25px] top-[205px]" },
+  { label: "Your Activity", icon: Activity, className: "right-[40px] top-[120px]" },
+  { label: "Your Preferences", icon: Utensils, className: "right-[-30px] top-[250px]" },
+  { label: "Your Profile", icon: User, className: "left-[-10px] bottom-[120px]" },
+  { label: "Your Health", icon: HeartPulse, className: "right-[30px] bottom-[60px]" },
 ];
-
-const preferences = [
-  ["Bengali Cuisine", true],
-  ["Home-style Food", true],
-  ["Eggetarian Options", true],
-];
-
-const restrictions = [
-  ["Lactose Intolerance", true],
-  ["None", true],
-];
-
-const MEDICAL_BLOCK_TERMS = [
-  "diabetes",
-  "thyroid",
-  "pcos",
-  "hypertension",
-  "heart disease",
-  "kidney",
-  "renal",
-  "ckd",
-  "fatty liver",
-  "liver disease",
-  "ibs",
-  "gerd",
-  "gastritis",
-  "asthma",
-  "anemia",
-  "arthritis",
-  "depression",
-  "anxiety",
-  "eating disorder",
-  "anorexia",
-  "bulimia",
-  "cancer",
-  "chemotherapy",
-  "stroke",
-  "pregnant",
-  "pregnancy",
-  "breastfeeding",
-  "ttc",
-  "ivf",
-  "heavy smoker",
-  "alcohol dependency",
-  "substance abuse",
-  "addiction",
-];
-
-function getAssessmentSafetyWarning(notes: string) {
-  const text = notes.toLowerCase().replaceAll("_", " ").replaceAll("-", " ").trim();
-
-  if (!text || text === "none" || text === "no" || text === "not applicable") {
-    return "";
-  }
-
-  const hasMedicalTerm = MEDICAL_BLOCK_TERMS.some((term) => text.includes(term));
-
-  if (!hasMedicalTerm) {
-    return "";
-  }
-
-  return "Medical guidance required: if you have a disease, pregnancy-related state, addiction/dependency concern, or medical condition, AI Nutrition OS cannot generate nutrition or workout recommendations. Please consult a qualified doctor, registered dietitian, or healthcare professional.";
-}
-
 
 function GlassCard({
   children,
@@ -108,99 +58,6 @@ function GlassCard({
       className={`rounded-[24px] border border-[#9DFF16]/15 bg-[#06110A]/75 shadow-[0_0_28px_rgba(157,255,22,0.055)] backdrop-blur-xl ${className}`}
     >
       {children}
-    </div>
-  );
-}
-
-function InputField({
-  label,
-  value,
-  onChange,
-  type = "text",
-  unit,
-}: {
-  label: string;
-  value: string | number;
-  onChange: (value: string) => void;
-  type?: string;
-  unit?: string;
-}) {
-  return (
-    <div>
-      <p className="mb-2 text-xs text-white/65">{label}</p>
-      <div className="flex h-11 items-center justify-between rounded-xl border border-white/10 bg-[#07120B]/85 px-4 text-sm text-white">
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-transparent text-white outline-none placeholder:text-white/35"
-        />
-        {unit ? <span className="ml-2 text-white/55">{unit}</span> : null}
-      </div>
-    </div>
-  );
-}
-
-function SelectCard({
-  title,
-  sub,
-  active = false,
-  onClick,
-}: {
-  title: string;
-  sub?: string;
-  active?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex min-h-[52px] w-full items-center justify-between rounded-xl border px-3.5 py-2 text-left transition ${
-        active
-          ? "border-[#9DFF16]/60 bg-[#9DFF16] text-black shadow-[0_0_18px_rgba(157,255,22,0.22)]"
-          : "border-white/10 bg-[#07120B]/85 text-white hover:border-[#9DFF16]/35"
-      }`}
-    >
-      <div>
-        <p className="text-sm font-semibold leading-tight xl:text-[15px]">
-          {title}
-        </p>
-        {sub ? (
-          <p
-            className={`mt-0.5 text-[11px] leading-4 ${
-              active ? "text-black/70" : "text-white/45"
-            }`}
-          >
-            {sub}
-          </p>
-        ) : null}
-      </div>
-
-      {active ? (
-        <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-black/40">
-          <Check className="h-3.5 w-3.5" />
-        </span>
-      ) : null}
-    </button>
-  );
-}
-
-function CheckRow({ label, checked }: { label: string; checked: boolean }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <span
-        className={`grid h-4 w-4 shrink-0 place-items-center rounded-[5px] border ${
-          checked
-            ? "border-[#9DFF16] bg-[#9DFF16] text-black"
-            : "border-white/15 bg-transparent"
-        }`}
-      >
-        {checked ? <Check className="h-3 w-3 stroke-[4]" /> : null}
-      </span>
-      <span className="text-sm leading-none text-white/75 xl:text-[15px]">
-        {label}
-      </span>
     </div>
   );
 }
@@ -227,29 +84,15 @@ function FloatingIcon({
 }
 
 export default function AssessmentSection() {
-  const [age, setAge] = useState("24");
-  const [gender, setGender] = useState("female");
-  const [height, setHeight] = useState("165");
-  const [weight, setWeight] = useState("58");
-  const [selectedGoal, setSelectedGoal] = useState("Weight Loss");
-  const [selectedActivity, setSelectedActivity] = useState("Moderately Active");
-  const [selectedDiet, setSelectedDiet] = useState("Omnivore");
-  const [notes, setNotes] = useState("");
-  const safetyWarning = getAssessmentSafetyWarning(notes);
-
-  function handleContinueToOnboarding() {
-    window.location.href = "/dashboard/onboarding";
-  }
-
   return (
     <section
       id="assessment-preview"
-      className="relative overflow-hidden bg-[#030805] px-4 py-12 text-white sm:px-6 lg:px-8 lg:py-14 xl:px-10 2xl:px-12"
+      className="relative scroll-mt-28 overflow-hidden bg-[#030805] px-4 py-12 text-white sm:px-6 lg:px-8 lg:py-14 xl:px-10 2xl:px-12"
     >
       <div className="absolute left-[18%] top-[54%] h-[34vw] max-h-[520px] min-h-[300px] w-[34vw] min-w-[300px] max-w-[520px] rounded-full bg-[#9DFF16]/[0.055] blur-[140px]" />
       <div className="absolute right-[8%] top-[52%] h-[40vw] max-h-[640px] min-h-[340px] w-[40vw] min-w-[340px] max-w-[640px] rounded-full bg-[#9DFF16]/[0.045] blur-[160px]" />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-[92vw] items-start gap-10 xl:grid-cols-[0.9fr_1.55fr] xl:gap-10 2xl:max-w-[1780px] 2xl:gap-12">
+      <div className="relative z-10 mx-auto grid w-full max-w-[92vw] items-start gap-10 xl:grid-cols-[0.9fr_1.15fr] xl:gap-10 2xl:max-w-[1780px] 2xl:gap-12">
         <div className="relative min-h-[640px] pt-0">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#9DFF16]/20 bg-[#07120B]/80 px-5 py-2.5 text-[12px] font-bold text-[#9DFF16] sm:text-[13px]">
             <User className="h-4 w-4" />
@@ -263,8 +106,8 @@ export default function AssessmentSection() {
           </h2>
 
           <p className="mt-6 max-w-[680px] text-[18px] leading-8 text-white/68 lg:text-[20px] xl:text-[21px]">
-            Tell us about yourself, your lifestyle and preferences. Our AI will
-            create a plan that’s 100% personalized for you.
+            Start with your profile, lifestyle, diet, and safety details. Then AI
+            Nutrition OS generates your plan and unlocks your dashboard.
           </p>
 
           <div className="relative mt-0 h-[520px]">
@@ -279,11 +122,14 @@ export default function AssessmentSection() {
               className="absolute bottom-[-50px] left-[60px] z-10 h-[42vw] max-h-[680px] min-h-[520px] w-auto object-contain"
             />
 
-            <FloatingIcon icon={Target} label="Your Goals" className="left-[25px] top-[205px]" />
-            <FloatingIcon icon={Activity} label="Your Activity" className="right-[40px] top-[120px]" />
-            <FloatingIcon icon={Utensils} label="Your Preferences" className="right-[-30px] top-[250px]" />
-            <FloatingIcon icon={User} label="Your Profile" className="left-[-10px] bottom-[120px]" />
-            <FloatingIcon icon={HeartPulse} label="Your Health" className="right-[30px] bottom-[60px]" />
+            {floatingItems.map((item) => (
+              <FloatingIcon
+                key={item.label}
+                icon={item.icon}
+                label={item.label}
+                className={item.className}
+              />
+            ))}
           </div>
 
           <GlassCard className="relative z-30 ml-0 mt-8 flex max-w-[560px] items-center gap-4 px-6 py-5">
@@ -294,190 +140,111 @@ export default function AssessmentSection() {
                 className="h-[54px] w-[54px] object-contain"
               />
             </div>
-
             <p className="text-[17px] leading-7 text-white/85 xl:text-[18px]">
-              Our AI analyzes{" "}
-              <span className="font-black text-[#9DFF16]">50+ factors</span>
+              Built for <span className="font-black text-[#9DFF16]">real user input</span>
               <br />
               <span className="text-[15px] text-white/65 xl:text-[16px]">
-                to craft the perfect plan for your body and lifestyle.
+                No landing-page button generates a plan without profile
+                confirmation.
               </span>
             </p>
           </GlassCard>
         </div>
 
         <GlassCard className="mt-0 w-full max-w-none px-5 py-6 sm:px-6 lg:px-7 xl:px-8 xl:py-7">
-          <div className="mb-5 flex justify-end">
-            <div className="flex shrink-0 items-center gap-3 text-sm text-white/75">
-              <ShieldCheck className="h-5 w-5 text-[#9DFF16]" />
-              100% Secure & Private
-            </div>
+          <div className="mb-6 border-b border-white/10 pb-6">
+            <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#9DFF16]">
+              Assessment Preview
+            </p>
+            <h3 className="mt-3 text-[34px] font-black tracking-[-0.05em] text-white sm:text-[42px] lg:text-[50px]">
+              Your plan starts after onboarding.
+            </h3>
+            <p className="mt-4 max-w-[780px] text-[16px] leading-8 text-white/65">
+              For better safety and cleaner SaaS UX, plan generation now happens
+              inside the dashboard onboarding flow — not inside the landing page.
+            </p>
           </div>
 
-          <GlassCard className="grid gap-6 p-5 lg:grid-cols-[1fr_1.08fr] xl:p-6">
-            <div>
-              <h3 className="mb-4 flex items-center gap-2.5 text-[17px] font-bold">
-                <User className="h-5 w-5 text-[#9DFF16]" />
-                Personal Information
-              </h3>
-
-              <div className="grid grid-cols-2 gap-x-5 gap-y-4">
-                <InputField label="Age" value={age} onChange={setAge} type="number" />
-                <InputField label="Gender" value={gender} onChange={setGender} />
-                <InputField label="Height" value={height} onChange={setHeight} type="number" unit="cm" />
-                <InputField label="Weight" value={weight} onChange={setWeight} type="number" unit="kg" />
-              </div>
-            </div>
-
-            <div className="border-white/10 lg:border-l lg:pl-6">
-              <h3 className="mb-4 flex items-center gap-2.5 text-[17px] font-bold">
-                <Target className="h-5 w-5 text-[#9DFF16]" />
-                Your Goal
-              </h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                {goals.map((goal) => (
-                  <SelectCard
-                    key={goal}
-                    title={goal}
-                    active={selectedGoal === goal}
-                    onClick={() => setSelectedGoal(goal)}
-                  />
-                ))}
-              </div>
-            </div>
-          </GlassCard>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <GlassCard className="p-5 xl:p-6">
-              <h3 className="mb-4 flex items-center gap-2.5 text-[17px] font-bold">
-                <Activity className="h-5 w-5 text-[#9DFF16]" />
-                Activity Level
-              </h3>
-
-              <div className="space-y-2.5">
-                {activities.map(([title, sub]) => (
-                  <SelectCard
-                    key={title}
-                    title={title}
-                    sub={sub}
-                    active={selectedActivity === title}
-                    onClick={() => setSelectedActivity(title)}
-                  />
-                ))}
-              </div>
-            </GlassCard>
-
-            <GlassCard className="p-5 xl:p-6">
-              <h3 className="mb-4 flex items-center gap-2.5 text-[17px] font-bold">
-                <Leaf className="h-5 w-5 text-[#9DFF16]" />
-                Diet Type
-              </h3>
-
-              <div className="space-y-2.5">
-                {diets.map(([title, sub]) => (
-                  <SelectCard
-                    key={title}
-                    title={title}
-                    sub={sub}
-                    active={selectedDiet === title}
-                    onClick={() => setSelectedDiet(title)}
-                  />
-                ))}
-              </div>
-            </GlassCard>
-
-            <GlassCard className="p-5 xl:p-6">
-              <h3 className="mb-5 flex items-center gap-2.5 text-[17px] font-bold">
-                <Utensils className="h-5 w-5 text-[#9DFF16]" />
-                Food Preference
-              </h3>
-
-              <div className="space-y-3">
-                {preferences.map(([label, checked]) => (
-                  <CheckRow key={label as string} label={label as string} checked={checked as boolean} />
-                ))}
-              </div>
-            </GlassCard>
-
-            <GlassCard className="p-5 xl:p-6">
-              <h3 className="mb-5 flex items-center gap-2.5 text-[17px] font-bold">
-                <HeartPulse className="h-5 w-5 text-[#9DFF16]" />
-                Medical & Restrictions
-              </h3>
-
-              <div className="space-y-3">
-                {restrictions.map(([label, checked]) => (
-                  <CheckRow key={label as string} label={label as string} checked={checked as boolean} />
-                ))}
-              </div>
-            </GlassCard>
-          </div>
-
-          <div className="mt-4 grid gap-4 lg:grid-cols-[1.55fr_1fr]">
-            <GlassCard className="p-5 xl:p-6">
-              <h3 className="mb-3 text-[17px] font-semibold">
-                Anything else we should know?
-              </h3>
-
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. Allergies, medications, specific conditions..."
-                className="min-h-[74px] w-full resize-none rounded-xl border border-white/10 bg-[#07120B]/85 px-4 py-3.5 text-sm text-white outline-none placeholder:text-white/35"
-              />
-
-              {safetyWarning ? (
-                <div className="mt-3 rounded-2xl border border-[#FF6C7D]/35 bg-[#2A070D]/60 px-4 py-3 text-[13px] font-semibold leading-6 text-[#FFD4DA]">
-                  <div className="flex gap-3">
-                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#FF6C7D]" />
-                    <span>{safetyWarning}</span>
-                  </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {steps.map((step) => (
+              <div
+                key={step.title}
+                className="rounded-[22px] border border-white/10 bg-[#07120B]/85 p-5"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#9DFF16]/20 bg-[#9DFF16]/10 text-[#9DFF16]">
+                  <step.icon size={22} />
                 </div>
-              ) : (
-                <p className="mt-3 text-[12px] leading-5 text-white/45">
-                  AI Nutrition OS provides general wellness information only and
-                  is not a substitute for medical advice, diagnosis, treatment,
-                  emergency care, or professional dietary counselling.
-                </p>
-              )}
 
-              <div className="mt-3 flex flex-wrap gap-2">
-                {["Peanut Allergy", "No Red Meat"].map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/65"
-                  >
-                    {tag}
-                    <X className="h-3.5 w-3.5" />
-                  </span>
-                ))}
-              </div>
-            </GlassCard>
-
-            <GlassCard className="flex min-h-[104px] items-center gap-4 p-5 xl:p-6">
-              <Lightbulb className="h-8 w-8 shrink-0 text-[#9DFF16]" />
-
-              <div>
-                <h3 className="text-[17px] font-bold text-[#9DFF16]">
-                  Why we ask this?
-                </h3>
-
-                <p className="mt-2 text-sm leading-5 text-white/65">
-                  These details help our AI engine create a safe, effective and
-                  sustainable plan for your unique body.
+                <h4 className="text-[18px] font-black text-white">
+                  {step.title}
+                </h4>
+                <p className="mt-2 text-[14px] leading-6 text-white/60">
+                  {step.text}
                 </p>
               </div>
-            </GlassCard>
+            ))}
           </div>
 
-          <button
-            type="button"
-            onClick={handleContinueToOnboarding}
-            className="mt-5 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[#9DFF16] text-[15px] font-black text-black shadow-[0_0_28px_rgba(157,255,22,0.25)] transition hover:scale-[1.01]"
-          >
-            Continue to Dashboard Inputs
-          </button>
+          <div className="mt-6 rounded-[24px] border border-[#FFB347]/25 bg-[#2A1A05]/45 p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#FFB347]" />
+                <p className="text-[14px] font-semibold leading-7 text-white/72">
+                  AI Nutrition OS provides general wellness guidance only. It is
+                  not medical advice, diagnosis, treatment, emergency care, or
+                  professional dietary counselling.
+                </p>
+              </div>
+
+              <Link
+                to="/disclaimer"
+                className="inline-flex w-fit shrink-0 rounded-2xl border border-[#FFB347]/30 px-5 py-3 text-[13px] font-black text-[#FFB347]"
+              >
+                Read Disclaimer
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Link
+              to={ONBOARDING_LINK}
+              className="inline-flex min-h-[58px] items-center justify-center gap-3 rounded-2xl bg-[#9DFF16] px-8 py-4 text-[16px] font-black text-[#07110A] shadow-[0_0_34px_rgba(157,255,22,0.22)] transition hover:scale-[1.01]"
+            >
+              Start Dashboard Onboarding
+              <ArrowRight size={19} />
+            </Link>
+
+            <Link
+              to="/dashboard"
+              className="inline-flex min-h-[58px] items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-8 py-4 text-[16px] font-black text-white/85 transition hover:border-[#9DFF16]/35"
+            >
+              View Dashboard
+              <Sparkles size={19} />
+            </Link>
+          </div>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-[#9DFF16]/15 bg-[#9DFF16]/5 px-4 py-4">
+              <p className="text-[24px] font-black text-[#9DFF16]">1</p>
+              <p className="mt-1 text-[13px] font-semibold text-white/65">
+                Confirm profile
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-[#18D3D0]/15 bg-[#18D3D0]/5 px-4 py-4">
+              <p className="text-[24px] font-black text-[#18D3D0]">2</p>
+              <p className="mt-1 text-[13px] font-semibold text-white/65">
+                Generate plan
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-[#FFB347]/20 bg-[#2A1A05]/45 px-4 py-4">
+              <p className="text-[24px] font-black text-[#FFB347]">3</p>
+              <p className="mt-1 text-[13px] font-semibold text-white/65">
+                Unlock dashboard
+              </p>
+            </div>
+          </div>
         </GlassCard>
       </div>
     </section>

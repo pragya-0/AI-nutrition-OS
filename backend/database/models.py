@@ -46,17 +46,22 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     name = Column(String(120), nullable=True)
-
     email = Column(String(150), unique=True, nullable=True)
-
     phone_number = Column(String(30), nullable=True)
-
     city = Column(String(120), nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class ScanHistory(Base):
+    """
+    Scanner history uses the existing production-safe schema.
+
+    Full scanner response is stored inside macros_json to avoid breaking existing
+    Render/Postgres tables without a migration. The API serializer restores the
+    original frontend-friendly response shape from that JSON payload.
+    """
+
     __tablename__ = "scan_history"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -67,6 +72,7 @@ class ScanHistory(Base):
 
     calories = Column(Float, nullable=True)
 
+    # Stores protein/carbs/fats plus the full scanner payload as JSON text.
     macros_json = Column(Text, nullable=True)
 
     image_url = Column(Text, nullable=True)

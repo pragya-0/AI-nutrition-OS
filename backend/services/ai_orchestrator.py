@@ -1,7 +1,10 @@
 import os
+import re
+from typing import Any
 
 import requests
 from dotenv import load_dotenv
+
 load_dotenv()
 
 try:
@@ -21,6 +24,15 @@ MEDICAL_REFUSAL_MESSAGE = (
     "I cannot provide nutrition, workout, or wellness recommendations for this profile because a medical risk "
     "or restricted condition was detected. Please consult a qualified doctor, registered dietitian, or healthcare professional."
 )
+
+
+def _safe_text(value: Any) -> str:
+    text = str(value or "").strip()
+    text = text.replace("â€™", "'").replace("â", "'")
+    text = text.replace("â€“", "-").replace("â€”", "-")
+    text = text.replace("sautÃ©ed", "sautéed")
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 
 def call_openrouter(system_prompt: str, user_prompt: str, max_tokens: int = 180):
@@ -50,10 +62,10 @@ def call_openrouter(system_prompt: str, user_prompt: str, max_tokens: int = 180)
 
         response.raise_for_status()
         data = response.json()
+        return _safe_text(data["choices"][0]["message"]["content"])
 
-        return data["choices"][0]["message"]["content"].strip()
-
-    except Exception:
+    except Exception as error:
+        print("OPENROUTER COACH ERROR:", error)
         return None
 
 
@@ -80,30 +92,74 @@ def get_ai_block_message(user_data):
     return risk.get("block_reason") or MEDICAL_REFUSAL_MESSAGE
 
 
-def rule_based_coach(user_data):
+def _extract_plan_summary(plan_context: dict | None):
+    plan_context = plan_context or {}
+
+    targets = plan_context.get("targets") or {}
+    analytics = plan_context.get("analytics") or {}
+    meal_plan = plan_context.get("meal_plan") or {}
+    meal_quality = (
+        plan_context.get("meal_quality")
+        or analytics.get("meal_quality")
+        or analytics.get("plan_quality")
+        or {}
+    )
+
+    days = meal_plan.get("days") or []
+    first_day = days[0] if days else {}
+
+    return {
+        "calories": targets.get("calories"),
+        "protein": targets.get("protein"),
+        "carbs": targets.get("carbs"),
+        "fats": targets.get("fats"),
+        "meal_variety": meal_quality.get("meal_variety"),
+        "max_repeat": meal_quality.get("max_repeat"),
+        "consecutive_repeats": meal_quality.get("consecutive_repeats"),
+        "first_day_breakfast": first_day.get("breakfast"),
+        "first_day_lunch": first_day.get("lunch"),
+        "first_day_dinner": first_day.get("dinner"),
+        "plan_days": len(days),
+    }
+
+
+def rule_based_coach(user_data, plan_context: dict | None = None):
     if should_block_ai_generation(user_data):
         return None
 
     goal = str(getattr(user_data, "goal", "maintenance")).lower()
-    diet = str(getattr(user_data, "diet", "balanced")).lower()
+    diet = str(getattr(user_data, "diet", "balanced")).replace("_", " ")
+    name = str(getattr(user_data, "name", "") or "").strip()
+    summary = _extract_plan_summary(plan_context)
+
+    greeting = f"{name}, " if name else ""
+
+    calorie_text = ""
+    if summary.get("calories") and summary.get("protein"):
+        calorie_text = f"Your current target is about {summary['calories']} kcal with {summary['protein']}g protein. "
+
+    variety_text = ""
+    if summary.get("meal_variety") is not None:
+        variety_text = f"Your plan variety score is {summary['meal_variety']}/100. "
 
     if goal in ["fat_loss", "weight_loss"]:
-        return (
-            f"Focus on a controlled calorie deficit with high-protein {diet} meals, "
-            "daily walking, beginner strength training, hydration, and consistent sleep. "
-            f"{MEDICAL_DISCLAIMER}"
+        return _safe_text(
+            f"{greeting}{calorie_text}{variety_text}"
+            f"Use your {diet} plan as the anchor today: prioritize protein at breakfast, vegetables at lunch, "
+            "and a lighter dinner. Track one scan after your largest meal so the dashboard can learn your pattern."
         )
 
     if goal == "muscle_gain":
-        return (
-            f"Prioritize progressive strength training, protein-rich {diet} meals, "
-            "recovery, hydration, and consistent sleep. "
-            f"{MEDICAL_DISCLAIMER}"
+        return _safe_text(
+            f"{greeting}{calorie_text}{variety_text}"
+            f"Use your {diet} plan to spread protein across meals. Pair today’s workout with your highest-protein meal "
+            "and log progress so the next plan can adapt."
         )
 
-    return (
-        f"Maintain balanced {diet} meals, regular movement, hydration, sleep, "
-        f"and a stable daily routine. {MEDICAL_DISCLAIMER}"
+    return _safe_text(
+        f"{greeting}{calorie_text}{variety_text}"
+        f"Follow the first planned meals today and log one food scan. Consistency plus scan history will help AI Nutrition OS "
+        "find your real eating pattern."
     )
 
 
@@ -112,27 +168,40 @@ def rule_based_workout_tip(user_data):
         return None
 
     goal = str(getattr(user_data, "goal", "maintenance")).lower()
+    activity = str(getattr(user_data, "activity", "moderate")).lower()
+    fitness_level = str(getattr(user_data, "fitness_level", "beginner")).lower()
 
     if goal in ["fat_loss", "weight_loss"]:
-        return "6:00 PM - 30 minutes brisk walking + beginner strength training."
+        if activity == "low" or fitness_level == "beginner":
+            return "Start with 25-30 minutes of brisk walking plus 10 minutes of beginner strength work."
+        return "Do 30 minutes of cardio-strength training and keep intensity comfortable enough to stay consistent."
 
     if goal == "muscle_gain":
-        return "6:00 PM - Beginner full-body strength workout with warm-up and recovery."
+        if fitness_level == "advanced":
+            return "Focus on progressive strength training, controlled form, and enough recovery between hard sessions."
+        return "Do a beginner full-body strength session with warm-up, controlled reps, and recovery time."
 
-    return "6:00 PM - Moderate activity: walking, mobility, and light strength training."
+    return "Choose a sustainable movement block: walking, mobility, or light strength training for 25-35 minutes."
 
 
-def generate_ai_coach(user_data, groq_fallback=None):
+def generate_ai_coach(user_data, groq_fallback=None, plan_context: dict | None = None):
     """
+    Safe plan-aware AI coach.
+
     Priority:
     1. Medical safety gate
-    2. OpenRouter
+    2. OpenRouter plan-aware output
     3. Groq fallback
     4. Rule-based fallback
+
+    This accepts optional plan_context while remaining backward-compatible with
+    older calls that pass only user_data and groq_fallback.
     """
 
     if should_block_ai_generation(user_data):
         return None
+
+    summary = _extract_plan_summary(plan_context)
 
     system_prompt = (
         "You are a safe AI wellness coach for a public Indian nutrition platform. "
@@ -140,12 +209,13 @@ def generate_ai_coach(user_data, groq_fallback=None):
         "disease management, medication guidance, or emergency care. "
         "Never claim to treat, reverse, cure, diagnose, manage, or prevent disease. "
         "Avoid extreme dieting, fasting, or unsafe workout advice. "
-        "Keep the response concise and practical."
+        "Be specific, useful, and based on the provided plan context."
     )
 
     user_prompt = f"""
 Create a personalized general wellness coaching message.
 
+User:
 Name: {getattr(user_data, "name", "")}
 Age: {getattr(user_data, "age", "")}
 Gender: {getattr(user_data, "gender", "")}
@@ -153,18 +223,32 @@ Goal: {getattr(user_data, "goal", "")}
 Diet: {getattr(user_data, "diet", "")}
 Activity: {getattr(user_data, "activity", "")}
 Fitness level: {getattr(user_data, "fitness_level", "")}
-Medical conditions: {getattr(user_data, "medical_conditions", "")}
 Pregnancy status: {getattr(user_data, "pregnancy_status", "not_applicable")}
 
+Plan context:
+Calories: {summary.get("calories")}
+Protein: {summary.get("protein")}
+Carbs: {summary.get("carbs")}
+Fats: {summary.get("fats")}
+Plan days: {summary.get("plan_days")}
+Meal variety score: {summary.get("meal_variety")}
+Max meal repeat: {summary.get("max_repeat")}
+Consecutive repeats: {summary.get("consecutive_repeats")}
+First breakfast: {summary.get("first_day_breakfast")}
+First lunch: {summary.get("first_day_lunch")}
+First dinner: {summary.get("first_day_dinner")}
+
 Rules:
-- Under 80 words.
+- Under 85 words.
 - Indian food and lifestyle context.
+- Give one clear action for today.
+- Mention plan pattern only if useful.
 - General wellness only.
 - No diagnosis, treatment, disease support, medication advice, or medical claims.
 - Include no disease-specific guidance.
 """
 
-    openrouter_result = call_openrouter(system_prompt, user_prompt, max_tokens=180)
+    openrouter_result = call_openrouter(system_prompt, user_prompt, max_tokens=190)
     if openrouter_result:
         return openrouter_result
 
@@ -172,22 +256,14 @@ Rules:
         try:
             groq_result = groq_fallback(user_data)
             if groq_result:
-                return groq_result
+                return _safe_text(groq_result)
         except Exception:
             pass
 
-    return rule_based_coach(user_data)
+    return rule_based_coach(user_data, plan_context=plan_context)
 
 
 def generate_ai_workout_tip(user_data, groq_fallback=None):
-    """
-    Priority:
-    1. Medical safety gate
-    2. OpenRouter
-    3. Groq fallback
-    4. Rule-based fallback
-    """
-
     if should_block_ai_generation(user_data):
         return None
 
@@ -207,8 +283,6 @@ Goal: {getattr(user_data, "goal", "")}
 Activity: {getattr(user_data, "activity", "")}
 Fitness level: {getattr(user_data, "fitness_level", "")}
 Workout type: {getattr(user_data, "workout_type", "gym")}
-Medical conditions: {getattr(user_data, "medical_conditions", "")}
-Pregnancy status: {getattr(user_data, "pregnancy_status", "not_applicable")}
 
 Rules:
 - Under 25 words.
@@ -225,7 +299,7 @@ Rules:
         try:
             groq_result = groq_fallback(user_data)
             if groq_result:
-                return groq_result
+                return _safe_text(groq_result)
         except Exception:
             pass
 
@@ -233,17 +307,10 @@ Rules:
 
 
 def generate_health_insight(user_data, analytics=None, groq_fallback=None):
-    """
-    Optional wellness insight generator.
-    Priority:
-    1. Medical safety gate
-    2. OpenRouter
-    3. Groq fallback
-    4. Rule-based fallback
-    """
-
     if should_block_ai_generation(user_data):
         return None
+
+    analytics = analytics or {}
 
     system_prompt = (
         "You are a safe wellness insight assistant for a nutrition dashboard. "
@@ -260,14 +327,13 @@ Gender: {getattr(user_data, "gender", "")}
 Goal: {getattr(user_data, "goal", "")}
 Diet: {getattr(user_data, "diet", "")}
 Activity: {getattr(user_data, "activity", "")}
-Medical conditions: {getattr(user_data, "medical_conditions", "")}
 
 Analytics:
-{analytics or {}}
+{analytics}
 
 Rules:
 - Under 70 words.
-- Explain safely.
+- Explain one useful pattern or next action.
 - General wellness only.
 - No medical diagnosis, treatment, or disease claims.
 """
@@ -280,12 +346,18 @@ Rules:
         try:
             groq_result = groq_fallback(user_data)
             if groq_result:
-                return groq_result
+                return _safe_text(groq_result)
         except Exception:
             pass
 
+    variety = analytics.get("meal_variety") or analytics.get("meal_quality", {}).get("meal_variety")
+    if variety is not None:
+        return (
+            f"Your plan variety score is {variety}/100. Use the first week to follow the plan, then scan meals so "
+            "AI Nutrition OS can identify your real eating patterns and improve future recommendations."
+        )
+
     return (
-        "Your plan is personalized using your body profile, activity, hydration, sleep, "
-        "and nutrition goal. Focus on consistency, safe habits, and gradual progress. "
-        f"{MEDICAL_DISCLAIMER}"
+        "Your plan combines body profile, activity, sleep, hydration, and nutrition goals. "
+        "Log meals and scans consistently so future insights become more personalized."
     )
