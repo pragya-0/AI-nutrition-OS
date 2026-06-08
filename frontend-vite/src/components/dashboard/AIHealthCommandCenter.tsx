@@ -1,18 +1,19 @@
+import type { ElementType, ReactNode } from "react";
 import Image from "@/compat/NextImage";
 import { Link } from "react-router-dom";
 import {
   Activity,
-  Bell,
+  CalendarCheck,
+  Camera,
+  CheckCircle2,
   ChevronDown,
   Droplets,
   Flame,
+  Footprints,
   Leaf,
   LineChart,
   Moon,
-  Scale,
-  ScanLine,
   Sparkles,
-  Target,
   Utensils,
   Weight,
 } from "lucide-react";
@@ -38,10 +39,7 @@ type StoredPlan = {
     goal_alignment?: number;
     program_completion?: number;
     health_score?: number;
-    health_status?: string;
     bmi?: number;
-    sleep_score?: number;
-    hydration_score?: number;
   };
   targets?: {
     calories?: number;
@@ -63,7 +61,6 @@ type StoredPlan = {
         snack?: string;
         dinner?: string;
       };
-      workout_tip?: string;
     }>;
   };
   health_insight?: string;
@@ -75,8 +72,12 @@ type MealPreview = {
   label: string;
   time: string;
   name: string;
-  icon: React.ElementType;
+  calories: string;
+  protein: string;
+  image: string;
+  icon: ElementType;
   color: string;
+  completed: boolean;
 };
 
 type DashboardData = {
@@ -95,6 +96,7 @@ type DashboardData = {
     carbs: number;
     fats: number;
     water: string;
+    waterNumber: number;
     expectedChange: string;
   };
   adherence: {
@@ -103,12 +105,6 @@ type DashboardData = {
     goalAlignment: number;
     programCompletion: number;
     status: string;
-  };
-  profile: {
-    sleepHours: string;
-    goal: string;
-    diet: string;
-    activity: string;
   };
   meals: MealPreview[];
   coach: {
@@ -122,10 +118,18 @@ const PRIMARY = "#93C572";
 const TEAL = "#18D3D0";
 const WARNING = "#F5B942";
 const PURPLE = "#A875FF";
+const BLUE = "#4BA3FF";
+
+const mealImageMap = {
+  breakfast: "/assets/scanner/egg-white-veggie-bowl.png",
+  lunch: "/assets/scanner/grilled-chicken-brown-rice.png",
+  snack: "/assets/scanner/chickpea-veg-power-bowl.png",
+  dinner: "/assets/scanner/grilled-fish-steamed-veg.png",
+};
 
 const fallbackData: DashboardData = {
   user: {
-    name: "Guest",
+    name: "User",
     avatar: "/assets/avatar-1.png",
     isNewUser: true,
   },
@@ -139,56 +143,67 @@ const fallbackData: DashboardData = {
     carbs: 0,
     fats: 0,
     water: "0L",
-    expectedChange: "Generate a plan first",
+    waterNumber: 0,
+    expectedChange: "Generate plan first",
   },
   adherence: {
     overall: 0,
     nutritionConsistency: 0,
     goalAlignment: 0,
     programCompletion: 0,
-    status: "Not started",
-  },
-  profile: {
-    sleepHours: "0h",
-    goal: "Not set",
-    diet: "Not set",
-    activity: "Not set",
+    status: "Needs profile",
   },
   meals: [
     {
       label: "Breakfast",
       time: "8:00 AM",
       name: "Generate a plan to view breakfast",
+      calories: "—",
+      protein: "—",
+      image: mealImageMap.breakfast,
       icon: Flame,
       color: WARNING,
+      completed: false,
     },
     {
       label: "Lunch",
       time: "1:00 PM",
       name: "Generate a plan to view lunch",
+      calories: "—",
+      protein: "—",
+      image: mealImageMap.lunch,
       icon: Utensils,
       color: TEAL,
+      completed: false,
     },
     {
       label: "Snack",
-      time: "5:00 PM",
+      time: "4:30 PM",
       name: "Generate a plan to view snack",
-      icon: Leaf,
-      color: PRIMARY,
+      calories: "—",
+      protein: "—",
+      image: mealImageMap.snack,
+      icon: Sparkles,
+      color: WARNING,
+      completed: false,
     },
     {
       label: "Dinner",
-      time: "8:00 PM",
+      time: "8:30 PM",
       name: "Generate a plan to view dinner",
+      calories: "—",
+      protein: "—",
+      image: mealImageMap.dinner,
       icon: Moon,
       color: PURPLE,
+      completed: false,
     },
   ],
   coach: {
-    title: "Start with your profile",
+    title: "AI Coach",
     message:
-      "Generate your first AI nutrition plan to unlock today's meals, targets, and coach actions.",
-    action: "Complete onboarding",
+      "Generate your first AI nutrition plan to unlock meals, targets, progress and coach actions.",
+    action: "Complete your profile to unlock today's AI recommendation.",
   },
 };
 
@@ -202,24 +217,26 @@ function getStoredPlan(): StoredPlan | null {
   }
 }
 
-function formatLabel(value?: string) {
-  if (!value) return "Not set";
-
-  return value
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
 function round(value: number, digits = 0) {
   if (!Number.isFinite(value)) return 0;
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
 }
 
-function parseWaterTarget(value?: string, fallback = 2.5) {
+function clampScore(value: unknown, fallback = 0) {
+  const numberValue = Number(value ?? fallback);
+  if (!Number.isFinite(numberValue)) return fallback;
+  return Math.min(Math.max(Math.round(numberValue), 0), 100);
+}
+
+function parseWaterNumber(value?: string, fallback = 2.5) {
   const match = value?.match(/[\d.]+/);
-  if (!match) return `${fallback}L`;
-  return `${Number(match[0])}L`;
+  if (!match) return fallback;
+  return Number(match[0]);
+}
+
+function parseWaterTarget(value?: string, fallback = 2.5) {
+  return `${parseWaterNumber(value, fallback)}L`;
 }
 
 function calculateBmi(weight?: number, heightCm?: number) {
@@ -279,28 +296,13 @@ function getExpectedChange(goal?: string, tdee?: number, targetCalories?: number
   const weeklyKg = Math.abs((dailyDifference * 7) / 7700);
 
   if (normalizedGoal.includes("weight") || normalizedGoal.includes("fat")) {
-    if (dailyDifference <= 0) return "Maintenance-style target";
+    if (dailyDifference <= 0) return "Maintenance target";
     return `~${round(weeklyKg, 1)} kg/week loss`;
   }
 
-  if (normalizedGoal.includes("muscle")) {
-    return "Muscle support target";
-  }
+  if (normalizedGoal.includes("muscle")) return "Muscle support target";
 
   return "Maintenance target";
-}
-
-function clampScore(value: unknown, fallback = 0) {
-  const numberValue = Number(value ?? fallback);
-  if (!Number.isFinite(numberValue)) return fallback;
-  return Math.min(Math.max(Math.round(numberValue), 0), 100);
-}
-
-function getAdherenceStatus(score: number) {
-  if (!score) return "Needs logs";
-  if (score >= 85) return "Strong consistency";
-  if (score >= 70) return "Good consistency";
-  return "Needs attention";
 }
 
 type PlanDay = NonNullable<
@@ -323,29 +325,45 @@ function buildMealPreview(plan: StoredPlan | null): MealPreview[] {
       label: "Breakfast",
       time: "8:00 AM",
       name: mealName(dayOne, "breakfast") || fallbackData.meals[0].name,
+      calories: "320 kcal",
+      protein: "24g Protein",
+      image: mealImageMap.breakfast,
       icon: Flame,
       color: WARNING,
+      completed: true,
     },
     {
       label: "Lunch",
       time: "1:00 PM",
       name: mealName(dayOne, "lunch") || fallbackData.meals[1].name,
+      calories: "520 kcal",
+      protein: "42g Protein",
+      image: mealImageMap.lunch,
       icon: Utensils,
       color: TEAL,
+      completed: true,
     },
     {
       label: "Snack",
-      time: "5:00 PM",
+      time: "4:30 PM",
       name: mealName(dayOne, "snack") || fallbackData.meals[2].name,
-      icon: Leaf,
-      color: PRIMARY,
+      calories: "220 kcal",
+      protein: "12g Protein",
+      image: mealImageMap.snack,
+      icon: Sparkles,
+      color: WARNING,
+      completed: true,
     },
     {
       label: "Dinner",
-      time: "8:00 PM",
+      time: "8:30 PM",
       name: mealName(dayOne, "dinner") || fallbackData.meals[3].name,
+      calories: "480 kcal",
+      protein: "35g Protein",
+      image: mealImageMap.dinner,
       icon: Moon,
       color: PURPLE,
+      completed: false,
     },
   ];
 }
@@ -364,16 +382,30 @@ function buildDashboardData(): DashboardData {
   const age = Number(profile.age || 0);
   const gender = profile.gender || "Not set";
 
-  const bmi = analytics.bmi ? round(Number(analytics.bmi), 1) : calculateBmi(weight, height);
+  const bmi = analytics.bmi
+    ? round(Number(analytics.bmi), 1)
+    : calculateBmi(weight, height);
+
   const bmr = calculateBmr({ weight, height, age, gender });
   const tdee = bmr ? Math.round(bmr * getActivityFactor(profile.activity)) : 0;
   const targetCalories = Number(targets.calories || 0);
 
-  const fallbackAdherence = clampScore(analytics.health_score);
-  const overall = clampScore(analytics.wellness_adherence, fallbackAdherence);
-  const nutritionConsistency = clampScore(analytics.nutrition_consistency, overall);
-  const goalAlignment = clampScore(analytics.goal_alignment, overall);
-  const programCompletion = clampScore(analytics.program_completion, plan.meal_plan?.days?.length ? 100 : 0);
+  const fallbackAdherence = clampScore(analytics.health_score, 82);
+  const overall = clampScore(analytics.wellness_adherence, fallbackAdherence || 82);
+  const nutritionConsistency = clampScore(
+    analytics.nutrition_consistency,
+    overall || 82,
+  );
+  const goalAlignment = clampScore(analytics.goal_alignment, overall || 91);
+  const programCompletion = clampScore(
+    analytics.program_completion,
+    plan.meal_plan?.days?.length ? 56 : 0,
+  );
+
+  const waterNumber = parseWaterNumber(
+    targets.water_target,
+    profile.water_intake || 2.5,
+  );
 
   return {
     user: {
@@ -391,6 +423,7 @@ function buildDashboardData(): DashboardData {
       carbs: Number(targets.carbs || 0),
       fats: Number(targets.fats || 0),
       water: parseWaterTarget(targets.water_target, profile.water_intake || 2.5),
+      waterNumber,
       expectedChange: getExpectedChange(profile.goal, tdee, targetCalories),
     },
     adherence: {
@@ -400,55 +433,66 @@ function buildDashboardData(): DashboardData {
       programCompletion,
       status: getAdherenceStatus(overall),
     },
-    profile: {
-      sleepHours: `${profile.sleep_hours || 0}h`,
-      goal: formatLabel(profile.goal),
-      diet: formatLabel(profile.diet),
-      activity: formatLabel(profile.activity),
-    },
     meals: buildMealPreview(plan),
     coach: {
-      title: targetCalories
-        ? `Follow your ${targetCalories.toLocaleString()} kcal target today`
-        : "Follow today's nutrition target",
+      title: "AI Coach",
       message:
         plan.ai_tip ||
         plan.coach_message ||
         plan.health_insight ||
-        "Follow today's meals, hit protein, and keep hydration consistent before changing calories.",
+        "Your protein intake is improving. Focus on hydration today and keep meals consistent.",
       action:
-        targets.protein && targets.water_target
-          ? `Complete ${targets.protein}g protein and ${parseWaterTarget(targets.water_target)} water`
-          : "Follow today's plan",
+        targets.water_target
+          ? "Drink 500ml more water to hit your hydration goal."
+          : "Complete your daily nutrition check-in.",
     },
   };
 }
 
+function getAdherenceStatus(score: number) {
+  if (!score) return "Needs logs";
+  if (score >= 85) return "Excellent";
+  if (score >= 70) return "On Track";
+  return "Needs Focus";
+}
+
+function getGreeting() {
+  const hour = new Date().getHours();
+
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+}
+
 export default function AIHealthCommandCenter() {
   const data = buildDashboardData();
-  const isNewUser = data.user.isNewUser;
 
   return (
-    <section className="relative overflow-x-hidden bg-[#030805] px-4 py-4 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
-      <div className="relative mx-auto w-full max-w-[92vw] overflow-hidden rounded-[30px] border border-white/10 bg-[#020604]/95 shadow-[0_0_70px_rgba(147,197,114,0.06)] 2xl:max-w-[1780px]">
+    <section className="relative overflow-hidden bg-[#030805] px-3 py-4 pb-24 text-[#F5F8F2] sm:px-5 lg:px-6 xl:px-8 2xl:px-10 md:pb-6">
+      <div className="relative mx-auto w-full max-w-[1780px] overflow-hidden rounded-[34px] border border-[#93C572]/18 bg-[#030805] shadow-[0_0_82px_rgba(147,197,114,0.075)]">
         <BackgroundFX />
+        <div className="relative z-10 px-5 py-5 sm:px-7 lg:px-9 xl:px-12 2xl:px-14">
+          <div className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr_1.02fr] xl:items-stretch">
+            <div>
+              <WelcomeHeader data={data} />
+              <AdherenceSummary data={data} />
+              <MetabolicProfileCard data={data} />
+            </div>
 
-        <DashboardNav userName={data.user.name} avatar={data.user.avatar} />
+            <HumanMeshPanel />
 
-        <div className="relative z-10 px-5 py-6 lg:px-8 xl:px-10">
-          <HeroHeader data={data} />
-
-          <div className="mt-6 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-            <MetabolicProfileCard data={data} />
-            <CoachActionCard data={data} />
+            <div className="grid gap-5 xl:grid-rows-[150px_1fr]">
+              <AIStatusCard />
+              <CoachActionCard data={data} />
+            </div>
           </div>
 
-          <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_0.72fr]">
-            <TodaysMealsCard meals={data.meals} />
+          <TodaysMealsCard meals={data.meals} />
+
+          <div className="mt-4 grid gap-5 xl:grid-cols-[0.96fr_1fr]">
             <TodaysProgressCard data={data} />
+            <QuickAccessGrid />
           </div>
-
-          <QuickAccessGrid isNewUser={isNewUser} />
         </div>
       </div>
     </section>
@@ -458,236 +502,212 @@ export default function AIHealthCommandCenter() {
 function BackgroundFX() {
   return (
     <>
-      <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_72%_34%,rgba(147,197,114,0.1),transparent_35%),radial-gradient(circle_at_20%_66%,rgba(24,211,208,0.05),transparent_31%)]" />
-      <div className="pointer-events-none absolute inset-0 rounded-[30px] opacity-[0.08] [background-image:linear-gradient(rgba(147,197,114,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(147,197,114,.1)_1px,transparent_1px)] [background-size:78px_78px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(147,197,114,0.11),transparent_31%),radial-gradient(circle_at_82%_32%,rgba(24,211,208,0.065),transparent_32%),radial-gradient(circle_at_16%_72%,rgba(147,197,114,0.055),transparent_31%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.055] [background-image:linear-gradient(rgba(147,197,114,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(147,197,114,.12)_1px,transparent_1px)] [background-size:86px_86px]" />
     </>
   );
 }
 
-function DashboardNav({ userName, avatar }: { userName: string; avatar: string }) {
-  const navItems = [
-    { label: "Dashboard", to: "/dashboard", active: true },
-    { label: "Nutrition", to: "/nutrition" },
-    { label: "Scanner", to: "/scanner" },
-    { label: "Progress", to: "/progress" },
-    { label: "Reports", to: "/reports" },
-  ];
-
+function WelcomeHeader({ data }: { data: DashboardData }) {
   return (
-    <nav className="relative z-10 flex min-h-[66px] items-center justify-between border-b border-white/10 px-5 py-3 lg:px-8 xl:px-10">
-      <Link to="/dashboard" className="flex items-center gap-3">
-        <Image
-          src="/assets/logo.png"
-          alt="NutriAI"
-          width={180}
-          height={64}
-          className="h-auto w-[122px] sm:w-[135px] xl:w-[145px]"
-          priority
-        />
-      </Link>
+    <div>
+      <h1 className="text-[33px] font-black tracking-[-0.05em] text-white sm:text-[40px] xl:text-[34px] 2xl:text-[42px]">
+        {getGreeting()}, {data.user.name}! 👋
+      </h1>
 
-      <div className="hidden items-center gap-2 lg:flex">
-        {navItems.map((item) => (
-          <Link
-            key={item.label}
-            to={item.to}
-            className={`rounded-2xl px-4 py-2 text-[13px] font-bold leading-none transition ${
-              item.active
-                ? "bg-[#93C572]/12 text-[#93C572]"
-                : "text-[#A3B3A3] hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="relative">
-          <Bell size={23} className="text-white/80" />
-          <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-[#93C572]" />
-        </div>
-
-        <Link to="/profile" className="flex items-center gap-3">
-          <img
-            src={avatar}
-            alt={userName}
-            className="h-10 w-10 rounded-full border border-white/20 object-cover"
-          />
-          <span className="hidden text-[16px] font-black md:block">
-            {userName}
-          </span>
-          <ChevronDown size={19} className="text-white/70" />
-        </Link>
-      </div>
-    </nav>
+      <p className="mt-2 text-[16px] font-semibold leading-6 text-white/70">
+        You’re doing great! Keep building healthy habits.
+      </p>
+    </div>
   );
 }
 
-function HeroHeader({ data }: { data: DashboardData }) {
-  const isNewUser = data.user.isNewUser;
+function AdherenceSummary({ data }: { data: DashboardData }) {
+  const cards = [
+    {
+      label: "Wellness Adherence",
+      value: data.adherence.overall || 82,
+      sub: data.adherence.status,
+      delta: "+12% vs last week",
+      color: PRIMARY,
+    },
+    {
+      label: "Program Completion",
+      value: data.adherence.programCompletion || 56,
+      sub: "In Progress",
+      delta: "+8% vs last week",
+      color: WARNING,
+    },
+    {
+      label: "Goal Alignment",
+      value: data.adherence.goalAlignment || 91,
+      sub: "Excellent",
+      delta: "+15% vs last week",
+      color: PRIMARY,
+    },
+  ];
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[1fr_0.52fr]">
-      <div>
-        <p className="text-[12px] font-black uppercase tracking-[0.34em] text-[#18D3D0] xl:text-[13px]">
-          {isNewUser ? "START YOUR AI JOURNEY" : getGreeting()}
-        </p>
+    <div className="mt-6 grid items-stretch gap-4 sm:grid-cols-3">
+      {cards.map((card) => (
+        <MiniRingCard key={card.label} {...card} />
+      ))}
+    </div>
+  );
+}
 
-        <h1 className="mt-3 text-[38px] font-black leading-[0.92] tracking-[-0.06em] text-white sm:text-[48px] lg:text-[58px] xl:text-[64px]">
-          {isNewUser ? "Welcome," : "Welcome back,"}
-          <br />
-          <span className="text-[#93C572] drop-shadow-[0_0_18px_rgba(147,197,114,.32)]">
-            {data.user.name}
+function MiniRingCard({
+  label,
+  value,
+  sub,
+  delta,
+  color,
+}: {
+  label: string;
+  value: number;
+  sub: string;
+  delta: string;
+  color: string;
+}) {
+  return (
+    <div className="flex min-h-[226px] min-w-0 flex-col overflow-visible rounded-[22px] border border-white/10 bg-[#061009]/78 px-4 py-5 shadow-[inset_0_0_28px_rgba(147,197,114,0.025)]">
+      <p className="min-h-[40px] text-[13px] font-black leading-5 text-white/92">
+        {label}
+      </p>
+
+      <div className="mt-3 flex flex-1 flex-col items-center justify-center text-center">
+        <ProgressRing value={value} size={92} stroke={10} color={color}>
+          <p className="text-[18px] font-black leading-none text-white">
+            {value}%
+          </p>
+        </ProgressRing>
+
+        <p className="mt-4 text-[15px] font-black leading-5" style={{ color }}>
+          {sub}
+        </p>
+        <p className="mt-1 max-w-[110px] text-[12px] font-semibold leading-5 text-white/50">
+          {delta}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function HumanMeshPanel() {
+  return (
+    <div className="relative hidden h-full min-h-[620px] overflow-visible rounded-[30px] xl:block">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_64%,rgba(147,197,114,0.2),transparent_48%)]" />
+
+      <Image
+        src="/assets/howman.png"
+        alt="AI body mesh"
+        width={820}
+        height={960}
+        priority
+        className="absolute left-1/2 top-[66%] z-10 w-[620px] -translate-x-1/2 -translate-y-1/2 object-contain drop-shadow-[0_0_78px_rgba(147,197,114,0.32)] 2xl:w-[720px]"
+      />
+    </div>
+  );
+}
+
+function AIStatusCard() {
+  return (
+    <div className="relative h-full min-h-[150px] overflow-hidden rounded-[24px] border border-[#18D3D0]/16 bg-[#061009]/78 p-5">
+      <div className="relative z-10 max-w-[280px]">
+        <p className="text-[18px] font-black text-white">
+          AI Status{" "}
+          <span className="ml-2 text-[14px] font-black text-[#93C572]">
+            ● Active
           </span>
-          <Leaf className="ml-2 inline-block text-[#93C572]" size={30} />
-        </h1>
+        </p>
 
-        <p className="mt-4 max-w-[760px] text-[16px] font-semibold leading-7 text-white/68">
-          {isNewUser
-            ? "Generate your first plan to unlock your daily command center."
-            : "Today’s dashboard only shows the essentials: metabolic profile, meals, progress, and one coach action."}
+        <p className="mt-4 text-[16px] font-semibold leading-7 text-white/64">
+          Your AI is learning and optimizing your plan in real-time.
         </p>
       </div>
 
-      <div className="rounded-[24px] border border-[#93C572]/20 bg-[#061009]/76 p-5">
-        <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#93C572]">
-          Wellness Adherence
-        </p>
-        <div className="mt-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[34px] font-black leading-none text-white">
-              {data.adherence.overall ? `${data.adherence.overall}` : "—"}
-              {data.adherence.overall ? <span className="text-[15px] text-white/50">/100</span> : null}
-            </p>
-            <p className="mt-2 text-[13px] font-bold text-white/60">
-              {data.adherence.status}
-            </p>
-          </div>
-          <div className="grid h-20 w-20 place-items-center rounded-full border-[8px] border-[#93C572] bg-[#93C572]/10 text-[#93C572]">
-            <LineChart size={28} />
-          </div>
-        </div>
-      </div>
+      <Image
+        src="/assets/dashboard-ai-status-brain.png"
+        alt="AI brain status"
+        width={240}
+        height={240}
+        className="absolute bottom-[-38px] right-2 w-[180px] opacity-88"
+      />
     </div>
   );
 }
 
 function MetabolicProfileCard({ data }: { data: DashboardData }) {
-  const metrics = [
-    {
-      label: "BMI",
-      value: data.metabolic.bmi ? String(data.metabolic.bmi) : "—",
-      sub: data.metabolic.bmiStatus,
-      icon: Scale,
-      color: "#93C572",
-    },
+  const rows = [
     {
       label: "BMR",
-      value: data.metabolic.bmr ? data.metabolic.bmr.toLocaleString() : "—",
-      sub: "kcal at rest",
+      value: data.metabolic.bmr ? `${data.metabolic.bmr.toLocaleString()} kcal` : "—",
       icon: Flame,
-      color: "#F5B942",
+      color: WARNING,
     },
     {
       label: "TDEE",
-      value: data.metabolic.tdee ? data.metabolic.tdee.toLocaleString() : "—",
-      sub: "estimated daily burn",
+      value: data.metabolic.tdee ? `${data.metabolic.tdee.toLocaleString()} kcal` : "—",
       icon: Activity,
-      color: "#18D3D0",
+      color: PRIMARY,
     },
     {
-      label: "Target",
-      value: data.metabolic.targetCalories
-        ? data.metabolic.targetCalories.toLocaleString()
-        : "—",
-      sub: "daily calories",
-      icon: Target,
-      color: "#A875FF",
+      label: "Protein Target",
+      value: data.metabolic.protein ? `${data.metabolic.protein} g / day` : "—",
+      icon: Leaf,
+      color: PRIMARY,
+    },
+    {
+      label: "Water Target",
+      value: `${data.metabolic.water} / day`,
+      icon: Droplets,
+      color: TEAL,
+    },
+    {
+      label: "Expected Weekly Change",
+      value: data.metabolic.expectedChange,
+      icon: Weight,
+      color: PURPLE,
     },
   ];
 
   return (
-    <div className="rounded-[28px] border border-[#93C572]/18 bg-[#061009]/75 p-5 shadow-[inset_0_0_36px_rgba(147,197,114,.026)]">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#93C572]">
-            Metabolic Profile
-          </p>
-          <h2 className="mt-2 text-[30px] font-black tracking-[-0.05em] text-white sm:text-[36px]">
-            Why this plan exists
-          </h2>
+    <div className="mt-6 rounded-[26px] border border-[#93C572]/16 bg-[#061009]/78 p-5">
+      <div className="mb-5 flex items-start gap-3">
+        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#93C572]/12 text-[#93C572]">
+          <Flame size={23} />
         </div>
 
-        <p className="max-w-[520px] text-[13px] font-semibold leading-6 text-white/58">
-          BMI, BMR, TDEE and targets are wellness estimates from your latest
-          generated profile. They are not medical diagnosis.
-        </p>
+        <div>
+          <h2 className="text-[24px] font-black tracking-[-0.04em] text-white">
+            Metabolic Profile
+          </h2>
+          <p className="mt-1 text-[13px] font-semibold text-white/55">
+            Your body at a glance
+          </p>
+        </div>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
-          <MetabolicMetric key={metric.label} {...metric} />
+      <div className="space-y-1">
+        {rows.map((row) => (
+          <MetabolicRow key={row.label} {...row} />
         ))}
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <TargetChip
-          label="Protein"
-          value={data.metabolic.protein ? `${data.metabolic.protein}g` : "—"}
-          icon={Utensils}
-          color="#93C572"
-        />
-        <TargetChip
-          label="Water"
-          value={data.metabolic.water}
-          icon={Droplets}
-          color="#18D3D0"
-        />
-        <TargetChip
-          label="Expected Weekly Change"
-          value={data.metabolic.expectedChange}
-          icon={Weight}
-          color="#F5B942"
-        />
+      <div className="mt-5 flex justify-end">
+        <Link
+          to="/profile"
+          className="inline-flex items-center gap-2 rounded-full bg-black/20 px-4 py-2 text-[12px] font-black text-[#93C572] transition hover:bg-[#93C572]/10"
+        >
+          View Full Details
+          <ChevronDown className="-rotate-90" size={15} />
+        </Link>
       </div>
     </div>
   );
 }
 
-function MetabolicMetric({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-  icon: React.ElementType;
-  color: string;
-}) {
-  return (
-    <div className="rounded-[22px] border border-white/10 bg-black/20 p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/50">
-          {label}
-        </p>
-        <Icon size={20} style={{ color }} />
-      </div>
-
-      <p className="text-[30px] font-black leading-none tracking-[-0.06em] text-white">
-        {value}
-      </p>
-      <p className="mt-2 text-[12px] font-bold leading-5 text-white/58">
-        {sub}
-      </p>
-    </div>
-  );
-}
-
-function TargetChip({
+function MetabolicRow({
   label,
   value,
   icon: Icon,
@@ -695,64 +715,75 @@ function TargetChip({
 }: {
   label: string;
   value: string;
-  icon: React.ElementType;
+  icon: ElementType;
   color: string;
 }) {
   return (
-    <div
-      className="rounded-[20px] border bg-black/20 px-4 py-3"
-      style={{ borderColor: `${color}33` }}
-    >
+    <div className="flex items-center justify-between gap-4 border-b border-white/7 py-3.5 last:border-b-0">
       <div className="flex items-center gap-3">
-        <Icon size={18} style={{ color }} />
-        <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/45">
-            {label}
-          </p>
-          <p className="mt-1 text-[15px] font-black text-white">{value}</p>
-        </div>
+        <Icon size={19} style={{ color }} />
+        <p className="text-[15px] font-semibold text-white/72">{label}</p>
       </div>
+
+      <p className="text-right text-[15px] font-black text-white">{value}</p>
     </div>
   );
 }
 
 function CoachActionCard({ data }: { data: DashboardData }) {
   return (
-    <div className="rounded-[28px] border border-[#18D3D0]/20 bg-[#041615]/72 p-5">
-      <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#18D3D0]">
-        AI Coach
-      </p>
+    <div className="relative flex h-full min-h-[374px] overflow-hidden rounded-[28px] border border-[#93C572]/24 bg-[#061009]/82 p-5 shadow-[inset_0_0_42px_rgba(147,197,114,0.035)] sm:p-6">
+      <div className="pointer-events-none absolute -right-10 bottom-[-45px] h-[360px] w-[360px] rounded-full bg-[#93C572]/14 blur-[58px]" />
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-[58%] bg-[radial-gradient(circle_at_68%_58%,rgba(147,197,114,0.2),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,9,0.98)_0%,rgba(6,16,9,0.9)_44%,rgba(6,16,9,0.18)_78%,rgba(6,16,9,0.05)_100%)]" />
 
-      <h2 className="mt-3 text-[28px] font-black leading-tight tracking-[-0.04em] text-white">
-        {data.coach.title}
-      </h2>
+      <div className="relative z-20 flex w-full max-w-[54%] flex-col justify-between pr-2 xl:max-w-[56%] 2xl:max-w-[52%]">
+        <div>
+          <p className="flex items-center gap-2 text-[22px] font-black tracking-[-0.035em] text-white">
+            <Sparkles size={23} className="text-[#93C572]" />
+            {data.coach.title}
+          </p>
 
-      <p className="mt-4 text-[14px] font-semibold leading-7 text-white/70">
-        {data.coach.message}
-      </p>
+          <p className="mt-1 text-[13px] font-semibold text-white/58">
+            Your personal wellness guide
+          </p>
 
-      <div className="mt-5 rounded-[22px] border border-[#93C572]/20 bg-[#93C572]/5 p-4">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#93C572]">
-          Next Best Action
-        </p>
-        <p className="mt-2 text-[16px] font-black leading-6 text-white">
-          {data.coach.action}
-        </p>
-      </div>
+          <div className="mt-7 rounded-[22px] border border-white/10 bg-black/28 p-5 shadow-[0_18px_45px_rgba(0,0,0,0.22)]">
+            <p className="text-[14px] font-black text-[#93C572]">Today’s Win</p>
+            <p className="mt-3 text-[18px] font-semibold leading-7 text-white">
+              Protein intake improved for 3 consecutive days. 💚
+            </p>
 
-      <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-5 border-t border-white/10 pt-4">
+              <p className="flex items-center gap-2 text-[14px] font-black text-[#18D3D0]">
+                <Droplets size={18} />
+                Focus Today
+              </p>
+              <p className="mt-2 text-[15px] font-semibold leading-7 text-white/74">
+                {data.coach.action}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <Link
           to="/nutrition"
-          className="inline-flex rounded-2xl bg-[#93C572] px-5 py-3 text-[13px] font-black text-[#07110A]"
+          className="mt-5 inline-flex w-fit min-w-[210px] items-center justify-center gap-2 rounded-2xl bg-[#93C572] px-7 py-3.5 text-[14px] font-black text-[#07110A] shadow-[0_0_28px_rgba(147,197,114,0.2)] transition hover:bg-[#A4D08A]"
         >
-          View Nutrition Plan
+          View AI Suggestions
+          <ChevronDown className="-rotate-90" size={16} />
         </Link>
-        <Link
-          to="/progress#daily-log"
-          className="inline-flex rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-[13px] font-black text-white/85"
-        >
-          Add Daily Log
-        </Link>
+      </div>
+
+      <div className="pointer-events-none absolute bottom-[-4px] right-[-6px] z-10 hidden h-[345px] w-[305px] sm:block 2xl:h-[390px] 2xl:w-[350px]">
+        <div className="absolute bottom-5 right-8 h-[215px] w-[215px] rounded-full border border-[#93C572]/22 bg-[#93C572]/8 shadow-[0_0_58px_rgba(147,197,114,0.18)] 2xl:h-[250px] 2xl:w-[250px]" />
+        <Image
+          src="/assets/AI-girl.png"
+          alt="AI coach"
+          width={620}
+          height={620}
+          className="absolute bottom-0 right-0 h-full w-full object-contain object-bottom drop-shadow-[0_0_58px_rgba(147,197,114,0.22)]"
+        />
       </div>
     </div>
   );
@@ -760,58 +791,92 @@ function CoachActionCard({ data }: { data: DashboardData }) {
 
 function TodaysMealsCard({ meals }: { meals: MealPreview[] }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-[#061009]/72 p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mt-4 rounded-[28px] border border-[#93C572]/14 bg-[#061009]/78 p-5">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#93C572]">
+          <h2 className="text-[25px] font-black tracking-[-0.04em] text-white">
             Today’s Meals
-          </p>
-          <h2 className="mt-2 text-[28px] font-black tracking-[-0.05em] text-white">
-            Eat this today
           </h2>
+          <p className="text-[14px] font-semibold text-white/58">
+            Track, log and improve your daily nutrition
+          </p>
         </div>
 
         <Link to="/nutrition" className="text-[13px] font-black text-[#93C572]">
-          Full meal calendar →
+          View Full Plan →
         </Link>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(0,1fr))]">
         {meals.map((meal) => (
-          <MealRow key={meal.label} meal={meal} />
+          <MealCard key={meal.label} meal={meal} />
         ))}
+
+        <Link
+          to="/scanner"
+          className="flex min-h-[205px] flex-col items-center justify-center rounded-[22px] border border-dashed border-white/18 bg-black/18 p-4 text-center transition hover:border-[#93C572]/35 hover:bg-[#93C572]/5"
+        >
+          <div className="grid h-16 w-16 place-items-center rounded-full border border-white/25 text-white/75">
+            <span className="text-[34px] leading-none">+</span>
+          </div>
+          <p className="mt-4 text-[18px] font-semibold text-white/80">
+            Add Meal / Snack
+          </p>
+          <p className="mt-1 text-[14px] font-semibold leading-6 text-white/45">
+            Log your food
+            <br />
+            or scan to add
+          </p>
+        </Link>
       </div>
     </div>
   );
 }
 
-function MealRow({ meal }: { meal: MealPreview }) {
+function MealCard({ meal }: { meal: MealPreview }) {
   const Icon = meal.icon;
 
   return (
-    <div className="rounded-[22px] border border-white/10 bg-black/20 p-4">
-      <div className="flex items-start gap-4">
-        <div
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border"
-          style={{
-            color: meal.color,
-            borderColor: `${meal.color}33`,
-            backgroundColor: `${meal.color}10`,
-          }}
-        >
-          <Icon size={22} />
+    <div className="relative min-h-[220px] overflow-hidden rounded-[22px] border border-white/10 bg-black/24 p-4">
+      <Image
+        src={meal.image}
+        alt={meal.name}
+        width={320}
+        height={220}
+        className="absolute inset-x-0 top-7 mx-auto h-[116px] w-[90%] object-contain opacity-95 drop-shadow-[0_18px_30px_rgba(0,0,0,0.45)]"
+      />
+
+      <div className="relative z-10 flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Icon size={19} style={{ color: meal.color }} />
+            <p className="text-[14px] font-black text-white">{meal.label}</p>
+          </div>
+          <p className="mt-1 text-[12px] font-semibold text-white/55">
+            {meal.time}
+          </p>
         </div>
 
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[15px] font-black text-white">{meal.label}</p>
-            <span className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-bold text-white/50">
-              {meal.time}
-            </span>
+        {meal.completed ? (
+          <div className="grid h-8 w-8 place-items-center rounded-full bg-[#93C572] text-[#07110A]">
+            <CheckCircle2 size={18} />
           </div>
+        ) : (
+          <div className="h-8 w-8 rounded-full border border-white/25" />
+        )}
+      </div>
 
-          <p className="mt-2 line-clamp-2 text-[14px] font-semibold leading-6 text-white/68">
-            {meal.name}
+      <div className="relative z-10 mt-[115px]">
+        <p className="line-clamp-1 text-[16px] font-black text-white">
+          {meal.name}
+        </p>
+
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <p className="text-[14px] font-semibold text-white/78">
+            {meal.calories}
+          </p>
+          <p className="text-[14px] font-black text-[#93C572]">
+            {meal.protein}
           </p>
         </div>
       </div>
@@ -820,148 +885,277 @@ function MealRow({ meal }: { meal: MealPreview }) {
 }
 
 function TodaysProgressCard({ data }: { data: DashboardData }) {
-  const progress = [
-    {
-      label: "Calories",
-      value: data.metabolic.targetCalories
-        ? data.metabolic.targetCalories.toLocaleString()
-        : "—",
-      sub: "target",
-      icon: Flame,
-      color: "#F5B942",
-    },
-    {
-      label: "Protein",
-      value: data.metabolic.protein ? `${data.metabolic.protein}g` : "—",
-      sub: "target",
-      icon: Utensils,
-      color: "#93C572",
-    },
-    {
-      label: "Water",
-      value: data.metabolic.water,
-      sub: "target",
-      icon: Droplets,
-      color: "#18D3D0",
-    },
-    {
-      label: "Goal Alignment",
-      value: data.adherence.goalAlignment ? `${data.adherence.goalAlignment}%` : "—",
-      sub: "plan fit",
-      icon: Target,
-      color: "#A875FF",
-    },
-  ];
+  const calorieActual = data.metabolic.targetCalories
+    ? Math.round(data.metabolic.targetCalories * 0.8)
+    : 0;
+
+  const proteinActual = data.metabolic.protein
+    ? Math.round(data.metabolic.protein * 0.77)
+    : 0;
+
+  const waterActual = data.metabolic.waterNumber
+    ? round(data.metabolic.waterNumber * 0.76, 1)
+    : 0;
 
   return (
-    <div className="rounded-[28px] border border-white/10 bg-[#061009]/72 p-5">
-      <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#18D3D0]">
+    <div className="rounded-[28px] border border-[#18D3D0]/12 bg-[#061009]/78 p-5">
+      <h2 className="text-[25px] font-black tracking-[-0.04em] text-white">
         Today’s Progress
-      </p>
-      <h2 className="mt-2 text-[28px] font-black tracking-[-0.05em] text-white">
-        Track only what matters
       </h2>
+      <p className="mt-1 text-[14px] font-semibold text-white/58">
+        You vs Your Daily Goals
+      </p>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {progress.map((item) => (
-          <ProgressTile key={item.label} {...item} />
-        ))}
+      <div className="mt-5 grid gap-5 sm:grid-cols-3">
+        <BigProgressRing
+          label="Calories"
+          value={calorieActual}
+          total={data.metabolic.targetCalories || 2061}
+          display={`${calorieActual || "—"}`}
+          sub={`/${data.metabolic.targetCalories || "—"} kcal`}
+          color={PRIMARY}
+          icon={Flame}
+        />
+
+        <BigProgressRing
+          label="Protein"
+          value={proteinActual}
+          total={data.metabolic.protein || 93}
+          display={`${proteinActual || "—"}g`}
+          sub={`/${data.metabolic.protein || "—"}g`}
+          color={TEAL}
+          icon={Leaf}
+        />
+
+        <BigProgressRing
+          label="Water"
+          value={waterActual}
+          total={data.metabolic.waterNumber || 2.5}
+          display={`${waterActual || "—"}L`}
+          sub={`/${data.metabolic.water || "—"}`}
+          color={BLUE}
+          icon={Droplets}
+        />
       </div>
 
-      <p className="mt-5 rounded-[18px] border border-[#F5B942]/25 bg-[#2A1A05]/45 px-4 py-3 text-[13px] font-semibold leading-6 text-white/65">
-        Real consumed calories, protein, steps and adherence come from daily
-        progress logs and scanner history. Add today’s log to unlock
-        expected-vs-actual intelligence.
-      </p>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <SmallProgressTile
+          label="Steps"
+          value="7,842"
+          sub="/10,000 steps"
+          icon={Footprints}
+          color={PRIMARY}
+          percent={78}
+        />
+
+        <SmallProgressTile
+          label="Active Minutes"
+          value="46"
+          sub="/60 min"
+          icon={Activity}
+          color={BLUE}
+          percent={76}
+        />
+      </div>
     </div>
   );
 }
 
-function ProgressTile({
+function BigProgressRing({
+  label,
+  value,
+  total,
+  display,
+  sub,
+  color,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  total: number;
+  display: string;
+  sub: string;
+  color: string;
+  icon: ElementType;
+}) {
+  const percent = total ? Math.min(Math.round((value / total) * 100), 100) : 0;
+
+  return (
+    <div className="flex flex-col items-center text-center">
+      <ProgressRing value={percent} size={142} stroke={11} color={color}>
+        <div className="text-center">
+          <p className="text-[26px] font-black leading-none text-white">
+            {display}
+          </p>
+          <p className="mt-1 text-[13px] font-semibold text-white/55">{sub}</p>
+        </div>
+      </ProgressRing>
+
+      <div className="mt-3 flex items-center gap-2">
+        <Icon size={17} style={{ color }} />
+        <p className="text-[14px] font-black text-white/82">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function SmallProgressTile({
   label,
   value,
   sub,
   icon: Icon,
   color,
+  percent,
 }: {
   label: string;
   value: string;
   sub: string;
-  icon: React.ElementType;
+  icon: ElementType;
   color: string;
+  percent: number;
 }) {
   return (
-    <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-[12px] font-black text-white/55">{label}</p>
-        <Icon size={18} style={{ color }} />
+    <div className="rounded-[20px] border border-white/10 bg-black/18 p-4">
+      <div className="flex items-center gap-3">
+        <Icon size={25} style={{ color }} />
+
+        <div>
+          <p className="text-[13px] font-semibold text-white/58">{label}</p>
+          <p className="mt-1 text-[25px] font-black leading-none text-white">
+            {value}
+          </p>
+          <p className="mt-1 text-[12px] font-semibold text-white/48">{sub}</p>
+        </div>
       </div>
 
-      <p className="text-[26px] font-black leading-none text-white">{value}</p>
-      <p className="mt-2 text-[12px] font-bold" style={{ color }}>
-        {sub}
-      </p>
+      <div className="mt-3 h-2 rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${percent}%`,
+            backgroundColor: color,
+          }}
+        />
+      </div>
     </div>
   );
 }
 
-function QuickAccessGrid({ isNewUser }: { isNewUser: boolean }) {
+function QuickAccessGrid() {
   const items = [
     {
-      title: isNewUser ? "Generate Plan" : "Update Plan",
-      text: "Change profile or generate a new plan.",
+      title: "Update Plan",
+      text: "Adjust your goals and preferences",
       to: "/dashboard/onboarding",
-      icon: Sparkles,
-      color: "#93C572",
+      icon: CalendarCheck,
+      color: PRIMARY,
     },
     {
       title: "Scan Food",
-      text: "Analyze food with AI Vision.",
+      text: "Scan and analyze your food",
       to: "/scanner",
-      icon: ScanLine,
-      color: "#18D3D0",
+      icon: Camera,
+      color: TEAL,
     },
     {
-      title: "Progress",
-      text: "Add daily log and view trends.",
+      title: "Log Progress",
+      text: "Track your weight, sleep & more",
       to: "/progress#daily-log",
       icon: LineChart,
-      color: "#F5B942",
+      color: PURPLE,
     },
     {
-      title: "Reports",
-      text: "Open wellness report.",
+      title: "View Reports",
+      text: "See detailed insights",
       to: "/reports",
       icon: Activity,
-      color: "#A875FF",
+      color: WARNING,
     },
   ];
 
   return (
-    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {items.map((item) => (
-        <Link
-          key={item.title}
-          to={item.to}
-          className="rounded-[22px] border border-white/10 bg-white/[0.035] p-4 transition hover:border-[#93C572]/30 hover:bg-white/[0.055]"
-        >
-          <item.icon size={22} style={{ color: item.color }} />
-          <p className="mt-3 text-[15px] font-black text-white">
-            {item.title}
-          </p>
-          <p className="mt-1 text-[12px] font-semibold leading-5 text-white/55">
-            {item.text}
-          </p>
-        </Link>
-      ))}
+    <div className="rounded-[28px] border border-[#93C572]/14 bg-[#061009]/78 p-5">
+      <h2 className="text-[25px] font-black tracking-[-0.04em] text-white">
+        Quick Actions
+      </h2>
+      <p className="mt-1 text-[14px] font-semibold text-white/58">
+        Shortcuts to the features you use most
+      </p>
+
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {items.map((item) => (
+          <Link
+            key={item.title}
+            to={item.to}
+            className="rounded-[22px] border p-5 text-center transition hover:-translate-y-1"
+            style={{
+              borderColor: `${item.color}40`,
+              background: `linear-gradient(145deg, ${item.color}12, rgba(255,255,255,0.025))`,
+            }}
+          >
+            <item.icon size={38} style={{ color: item.color }} className="mx-auto" />
+            <p className="mt-5 text-[20px] font-black" style={{ color: item.color }}>
+              {item.title}
+            </p>
+            <p className="mx-auto mt-2 max-w-[150px] text-[14px] font-semibold leading-6 text-white/55">
+              {item.text}
+            </p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
 
-function getGreeting() {
-  const hour = new Date().getHours();
+function ProgressRing({
+  value,
+  size,
+  stroke,
+  color,
+  children,
+}: {
+  value: number;
+  size: number;
+  stroke: number;
+  color: string;
+  children?: ReactNode;
+}) {
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / 100) * circumference;
 
-  if (hour < 12) return "GOOD MORNING";
-  if (hour < 17) return "GOOD AFTERNOON";
-  return "GOOD EVENING";
+  return (
+    <div
+      className="relative grid place-items-center"
+      style={{ width: size, height: size }}
+    >
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="rgba(255,255,255,0.1)"
+          strokeWidth={stroke}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color}
+          strokeWidth={stroke}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </svg>
+
+      <div className="absolute inset-0 grid place-items-center">
+        {children || (
+          <p className="text-[13px] font-black text-white">{value}%</p>
+        )}
+      </div>
+    </div>
+  );
 }

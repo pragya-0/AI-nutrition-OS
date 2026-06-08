@@ -1,1794 +1,1318 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import type { ElementType } from "react";
+import {  useNavigate } from "react-router-dom";
 import {
   Activity,
-  AlertTriangle,
-  CircleHelp,
-  Clock3,
+  ArrowRight,
+  Brain,
+  Check,
+  CheckCircle2,
+  ChevronDown,
   Droplets,
   Dumbbell,
-  Edit3,
-  HeartPulse,
+  Flame,
+  Heart,
   Leaf,
-  MapPin,
-  Moon,
+  Lock,
   Save,
-  ScanLine,
   ShieldCheck,
   Sparkles,
   Target,
   User,
   Utensils,
-  Venus,
   Weight,
-  X,
 } from "lucide-react";
+
 import { generatePlan, type GeneratePlanPayload } from "@/services/api";
 
-type CardKey = "body" | "lifestyle" | "nutrition" | "health";
+type StepKey = "body" | "lifestyle" | "nutrition" | "goals" | "health";
 
-type ProfileData = {
-  user: { name: string; isNewUser: boolean };
-  body: {
-    height: string;
-    weight: string;
-    age: string;
-    gender: string;
-    updatedAt: string;
-  };
-  lifestyle: {
-    sleepTime: string;
-    wakeTime: string;
-    waterIntake: string;
-    fitnessLevel: string;
-    updatedAt: string;
-  };
-  nutrition: {
-    primaryGoal: string;
-    dietPreference: string;
-    preferredCuisine: string;
-    activityLevel: string;
-    updatedAt: string;
-  };
-  health: {
-    medicalConditions: string;
-    bloodGroup: string;
-    pregnancyStatus: string;
-    smokerAlcohol: string;
-    updatedAt: string;
-  };
-  missing: { city: string; medical: string; bloodGroup: string };
+type FormState = {
+  name: string;
+  age: string;
+  gender: string;
+  height: string;
+  weight: string;
+  city: string;
+  activity: string;
+  workType: string;
+  sleepHours: string;
+  stress: string;
+  waterIntake: string;
+  sleepTime: string;
+  wakeTime: string;
+  diet: string;
+  foodPreference: string;
+  allergies: string;
+  mealsPerDay: string;
+  preferredCuisine: string;
+  dislikedFoods: string;
+  goal: string;
+  targetWeight: string;
+  timeline: string;
+  focusArea: string;
+  fitnessLevel: string;
+  workoutType: string;
+  bloodGroup: string;
+  medicalConditions: string;
+  pregnancyStatus: string;
+  smokerAlcohol: string;
 };
 
-
-type MealQuality = {
-  requested_days?: number;
-  generated_days?: number;
-  production_ready_meal_quality?: boolean;
-  nutritionist_quality_score?: number;
-  family_variety_score?: number;
-  alternative_variety_score?: number;
+type FieldConfig = {
+  key: keyof FormState;
+  label: string;
+  suffix?: string;
+  type?: "text" | "number" | "select";
+  options?: string[];
+  placeholder?: string;
 };
 
-type StoredGeneratedPlan = {
-  success?: boolean;
-  user_profile?: {
-    name?: string;
-    city?: string;
-    blood_group?: string;
-    weight?: number;
-    height?: number;
-    age?: number;
-    gender?: string;
-    goal?: string;
-    diet?: string;
-    activity?: string;
-    days?: number;
-    sleep_time?: string;
-    wake_time?: string;
-    sleep_hours?: number;
-    water_intake?: number;
-    fitness_level?: string;
-    preferred_cuisine?: string;
-    medical_conditions?: string | string[];
-    pregnancy_status?: string;
-    smoker_alcohol?: string;
-  };
+type StepConfig = {
+  key: StepKey;
+  number: string;
+  title: string;
+  subtitle: string;
+  icon: ElementType;
+  color: string;
+  fields: FieldConfig[];
 };
 
-type StoredAssessmentProfile = GeneratePlanPayload & {
-  name?: string;
-  city?: string;
-  blood_group?: string;
-  smoker_alcohol?: string;
+type PreviewTarget = {
+  label: string;
+  value: string;
+  sub: string;
+  icon: ElementType;
+  color: string;
 };
 
-const planDurations = [1, 7, 15, 30];
+const PRIMARY = "#93C572";
+const TEAL = "#18D3D0";
+const WARNING = "#F5B942";
+const PURPLE = "#A875FF";
+const BLUE = "#4BA3FF";
 
-const today = () =>
-  new Date().toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+const defaultForm: FormState = {
+  name: "Pragya",
+  age: "28",
+  gender: "Female",
+  height: "165",
+  weight: "62",
+  city: "Kolkata",
+  activity: "Moderate",
+  workType: "Desk Job",
+  sleepHours: "7",
+  stress: "Medium",
+  waterIntake: "2.3",
+  sleepTime: "23:00",
+  wakeTime: "07:00",
+  diet: "Vegetarian",
+  foodPreference: "Balanced",
+  allergies: "None",
+  mealsPerDay: "3 Meals",
+  preferredCuisine: "Bengali",
+  dislikedFoods: "None",
+  goal: "Fat Loss",
+  targetWeight: "55",
+  timeline: "12",
+  focusArea: "Overall Health",
+  fitnessLevel: "Beginner",
+  workoutType: "Gym",
+  bloodGroup: "A+",
+  medicalConditions: "none",
+  pregnancyStatus: "not_applicable",
+  smokerAlcohol: "none",
+};
 
-function formatLabel(value?: string) {
-  if (!value) return "Not Provided";
+const steps: StepConfig[] = [
+  {
+    key: "body",
+    number: "01",
+    title: "Body Profile",
+    subtitle: "Core body details used for BMI, BMR and calorie estimates.",
+    icon: User,
+    color: PRIMARY,
+    fields: [
+      
+      { key: "age", label: "Age", type: "number" },
+      { key: "gender", label: "Gender", type: "select", options: ["Female", "Male", "Other"] },
+      { key: "height", label: "Height", type: "number", suffix: "cm" },
+      { key: "weight", label: "Weight", type: "number", suffix: "kg" },
+      { key: "city", label: "City", type: "text", placeholder: "Kolkata" },
+    ],
+  },
+  {
+    key: "lifestyle",
+    number: "02",
+    title: "Lifestyle",
+    subtitle: "Daily routine, movement, sleep and hydration pattern.",
+    icon: Activity,
+    color: TEAL,
+    fields: [
+      { key: "activity", label: "Activity Level", type: "select", options: ["Sedentary", "Light", "Moderate", "Active", "Extra Active"] },
+      { key: "workType", label: "Work Type", type: "select", options: ["Desk Job", "Mixed", "Field Work", "Student"] },
+      { key: "sleepHours", label: "Sleep", type: "number", suffix: "hrs" },
+      { key: "stress", label: "Stress Level", type: "select", options: ["Low", "Medium", "High"] },
+      { key: "waterIntake", label: "Current Water", type: "number", suffix: "L" },
+      { key: "sleepTime", label: "Sleep Time", type: "text", placeholder: "23:00" },
+      { key: "wakeTime", label: "Wake Time", type: "text", placeholder: "07:00" },
+    ],
+  },
+  {
+    key: "nutrition",
+    number: "03",
+    title: "Nutrition",
+    subtitle: "Diet type, cuisine, allergies and food preferences.",
+    icon: Utensils,
+    color: WARNING,
+    fields: [
+      { key: "diet", label: "Diet Type", type: "select", options: ["Omnivore", "Vegetarian", "Vegan", "Eggetarian", "Jain"] },
+      { key: "foodPreference", label: "Food Preference", type: "select", options: ["Balanced", "Indian", "Bengali", "High Protein", "Simple Meals"] },
+      { key: "preferredCuisine", label: "Preferred Cuisine", type: "select", options: ["Indian", "Bengali", "South Indian", "North Indian", "Mixed"] },
+      { key: "allergies", label: "Allergies", type: "select", options: ["None", "Dairy", "Nuts", "Gluten", "Seafood"] },
+      { key: "dislikedFoods", label: "Disliked Foods", type: "text", placeholder: "None" },
+      { key: "mealsPerDay", label: "Meals / Day", type: "select", options: ["3 Meals", "4 Meals", "5 Meals"] },
+    ],
+  },
+  {
+    key: "goals",
+    number: "04",
+    title: "Goals",
+    subtitle: "Target, timeline and fitness style for plan generation.",
+    icon: Target,
+    color: PURPLE,
+    fields: [
+      { key: "goal", label: "Primary Goal", type: "select", options: ["Fat Loss", "Muscle Gain", "Maintenance", "Improve Health"] },
+      { key: "targetWeight", label: "Target Weight", type: "number", suffix: "kg" },
+      { key: "timeline", label: "Target Timeline", type: "number", suffix: "weeks" },
+      { key: "focusArea", label: "Focus Area", type: "select", options: ["Overall Health", "Protein", "Hydration", "Sleep", "Strength"] },
+      { key: "fitnessLevel", label: "Fitness Level", type: "select", options: ["Beginner", "Intermediate", "Advanced"] },
+      { key: "workoutType", label: "Workout Type", type: "select", options: ["Gym", "Home", "Walking", "Yoga", "Mixed"] },
+    ],
+  },
+  {
+    key: "health",
+    number: "05",
+    title: "Health & Safety",
+    subtitle: "Used only for safety checks and wellness limitations.",
+    icon: ShieldCheck,
+    color: WARNING,
+    fields: [
+      { key: "bloodGroup", label: "Blood Group", type: "select", options: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Not Sure"] },
+      { key: "medicalConditions", label: "Medical Conditions", type: "text", placeholder: "none" },
+      { key: "pregnancyStatus", label: "Pregnancy Status", type: "select", options: ["not_applicable", "not_pregnant", "pregnant"] },
+      { key: "smokerAlcohol", label: "Smoking / Alcohol", type: "select", options: ["none", "smoker", "alcohol", "both"] },
+    ],
+  },
+];
 
+function readStoredProfile(): Partial<FormState> {
+  try {
+    const raw = localStorage.getItem("ai_nutrition_user_profile");
+    if (!raw) return {};
+    const saved = JSON.parse(raw) as Partial<GeneratePlanPayload> & Record<string, unknown>;
+
+    return {
+      name: typeof saved.name === "string" ? saved.name : undefined,
+      age: saved.age ? String(saved.age) : undefined,
+      gender: typeof saved.gender === "string" ? toTitle(saved.gender) : undefined,
+      height: saved.height ? String(saved.height) : undefined,
+      weight: saved.weight ? String(saved.weight) : undefined,
+      city: typeof saved.city === "string" ? saved.city : undefined,
+      activity: typeof saved.activity === "string" ? toTitle(saved.activity) : undefined,
+      diet: typeof saved.diet === "string" ? toTitle(saved.diet) : undefined,
+      goal: typeof saved.goal === "string" ? goalLabel(saved.goal) : undefined,
+      bloodGroup: typeof saved.blood_group === "string" ? saved.blood_group : undefined,
+      medicalConditions:
+        typeof saved.medical_conditions === "string"
+          ? saved.medical_conditions
+          : Array.isArray(saved.medical_conditions)
+            ? saved.medical_conditions.join(", ")
+            : undefined,
+      pregnancyStatus:
+        typeof saved.pregnancy_status === "string" ? saved.pregnancy_status : undefined,
+      smokerAlcohol:
+        typeof saved.smoker_alcohol === "string" ? saved.smoker_alcohol : undefined,
+      preferredCuisine:
+        typeof saved.preferred_cuisine === "string" ? toTitle(saved.preferred_cuisine) : undefined,
+      fitnessLevel:
+        typeof saved.fitness_level === "string" ? toTitle(saved.fitness_level) : undefined,
+      workoutType:
+        typeof saved.workout_type === "string" ? toTitle(saved.workout_type) : undefined,
+      sleepHours: saved.sleep_hours ? String(saved.sleep_hours) : undefined,
+      waterIntake: saved.water_intake ? String(saved.water_intake) : undefined,
+      sleepTime: typeof saved.sleep_time === "string" ? saved.sleep_time : undefined,
+      wakeTime: typeof saved.wake_time === "string" ? saved.wake_time : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+function toTitle(value: string) {
   return value
     .replaceAll("_", " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function getNumberFromText(value: string) {
-  const match = value.match(/[\d.]+/);
-  if (!match) return 0;
-  return Number(match[0]);
+function goalLabel(value: string) {
+  const text = value.toLowerCase();
+  if (text.includes("muscle")) return "Muscle Gain";
+  if (text.includes("maintenance")) return "Maintenance";
+  if (text.includes("health")) return "Improve Health";
+  return "Fat Loss";
 }
 
-function sanitizeText(value?: string) {
-  if (!value) return "";
-
-  const normalized = value.trim();
-
-  if (!normalized || normalized.toLowerCase() === "not provided") {
-    return "";
-  }
-
-  return normalized;
-}
-
-function normalizeTime(value: string, fallback: string) {
-  const cleaned = sanitizeText(value);
-  return cleaned || fallback;
-}
-
-function normalizePregnancyStatus(gender: string, pregnancyStatus: string) {
-  const normalizedGender = gender.trim().toLowerCase();
-  const normalizedStatus = pregnancyStatus.trim().toLowerCase();
-
-  if (normalizedGender === "male" || normalizedGender === "m") {
-    return "not_applicable";
-  }
-
-  if (
-    normalizedStatus.includes("pregnant") &&
-    !normalizedStatus.includes("not") &&
-    !normalizedStatus.includes("applicable")
-  ) {
-    return "pregnant";
-  }
-
-  return "not_applicable";
-}
-
-const SAFE_EMPTY_HEALTH_VALUES = new Set([
-  "",
-  "none",
-  "no",
-  "nil",
-  "na",
-  "n/a",
-  "not applicable",
-  "not_applicable",
-  "not provided",
-  "not_provided",
-  "nothing",
-  "no medical conditions",
-  "no condition",
-  "healthy",
-]);
-
-const FRONTEND_MEDICAL_BLOCK_KEYWORDS = [
-  "diabetes",
-  "diabetic",
-  "prediabetes",
-  "insulin resistance",
-  "thyroid",
-  "hypothyroidism",
-  "hyperthyroidism",
-  "pcos",
-  "pcod",
-  "hypertension",
-  "high blood pressure",
-  "low blood pressure",
-  "heart disease",
-  "cardiac",
-  "arrhythmia",
-  "stroke",
-  "cholesterol",
-  "kidney",
-  "renal",
-  "ckd",
-  "dialysis",
-  "fatty liver",
-  "liver disease",
-  "hepatitis",
-  "cirrhosis",
-  "ibs",
-  "crohn",
-  "ulcerative colitis",
-  "gerd",
-  "acid reflux",
-  "celiac",
-  "gastritis",
-  "asthma",
-  "copd",
-  "epilepsy",
-  "seizure",
-  "parkinson",
-  "migraine",
-  "anemia",
-  "anaemia",
-  "thalassemia",
-  "osteoporosis",
-  "arthritis",
-  "depression",
-  "anxiety",
-  "eating disorder",
-  "anorexia",
-  "bulimia",
-  "binge eating",
-  "cancer",
-  "chemotherapy",
-  "radiation therapy",
-  "tumor",
-  "tumour",
-  "oncology",
-  "autoimmune",
-  "lupus",
-  "rheumatoid arthritis",
-];
-
-const FRONTEND_PREGNANCY_BLOCK_KEYWORDS = [
-  "pregnant",
-  "pregnancy",
-  "postpartum",
-  "post-partum",
-  "breastfeeding",
-  "lactating",
-  "trying to conceive",
-  "planning pregnancy",
-  "ttc",
-  "fertility treatment",
-  "ivf",
-];
-
-const FRONTEND_SUBSTANCE_BLOCK_KEYWORDS = [
-  "heavy smoker",
-  "chain smoker",
-  "smoking addiction",
-  "tobacco addiction",
-  "nicotine addiction",
-  "alcohol dependency",
-  "alcohol dependence",
-  "alcohol addiction",
-  "alcoholic",
-  "substance abuse",
-  "drug abuse",
-  "drug addiction",
-  "addiction",
-  "rehab",
-  "withdrawal",
-];
-
-function normalizeSafetyText(value?: string) {
-  return String(value || "")
-    .toLowerCase()
-    .replaceAll("_", " ")
-    .replaceAll("-", " ")
-    .trim();
-}
-
-function isSafeEmptyHealthValue(value?: string) {
-  return SAFE_EMPTY_HEALTH_VALUES.has(normalizeSafetyText(value));
-}
-
-function textIncludesAny(text: string, keywords: string[]) {
-  return keywords.some((keyword) => text.includes(keyword));
-}
-
-function buildBlockedLocalResponse(message: string, detected: string[] = []) {
-  return {
-    success: false,
-    blocked: true,
-    message,
-    medical_warnings: [
-      message,
-      "AI Nutrition OS provides general wellness information only and is not a substitute for medical advice, diagnosis, treatment, emergency care, or professional dietary counselling.",
-    ],
-    medical_risk: {
-      risk_level: "high",
-      warnings: [
-        message,
-        "AI Nutrition OS provides general wellness information only and is not a substitute for medical advice, diagnosis, treatment, emergency care, or professional dietary counselling.",
-      ],
-      detected_conditions: detected,
-      hard_block: true,
-      block_reason: message,
-    },
-  };
-}
-
-function getFrontendSafetyBlock(profile: ProfileData) {
-  const age = getNumberFromText(profile.body.age);
-  const gender = normalizeSafetyText(profile.body.gender);
-  const medicalText = normalizeSafetyText(
-    sanitizeText(profile.missing.medical) ||
-      sanitizeText(profile.health.medicalConditions),
-  );
-  const pregnancyText = normalizeSafetyText(profile.health.pregnancyStatus);
-  const substanceText = normalizeSafetyText(profile.health.smokerAlcohol);
-
-  if (age && (age < 18 || age >= 60)) {
-    return {
-      blocked: true,
-      detected: [`age_${age}`],
-      title: "Age Guidance Required",
-      message:
-        "AI Nutrition OS currently supports only users aged 18 to 59. Please consult a qualified healthcare professional.",
-    };
-  }
-
-  const pregnancyDetected = textIncludesAny(
-    `${medicalText} ${pregnancyText}`,
-    FRONTEND_PREGNANCY_BLOCK_KEYWORDS,
-  );
-
-  if (gender === "male" && pregnancyDetected) {
-    return {
-      blocked: true,
-      detected: ["invalid_profile"],
-      title: "Invalid Health Profile",
-      message:
-        "Invalid medical profile detected. Please review the entered details or consult a qualified healthcare professional.",
-    };
-  }
-
-  if (pregnancyDetected) {
-    return {
-      blocked: true,
-      detected: ["pregnancy"],
-      title: "Medical Guidance Required",
-      message:
-        "Pregnancy-related wellness guidance is currently unavailable. Please consult a qualified healthcare professional.",
-    };
-  }
-
-  if (textIncludesAny(substanceText, FRONTEND_SUBSTANCE_BLOCK_KEYWORDS)) {
-    return {
-      blocked: true,
-      detected: ["substance_use"],
-      title: "Medical Guidance Required",
-      message:
-        "Substance use or dependency concern detected. AI Nutrition OS cannot generate nutrition or workout recommendations for this profile. Please consult a qualified healthcare professional or addiction-support specialist.",
-    };
-  }
-
-  if (!isSafeEmptyHealthValue(medicalText)) {
-    const detected =
-      FRONTEND_MEDICAL_BLOCK_KEYWORDS.filter((keyword) =>
-        medicalText.includes(keyword),
-      ) || [];
-
-    return {
-      blocked: true,
-      detected: detected.length ? detected : [medicalText],
-      title: "Medical Guidance Required",
-      message:
-        "A medical condition was detected. AI Nutrition OS provides general wellness information only and cannot generate nutrition or workout recommendations for medical conditions. Please consult a qualified doctor, registered dietitian, or healthcare professional.",
-    };
-  }
-
-  return {
-    blocked: false,
-    detected: [],
-    title: "",
-    message: "",
-  };
-}
-
-
-function isMissingDisplayValue(value?: string) {
-  const normalized = normalizeSafetyText(value);
-
-  return (
-    !normalized ||
-    normalized === "not provided" ||
-    normalized === "not applicable" ||
-    normalized === "not_applicable"
-  );
-}
-
-type ProfileIssue = {
-  id: string;
-  label: string;
-  helper: string;
-  severity: "required" | "consent";
-};
-
-function getProfileIssues(profile: ProfileData, consentAccepted: boolean): ProfileIssue[] {
-  const issues: ProfileIssue[] = [];
-
-  if (!getNumberFromText(profile.body.age)) {
-    issues.push({
-      id: "age",
-      label: "Age is required",
-      helper: "Open Body Profile and enter your age, for example 24 years.",
-      severity: "required",
-    });
-  }
-
-  if (!getNumberFromText(profile.body.height)) {
-    issues.push({
-      id: "height",
-      label: "Height is required",
-      helper: "Open Body Profile and enter your height in cm, for example 165 cm.",
-      severity: "required",
-    });
-  }
-
-  if (!getNumberFromText(profile.body.weight)) {
-    issues.push({
-      id: "weight",
-      label: "Weight is required",
-      helper: "Open Body Profile and enter your weight in kg, for example 58 kg.",
-      severity: "required",
-    });
-  }
-
-  if (isMissingDisplayValue(profile.body.gender)) {
-    issues.push({
-      id: "gender",
-      label: "Gender is required",
-      helper: "Open Body Profile and choose male, female, or other.",
-      severity: "required",
-    });
-  }
-
-  if (isMissingDisplayValue(profile.nutrition.primaryGoal)) {
-    issues.push({
-      id: "goal",
-      label: "Primary goal is required",
-      helper: "Open Nutrition and choose weight loss, muscle gain, maintenance, or improve health.",
-      severity: "required",
-    });
-  }
-
-  if (isMissingDisplayValue(profile.nutrition.dietPreference)) {
-    issues.push({
-      id: "diet",
-      label: "Diet preference is required",
-      helper: "Open Nutrition and choose omnivore, vegetarian, vegan, eggetarian, or Jain.",
-      severity: "required",
-    });
-  }
-
-  if (isMissingDisplayValue(profile.nutrition.activityLevel)) {
-    issues.push({
-      id: "activity",
-      label: "Activity level is required",
-      helper: "Open Nutrition and choose sedentary, light, moderate, active, or extra active.",
-      severity: "required",
-    });
-  }
-
-  if (!sanitizeText(profile.missing.city)) {
-    issues.push({
-      id: "city",
-      label: "City is required",
-      helper: "Add your city in Profile Complete, for example Kolkata.",
-      severity: "required",
-    });
-  }
-
-  const medicalInput =
-    sanitizeText(profile.missing.medical) ||
-    sanitizeText(profile.health.medicalConditions);
-
-  if (!medicalInput) {
-    issues.push({
-      id: "medical",
-      label: "Medical condition status is required",
-      helper: "Type none if you do not have any medical condition. This is required for safety.",
-      severity: "required",
-    });
-  }
-
-  const smokerAlcoholInput = sanitizeText(profile.health.smokerAlcohol);
-
-  if (!smokerAlcoholInput) {
-    issues.push({
-      id: "smokerAlcohol",
-      label: "Smoker / alcohol status is required",
-      helper: "Open Health and type none if smoking or alcohol is not applicable.",
-      severity: "required",
-    });
-  }
-
-  const bloodGroupInput =
-    sanitizeText(profile.missing.bloodGroup) ||
-    sanitizeText(profile.health.bloodGroup);
-
-  if (!bloodGroupInput) {
-    issues.push({
-      id: "bloodGroup",
-      label: "Blood group is required",
-      helper: "Add your blood group in Profile Complete, for example A+ or B+.",
-      severity: "required",
-    });
-  }
-
-  if (!consentAccepted) {
-    issues.push({
-      id: "consent",
-      label: "Wellness consent is required",
-      helper: "Tick the consent checkbox before generating your plan.",
-      severity: "consent",
-    });
-  }
-
-  return issues;
-}
-
-function formatProfileIssues(issues: ProfileIssue[]) {
-  if (!issues.length) return "";
-  return issues.map((issue) => `${issue.label}: ${issue.helper}`).join(" ");
-}
-
-
-function getStoredGeneratedPlan(): StoredGeneratedPlan | null {
-  try {
-    const raw = localStorage.getItem("ai_nutrition_generated_plan");
-    if (!raw) return null;
-    return JSON.parse(raw) as StoredGeneratedPlan;
-  } catch {
-    return null;
-  }
-}
-
-function getStoredAssessmentProfile(): StoredAssessmentProfile | null {
-  try {
-    const raw = localStorage.getItem("ai_nutrition_user_profile");
-    if (!raw) return null;
-    return JSON.parse(raw) as StoredAssessmentProfile;
-  } catch {
-    return null;
-  }
-}
-
-function getMedicalText(value?: string | string[]) {
-  if (Array.isArray(value)) {
-    return value.length ? value.join(", ") : "None";
-  }
-
-  return value?.trim() || "None";
-}
-
-function buildProfileData(): ProfileData {
-  const generatedPlan = getStoredGeneratedPlan();
-  const backendProfile = generatedPlan?.user_profile;
-  const assessmentProfile = getStoredAssessmentProfile();
-
-  const profile = backendProfile || assessmentProfile;
-
-  if (!profile) {
-    return {
-      user: { name: "User", isNewUser: true },
-      body: {
-        height: "Not Provided",
-        weight: "Not Provided",
-        age: "Not Provided",
-        gender: "Not Provided",
-        updatedAt: today(),
-      },
-      lifestyle: {
-        sleepTime: "Not Provided",
-        wakeTime: "Not Provided",
-        waterIntake: "Not Provided",
-        fitnessLevel: "Not Provided",
-        updatedAt: today(),
-      },
-      nutrition: {
-        primaryGoal: "Not Provided",
-        dietPreference: "Not Provided",
-        preferredCuisine: "Not Provided",
-        activityLevel: "Not Provided",
-        updatedAt: today(),
-      },
-      health: {
-        medicalConditions: "Not Provided",
-        bloodGroup: "Not Provided",
-        pregnancyStatus: "Not Applicable",
-        smokerAlcohol: "Not Provided",
-        updatedAt: today(),
-      },
-      missing: {
-        city: "",
-        medical: "",
-        bloodGroup: "",
-      },
-    };
-  }
-
-  return {
-    user: {
-      name: profile.name?.trim() || "User",
-      isNewUser: false,
-    },
-    body: {
-      height: profile.height ? `${profile.height} cm` : "Not Provided",
-      weight: profile.weight ? `${profile.weight} kg` : "Not Provided",
-      age: profile.age ? `${profile.age} years` : "Not Provided",
-      gender: formatLabel(profile.gender),
-      updatedAt: today(),
-    },
-    lifestyle: {
-      sleepTime: profile.sleep_time || "Not Provided",
-      wakeTime: profile.wake_time || "Not Provided",
-      waterIntake: profile.water_intake
-        ? `${profile.water_intake} L / day`
-        : "Not Provided",
-      fitnessLevel: formatLabel(profile.fitness_level),
-      updatedAt: today(),
-    },
-    nutrition: {
-      primaryGoal: formatLabel(profile.goal),
-      dietPreference: formatLabel(profile.diet),
-      preferredCuisine: formatLabel(profile.preferred_cuisine),
-      activityLevel: formatLabel(profile.activity),
-      updatedAt: today(),
-    },
-    health: {
-      medicalConditions: getMedicalText(profile.medical_conditions),
-      bloodGroup: profile.blood_group || "Not Provided",
-      pregnancyStatus: formatLabel(profile.pregnancy_status || "not_applicable"),
-      smokerAlcohol: profile.smoker_alcohol || "Not Provided",
-      updatedAt: today(),
-    },
-    missing: {
-      city: profile.city || "",
-      medical: getMedicalText(profile.medical_conditions) === "None" ? "" : getMedicalText(profile.medical_conditions),
-      bloodGroup: profile.blood_group || "",
-    },
-  };
+function toNumber(value: string, fallback: number) {
+  const parsed = Number(String(value).replace(/[^\d.]/g, ""));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 function toBackendGoal(value: string) {
   const text = value.toLowerCase();
-
-  if (text.includes("weight") || text.includes("fat")) return "weight_loss";
   if (text.includes("muscle")) return "muscle_gain";
   if (text.includes("maintain")) return "maintenance";
   if (text.includes("health")) return "improve_health";
-
   return "weight_loss";
 }
 
 function toBackendActivity(value: string) {
   const text = value.toLowerCase();
-
   if (text.includes("sedentary")) return "sedentary";
   if (text.includes("light")) return "light";
-  if (text.includes("moderate")) return "moderate";
-  if (text.includes("very") || text.includes("active")) return "active";
   if (text.includes("extra")) return "extra_active";
-
+  if (text.includes("active")) return "active";
   return "moderate";
 }
 
 function toBackendDiet(value: string) {
   const text = value.toLowerCase();
-
-  if (text.includes("vegetarian")) return "vegetarian";
   if (text.includes("vegan")) return "vegan";
+  if (text.includes("vegetarian")) return "vegetarian";
   if (text.includes("egg")) return "eggetarian";
   if (text.includes("jain")) return "jain";
-  if (text.includes("omni")) return "omnivore";
-
   return "omnivore";
+}
+
+function normalizeCuisine(value: string) {
+  const text = value.toLowerCase();
+  if (text.includes("bengali")) return "bengali";
+  if (text.includes("south")) return "south_indian";
+  if (text.includes("north")) return "north_indian";
+  return "indian";
+}
+
+function estimateTargets(form: FormState) {
+  const weight = toNumber(form.weight, 62);
+  const height = toNumber(form.height, 165);
+  const age = toNumber(form.age, 28);
+  const gender = form.gender.toLowerCase();
+  const bmrBase = 10 * weight + 6.25 * height - 5 * age;
+  const bmr = Math.round(gender.includes("male") ? bmrBase + 5 : bmrBase - 161);
+  const activityFactor =
+    form.activity === "Sedentary"
+      ? 1.2
+      : form.activity === "Light"
+        ? 1.375
+        : form.activity === "Active"
+          ? 1.725
+          : form.activity === "Extra Active"
+            ? 1.9
+            : 1.55;
+
+  const tdee = Math.round(bmr * activityFactor);
+  const calories =
+    form.goal === "Fat Loss"
+      ? Math.max(Math.round(tdee - 350), 1200)
+      : form.goal === "Muscle Gain"
+        ? Math.round(tdee + 250)
+        : tdee;
+  const protein = Math.round(weight * (form.goal === "Muscle Gain" ? 1.8 : 1.5));
+  const water = Math.max(2, Math.round(weight * 0.04 * 10) / 10);
+  const currentWeight = toNumber(form.weight, 62);
+  const targetWeight = toNumber(form.targetWeight, currentWeight);
+  const timeline = toNumber(form.timeline, 12);
+  const expectedChange = Math.round(((targetWeight - currentWeight) / timeline) * 10) / 10;
+
+  return {
+    bmr,
+    tdee,
+    calories,
+    protein,
+    water,
+    expectedChange,
+  };
+}
+
+function isComplete(value: string) {
+  return String(value || "").trim().length > 0;
+}
+
+function stepCompletion(form: FormState, step: StepConfig) {
+  const done = step.fields.filter((field) => isComplete(form[field.key])).length;
+  return Math.round((done / step.fields.length) * 100);
+}
+
+function completionFor(form: FormState) {
+  const required = steps.flatMap((step) => step.fields.map((field) => field.key));
+  const uniqueRequired = Array.from(new Set(required));
+  const done = uniqueRequired.filter((key) => isComplete(form[key])).length;
+  return Math.round((done / uniqueRequired.length) * 100);
+}
+
+function hasMedicalRisk(form: FormState) {
+  const text = `${form.medicalConditions} ${form.pregnancyStatus} ${form.smokerAlcohol}`.toLowerCase();
+  const safe = ["none", "no", "nil", "n/a", "not_applicable", "not applicable", ""];
+
+  const medicalSafe = safe.includes(form.medicalConditions.toLowerCase().trim());
+  const habitsSafe = safe.includes(form.smokerAlcohol.toLowerCase().trim());
+  const pregnancySafe = safe.includes(form.pregnancyStatus.toLowerCase().trim()) || form.pregnancyStatus === "not_pregnant";
+
+  if (medicalSafe && habitsSafe && pregnancySafe) return false;
+
+  return [
+    "pregnant",
+    "pregnancy",
+    "diabetes",
+    "kidney",
+    "heart",
+    "cancer",
+    "thyroid",
+    "pcos",
+    "addiction",
+    "alcoholic",
+    "renal",
+    "liver",
+  ].some((term) => text.includes(term));
 }
 
 export default function AIProfileIntelligence() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<ProfileData>(() => buildProfileData());
-  const [editingCard, setEditingCard] = useState<CardKey | null>(null);
-  const [draft, setDraft] = useState<ProfileData>(() => buildProfileData());
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generateMessage, setGenerateMessage] = useState("");
-  const [selectedDays, setSelectedDays] = useState(7);
+  const [form, setForm] = useState<FormState>(() => ({
+    ...defaultForm,
+    ...readStoredProfile(),
+  }));
+  const [activeStep, setActiveStep] = useState<StepKey>("body");
+  const [selectedDays, setSelectedDays] = useState<1 | 7 | 15 | 30>(7);
   const [consentAccepted, setConsentAccepted] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const safetyBlock = useMemo(() => getFrontendSafetyBlock(profile), [profile]);
+  const targets = useMemo(() => estimateTargets(form), [form]);
+  const completion = useMemo(() => completionFor(form), [form]);
+  const medicalRisk = useMemo(() => hasMedicalRisk(form), [form]);
 
-  const profileIssues = useMemo(
-    () => getProfileIssues(profile, consentAccepted),
-    [profile, consentAccepted],
-  );
+  const previewTargets: PreviewTarget[] = [
+    {
+      label: "Estimated Calories",
+      value: `${targets.calories.toLocaleString()} kcal/day`,
+      sub: form.goal === "Fat Loss" ? "For gradual fat loss" : "Based on your goal",
+      icon: Flame,
+      color: PRIMARY,
+    },
+    {
+      label: "Protein Target",
+      value: `${targets.protein}g/day`,
+      sub: "Based on body weight",
+      icon: Dumbbell,
+      color: TEAL,
+    },
+    {
+      label: "Hydration Target",
+      value: `${targets.water}L/day`,
+      sub: "Optimal daily intake",
+      icon: Droplets,
+      color: BLUE,
+    },
+    {
+      label: "Expected Change",
+      value: `${targets.expectedChange > 0 ? "+" : ""}${targets.expectedChange} kg/week`,
+      sub: "Healthy & sustainable",
+      icon: Weight,
+      color: PURPLE,
+    },
+  ];
 
-  const missingCount = useMemo(
-    () => profileIssues.filter((issue) => issue.severity === "required").length,
-    [profileIssues],
-  );
-
-  const total = 17;
-  const completed = Math.max(0, total - missingCount);
-  const completion = Math.round((completed / total) * 100);
-
-  const handleEdit = (card: CardKey) => {
-    setDraft(profile);
-    setEditingCard(card);
+  const update = (key: keyof FormState, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleCancel = () => {
-    setDraft(profile);
-    setEditingCard(null);
+  const saveProfile = () => {
+    const payload = buildPayload(form, selectedDays, targets.water);
+    localStorage.setItem("ai_nutrition_user_profile", JSON.stringify(payload));
+    setMessage("Profile saved locally. You can generate your plan when ready.");
   };
 
-  const handleSave = () => {
-    if (!editingCard) return;
+  const generate = async () => {
+    if (isGenerating) return;
 
-    const nextProfile = {
-      ...draft,
-      [editingCard]: {
-        ...draft[editingCard],
-        updatedAt: today(),
-      },
-    };
+    if (!consentAccepted) {
+      setMessage("Please accept the wellness-only consent before generating your plan.");
+      return;
+    }
 
-    setProfile(nextProfile);
-    setDraft(nextProfile);
-    setEditingCard(null);
-  };
-
-  const updateDraft = (section: CardKey, field: string, value: string) => {
-    setDraft((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
-    }));
-  };
-
-  const updateMissing = (field: keyof ProfileData["missing"], value: string) => {
-    setProfile((prev) => ({
-      ...prev,
-      missing: {
-        ...prev.missing,
-        [field]: value,
-      },
-    }));
-  };
-
-  const handleGeneratePlan = async () => {
-    try {
-      setIsGenerating(true);
-      setGenerateMessage("");
-
-      const activeProfileIssues = getProfileIssues(profile, consentAccepted);
-
-      if (activeProfileIssues.length > 0) {
-        setGenerateMessage(formatProfileIssues(activeProfileIssues));
-        return;
-      }
-
-      const gender =
-        profile.body.gender.toLowerCase() === "male"
-          ? "male"
-          : profile.body.gender.toLowerCase() === "female"
-            ? "female"
-            : "other";
-
-      const pregnancyStatus = normalizePregnancyStatus(
-        gender,
-        profile.health.pregnancyStatus,
+    if (medicalRisk) {
+      setMessage(
+        "Medical-risk details detected. AI Nutrition OS cannot generate a plan for this profile. Please consult a qualified healthcare professional.",
       );
+      return;
+    }
 
-      if (pregnancyStatus === "pregnant") {
-        setGenerateMessage(
-          "Pregnancy-related wellness guidance is currently unavailable. Please consult a qualified healthcare professional.",
-        );
-        return;
-      }
+    setIsGenerating(true);
+    setMessage("");
 
-      const medicalConditions =
-        sanitizeText(profile.missing.medical) ||
-        sanitizeText(profile.health.medicalConditions);
-
-      const smokerAlcohol = sanitizeText(profile.health.smokerAlcohol);
-
-      const activeSafetyBlock = getFrontendSafetyBlock(profile);
-
-      if (activeSafetyBlock.blocked) {
-        const blockedResponse = buildBlockedLocalResponse(
-          activeSafetyBlock.message,
-          activeSafetyBlock.detected,
-        );
-
-        localStorage.setItem(
-          "ai_nutrition_blocked_response",
-          JSON.stringify(blockedResponse),
-        );
-        localStorage.removeItem("ai_nutrition_generated_plan");
-        window.dispatchEvent(new Event("ai-plan-updated"));
-        setGenerateMessage(activeSafetyBlock.message);
-        return;
-      }
-
-      const payload: GeneratePlanPayload & { smoker_alcohol?: string } = {
-        age: getNumberFromText(profile.body.age) || 24,
-        gender,
-        height: getNumberFromText(profile.body.height) || 165,
-        weight: getNumberFromText(profile.body.weight) || 58,
-        goal: toBackendGoal(profile.nutrition.primaryGoal),
-        activity: toBackendActivity(profile.nutrition.activityLevel),
-        diet: toBackendDiet(profile.nutrition.dietPreference),
-        days: selectedDays,
-
-        name: profile.user.name === "User" ? "" : sanitizeText(profile.user.name),
-        city: sanitizeText(profile.missing.city),
-        blood_group:
-          sanitizeText(profile.missing.bloodGroup) ||
-          sanitizeText(profile.health.bloodGroup),
-
-        pregnancy_status: pregnancyStatus,
-        preferred_cuisine:
-          sanitizeText(profile.nutrition.preferredCuisine) || "indian",
-        fitness_level:
-          sanitizeText(profile.lifestyle.fitnessLevel) || "beginner",
-
-        allergies: [],
-        disliked_foods: [],
-        medical_conditions: medicalConditions,
-
-        budget: "medium",
-        workout_type: "gym",
-        sleep_time: normalizeTime(profile.lifestyle.sleepTime, "23:00"),
-        wake_time: normalizeTime(profile.lifestyle.wakeTime, "07:00"),
-        sleep_hours: 8,
-        water_intake: getNumberFromText(profile.lifestyle.waterIntake) || 2.5,
-        smoker_alcohol: smokerAlcohol,
-      };
-
+    try {
+      const payload = buildPayload(form, selectedDays, targets.water);
       localStorage.setItem("ai_nutrition_user_profile", JSON.stringify(payload));
 
       const result = await generatePlan(payload);
 
       if (result?.blocked || result?.success === false) {
-        const blockedMessage =
-          result?.message ||
-          result?.medical_risk?.block_reason ||
-          "Plan generation was blocked for safety reasons. Please consult a qualified healthcare professional.";
-
         localStorage.setItem("ai_nutrition_blocked_response", JSON.stringify(result));
         localStorage.removeItem("ai_nutrition_generated_plan");
-        window.dispatchEvent(new Event("ai-plan-updated"));
-        setGenerateMessage(blockedMessage);
+        setMessage(
+          result?.message ||
+            result?.medical_risk?.block_reason ||
+            "Plan generation was blocked for safety reasons.",
+        );
         return;
       }
 
       localStorage.removeItem("ai_nutrition_blocked_response");
       localStorage.setItem("ai_nutrition_generated_plan", JSON.stringify(result));
       window.dispatchEvent(new Event("ai-plan-updated"));
+      setMessage("Plan generated successfully. Opening your dashboard...");
 
-      const returnedDays = result?.meal_plan?.days?.length;
-      const quality = (
-        result?.meal_quality ||
-        result?.quality_scores ||
-        result?.analytics?.meal_quality ||
-        {}
-      ) as MealQuality;
-
-      const requestedDays = quality?.requested_days || selectedDays;
-      const generatedDays = quality?.generated_days || returnedDays;
-      const productionReady = quality?.production_ready_meal_quality === true;
-      const nutritionistScore = quality?.nutritionist_quality_score;
-      const familyScore = quality?.family_variety_score;
-      const alternativeScore = quality?.alternative_variety_score;
-
-      const qualityWarning = productionReady
-        ? ""
-        : ` Quality review needed: family variety ${familyScore ?? "N/A"}/100, alternatives ${alternativeScore ?? "N/A"}/100, nutritionist score ${nutritionistScore ?? "N/A"}/100.`;
-
-      setGenerateMessage(
-        productionReady
-          ? `${requestedDays}-day plan generated successfully (${generatedDays ?? "plan"} days received). Opening your dashboard...`
-          : `${requestedDays}-day plan generated with quality warnings (${generatedDays ?? "plan"} days received).${qualityWarning} Opening your dashboard...`,
-      );
-
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 700);
+      window.setTimeout(() => navigate("/dashboard"), 700);
     } catch (error) {
       console.error(error);
-      setGenerateMessage("Unable to regenerate plan. Please try again.");
+      setMessage("Unable to generate plan. Please check the backend and try again.");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const fillSafeTestProfile = () => {
-    const safeProfile: ProfileData = {
-      ...profile,
-      body: {
-        ...profile.body,
-        height: "165 cm",
-        weight: "58 kg",
-        age: "24 years",
-        gender: "Female",
-        updatedAt: today(),
-      },
-      lifestyle: {
-        ...profile.lifestyle,
-        sleepTime: "23:00",
-        wakeTime: "07:00",
-        waterIntake: "2.5 L / day",
-        fitnessLevel: "Beginner",
-        updatedAt: today(),
-      },
-      nutrition: {
-        ...profile.nutrition,
-        primaryGoal: "Weight Loss",
-        dietPreference: "Omnivore",
-        preferredCuisine: "Indian",
-        activityLevel: "Moderate",
-        updatedAt: today(),
-      },
-      health: {
-        ...profile.health,
-        medicalConditions: "none",
-        bloodGroup: "A+",
-        pregnancyStatus: "Not Applicable",
-        smokerAlcohol: "none",
-        updatedAt: today(),
-      },
-      missing: {
-        city: "Kolkata",
-        medical: "none",
-        bloodGroup: "A+",
-      },
-    };
-
-    setProfile(safeProfile);
-    setDraft(safeProfile);
-    setEditingCard(null);
-    setConsentAccepted(true);
-    setGenerateMessage("Safe dev-test profile filled. You can generate a plan now.");
-  };
-
   return (
-    <section
-      id="profile-inputs"
-      className="relative scroll-mt-28 overflow-x-hidden overflow-y-visible bg-[#030805] px-4 py-4 text-[#F5F8F2] sm:px-6 lg:px-8 xl:px-10 2xl:px-12"
-    >
-      <div className="relative mx-auto w-full max-w-[92vw] overflow-visible rounded-[30px] border border-[#173326] bg-[#020604]/95 shadow-[0_0_80px_rgba(166,255,77,0.08)] 2xl:max-w-[1780px]">
-        <BackgroundFX />
+    <section className="relative min-h-screen overflow-hidden bg-[#030805] px-3 py-4 pb-24 text-[#F5F8F2] sm:px-5 lg:px-6 xl:px-8 md:pb-6">
+      <BackgroundFX />
 
-        <div className="relative z-10 p-4 sm:p-5 lg:p-6 xl:p-7">
-          <div className="rounded-[28px] border border-white/10 bg-[#020805]/70 p-4 sm:p-5 lg:p-6 xl:p-7">
-            <Header />
+      <div className="relative z-10 mx-auto w-full max-w-[1780px] overflow-hidden rounded-[30px] border border-[#93C572]/18 bg-[#030805]/96 shadow-[0_0_90px_rgba(147,197,114,0.08)]">
+        <StepTimeline
+          activeStep={activeStep}
+          setActiveStep={setActiveStep}
+          completion={completion}
+          form={form}
+        />
 
-            <TopProfilePanel
-              completion={completion}
-              completed={completed}
-              total={total}
-              profile={profile}
-              missingCount={missingCount}
-            />
-
-            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <ProfileCard
-                title="Body Profile"
-                color="#A6FF4D"
-                icon={<User size={22} />}
-                editing={editingCard === "body"}
-                onEdit={() => handleEdit("body")}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                updatedAt={profile.body.updatedAt}
-                rows={[
-                  {
-                    label: "Height",
-                    value: profile.body.height,
-                    icon: <Activity size={17} />,
-                    field: "height",
-                  },
-                  {
-                    label: "Weight",
-                    value: profile.body.weight,
-                    icon: <Weight size={17} />,
-                    field: "weight",
-                  },
-                  {
-                    label: "Age",
-                    value: profile.body.age,
-                    icon: <User size={17} />,
-                    field: "age",
-                  },
-                  {
-                    label: "Gender",
-                    value: profile.body.gender,
-                    icon: <Venus size={17} />,
-                    field: "gender",
-                  },
-                ]}
-                draftRows={draft.body}
-                onChange={(field, value) => updateDraft("body", field, value)}
-              />
-
-              <ProfileCard
-                title="Lifestyle"
-                color="#18D3D0"
-                icon={<Sparkles size={22} />}
-                editing={editingCard === "lifestyle"}
-                onEdit={() => handleEdit("lifestyle")}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                updatedAt={profile.lifestyle.updatedAt}
-                rows={[
-                  {
-                    label: "Sleep Time",
-                    value: profile.lifestyle.sleepTime,
-                    icon: <Moon size={17} />,
-                    field: "sleepTime",
-                  },
-                  {
-                    label: "Wake Up Time",
-                    value: profile.lifestyle.wakeTime,
-                    icon: <Sparkles size={17} />,
-                    field: "wakeTime",
-                  },
-                  {
-                    label: "Water Intake",
-                    value: profile.lifestyle.waterIntake,
-                    icon: <Droplets size={17} />,
-                    field: "waterIntake",
-                  },
-                  {
-                    label: "Fitness Level",
-                    value: profile.lifestyle.fitnessLevel,
-                    icon: <Dumbbell size={17} />,
-                    field: "fitnessLevel",
-                  },
-                ]}
-                draftRows={draft.lifestyle}
-                onChange={(field, value) =>
-                  updateDraft("lifestyle", field, value)
-                }
-              />
-
-              <ProfileCard
-                title="Nutrition"
-                color="#A875FF"
-                icon={<Utensils size={22} />}
-                editing={editingCard === "nutrition"}
-                onEdit={() => handleEdit("nutrition")}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                updatedAt={profile.nutrition.updatedAt}
-                rows={[
-                  {
-                    label: "Primary Goal",
-                    value: profile.nutrition.primaryGoal,
-                    icon: <Target size={17} />,
-                    field: "primaryGoal",
-                  },
-                  {
-                    label: "Diet Preference",
-                    value: profile.nutrition.dietPreference,
-                    icon: <Utensils size={17} />,
-                    field: "dietPreference",
-                  },
-                  {
-                    label: "Preferred Cuisine",
-                    value: profile.nutrition.preferredCuisine,
-                    icon: <Leaf size={17} />,
-                    field: "preferredCuisine",
-                  },
-                  {
-                    label: "Activity Level",
-                    value: profile.nutrition.activityLevel,
-                    icon: <Activity size={17} />,
-                    field: "activityLevel",
-                  },
-                ]}
-                draftRows={draft.nutrition}
-                onChange={(field, value) =>
-                  updateDraft("nutrition", field, value)
-                }
-              />
-
-              <ProfileCard
-                title="Health"
-                color="#FFB347"
-                icon={<ShieldCheck size={22} />}
-                editing={editingCard === "health"}
-                onEdit={() => handleEdit("health")}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                updatedAt={profile.health.updatedAt}
-                rows={[
-                  {
-                    label: "Medical Conditions",
-                    value: profile.health.medicalConditions,
-                    icon: <ShieldCheck size={17} />,
-                    field: "medicalConditions",
-                  },
-                  {
-                    label: "Blood Group",
-                    value: profile.health.bloodGroup,
-                    icon: <Droplets size={17} />,
-                    field: "bloodGroup",
-                  },
-                  {
-                    label: "Pregnancy Status",
-                    value: profile.health.pregnancyStatus,
-                    icon: <HeartPulse size={17} />,
-                    field: "pregnancyStatus",
-                  },
-                  {
-                    label: "Smoker / Alcohol",
-                    value: profile.health.smokerAlcohol,
-                    icon: <Activity size={17} />,
-                    field: "smokerAlcohol",
-                  },
-                ]}
-                draftRows={draft.health}
-                onChange={(field, value) => updateDraft("health", field, value)}
-              />
+        <div className="grid gap-5 px-4 py-5 sm:px-6 lg:px-8 xl:grid-cols-[0.98fr_0.92fr_0.62fr] xl:px-10">
+          <div className="space-y-5 xl:self-start">
+            <HeroCopy />
+            <div className="grid gap-4">
+              {steps.map((step, index) => (
+                <ProfileSectionCard
+                  key={step.key}
+                  step={step}
+                  active={activeStep === step.key}
+                  form={form}
+                  onFocus={() => setActiveStep(step.key)}
+                  onNext={() =>
+                    setActiveStep(steps[Math.min(index + 1, steps.length - 1)].key)
+                  }
+                  isLast={index === steps.length - 1}
+                  onChange={update}
+                />
+              ))}
             </div>
 
-            <MissingDetails
-              missingCount={missingCount}
-              missing={profile.missing}
-              onChange={updateMissing}
-            />
-
-            {profileIssues.length > 0 && !safetyBlock.blocked ? (
-              <ProfileIssuesPanel issues={profileIssues} />
-            ) : null}
-
-            {generateMessage ? (
-              <div
-                className={`mt-5 rounded-2xl border px-5 py-3 text-sm font-semibold ${
-                  generateMessage.toLowerCase().includes("successfully")
-                    ? "border-[#A6FF4D]/20 bg-[#A6FF4D]/5 text-[#A6FF4D]"
-                    : "border-[#FFB347]/25 bg-[#2A1A05]/55 text-[#FFD79A]"
-                }`}
-              >
-                {generateMessage}
-              </div>
-            ) : null}
-
-            {safetyBlock.blocked ? (
-              <MedicalGuidanceWarning
-                title={safetyBlock.title}
-                message={safetyBlock.message}
-              />
-            ) : null}
-
-            <PlanDurationSelector
-              selectedDays={selectedDays}
-              onSelectDays={setSelectedDays}
-            />
-
-            <FinalCTA
-              onGenerate={handleGeneratePlan}
-              isGenerating={isGenerating}
-              isNewUser={profile.user.isNewUser}
-              selectedDays={selectedDays}
-              safetyBlocked={safetyBlock.blocked}
-              safetyMessage={safetyBlock.message}
-              profileIssues={profileIssues}
-              consentAccepted={consentAccepted}
-              onConsentChange={setConsentAccepted}
-              onFillSafeTestProfile={fillSafeTestProfile}
-            />
+            <SupportRow onSave={saveProfile} />
           </div>
+
+          <HumanMeshStage />
+
+          <AIInsightPanel
+            completion={completion}
+            targets={previewTargets}
+            medicalRisk={medicalRisk}
+          />
+
+          <NextStepsStrip />
+          <GeneratePanel
+            selectedDays={selectedDays}
+            onDaysChange={setSelectedDays}
+            consentAccepted={consentAccepted}
+            onConsentChange={setConsentAccepted}
+            onGenerate={generate}
+            isGenerating={isGenerating}
+            message={message}
+            medicalRisk={medicalRisk}
+          />
         </div>
       </div>
     </section>
   );
 }
 
+function buildPayload(
+  form: FormState,
+  selectedDays: 1 | 7 | 15 | 30,
+  estimatedWater: number,
+): GeneratePlanPayload {
+  return {
+    age: toNumber(form.age, 24),
+    gender: form.gender.toLowerCase(),
+    height: toNumber(form.height, 165),
+    weight: toNumber(form.weight, 58),
+    goal: toBackendGoal(form.goal),
+    activity: toBackendActivity(form.activity),
+    diet: toBackendDiet(form.diet),
+    days: selectedDays,
 
-function ProfileIssuesPanel({ issues }: { issues: ProfileIssue[] }) {
+    name: form.name,
+    city: form.city,
+    blood_group: form.bloodGroup,
+    preferred_cuisine: normalizeCuisine(form.preferredCuisine || form.foodPreference),
+    fitness_level: form.fitnessLevel.toLowerCase(),
+    allergies: form.allergies.toLowerCase() === "none" ? [] : [form.allergies],
+    disliked_foods:
+      form.dislikedFoods.toLowerCase() === "none"
+        ? []
+        : form.dislikedFoods.split(",").map((item) => item.trim()).filter(Boolean),
+    medical_conditions: form.medicalConditions || "none",
+    pregnancy_status:
+      form.gender.toLowerCase() === "male" ? "not_applicable" : form.pregnancyStatus,
+    budget: "medium",
+    workout_type: form.workoutType.toLowerCase(),
+    sleep_time: form.sleepTime || "23:00",
+    wake_time: form.wakeTime || "07:00",
+    sleep_hours: toNumber(form.sleepHours, 7),
+    water_intake: toNumber(form.waterIntake, estimatedWater),
+    smoker_alcohol: form.smokerAlcohol || "none",
+  };
+}
+
+function BackgroundFX() {
   return (
-    <div className="mt-5 rounded-[24px] border border-[#FFB347]/30 bg-[#2A1A05]/60 p-5 shadow-[0_0_40px_rgba(255,179,71,0.1)]">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start">
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#FFB347]/35 bg-[#FFB347]/10 text-[#FFB347]">
-          <AlertTriangle size={24} />
+    <>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_42%_18%,rgba(147,197,114,0.13),transparent_30%),radial-gradient(circle_at_78%_38%,rgba(24,211,208,0.08),transparent_30%),radial-gradient(circle_at_18%_82%,rgba(147,197,114,0.06),transparent_35%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.055] [background-image:linear-gradient(rgba(147,197,114,.16)_1px,transparent_1px),linear-gradient(90deg,rgba(147,197,114,.16)_1px,transparent_1px)] [background-size:84px_84px]" />
+    </>
+  );
+}
+
+function StepTimeline({
+  activeStep,
+  setActiveStep,
+  completion,
+  form,
+}: {
+  activeStep: StepKey;
+  setActiveStep: (step: StepKey) => void;
+  completion: number;
+  form: FormState;
+}) {
+  const timeline = [
+    { key: "body" as const, label: "Body Profile", icon: User },
+    { key: "lifestyle" as const, label: "Lifestyle", icon: Activity },
+    { key: "nutrition" as const, label: "Nutrition", icon: Utensils },
+    { key: "goals" as const, label: "Goals", icon: Target },
+    { key: "health" as const, label: "Health", icon: ShieldCheck },
+    { key: "ready" as const, label: "AI Ready", icon: Check },
+  ];
+
+  return (
+    <div className="border-b border-white/10 bg-black/12 px-4 py-3 sm:px-6 lg:px-8 xl:px-10">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start lg:gap-3">
+          {timeline.map((item, index) => {
+            const Icon = item.icon;
+            const ready = item.key === "ready";
+            const step = ready ? null : steps.find((entry) => entry.key === item.key);
+            const complete = ready ? completion >= 95 : step ? stepCompletion(form, step) === 100 : false;
+            const active = item.key === activeStep || (ready && completion >= 95);
+
+            return (
+              <div key={item.key} className="flex items-center gap-3">
+                <button
+                  type="button"
+                  disabled={ready}
+                  onClick={() => !ready && setActiveStep(item.key)}
+                  className={`grid h-10 w-10 place-items-center rounded-full border text-[14px] font-black transition ${
+                    active
+                      ? "border-[#93C572] bg-[#93C572] text-[#07110A] shadow-[0_0_26px_rgba(147,197,114,0.32)]"
+                      : complete
+                        ? "border-[#93C572]/45 bg-[#93C572]/12 text-[#93C572]"
+                        : "border-white/20 bg-white/[0.03] text-white/55 hover:border-[#93C572]/40"
+                  }`}
+                >
+                  {complete || ready ? <Icon size={19} /> : index + 1}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={ready}
+                  onClick={() => !ready && setActiveStep(item.key)}
+                  className={`hidden text-left text-[13px] font-black md:block ${
+                    active ? "text-white" : "text-white/58 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </button>
+
+                {index < timeline.length - 1 ? (
+                  <span className="hidden h-px w-6 border-t border-dashed border-white/22 2xl:block" />
+                ) : null}
+              </div>
+            );
+          })}
         </div>
 
-        <div className="min-w-0 flex-1">
-          <p className="text-[16px] font-black uppercase tracking-[0.18em] text-[#FFB347]">
-            Complete These Before Generating
-          </p>
-          <p className="mt-2 max-w-[980px] text-[15px] font-semibold leading-7 text-white/82">
-            Your plan button is active, but generation will not continue until
-            these safety and profile details are fixed.
-          </p>
+        <div className="rounded-[18px] border border-white/10 bg-white/[0.035] p-2.5 sm:min-w-[190px]">
+          <div className="flex items-center gap-3">
+            <ProgressRing value={completion} size={50} stroke={6} color={PRIMARY} />
+            <div>
+              <p className="text-[15px] font-black text-white">{completion}% Profile Completion</p>
+              <p className="text-[12px] font-semibold text-white/58">
+                {completion >= 95 ? "Ready for AI generation." : "Complete each section to improve your preview."}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {issues.map((issue) => (
-              <div
-                key={issue.id}
-                className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
-              >
-                <p className="text-[13px] font-black text-[#FFB347]">
-                  {issue.label}
-                </p>
-                <p className="mt-1 text-[12px] font-semibold leading-5 text-white/62">
-                  {issue.helper}
-                </p>
-              </div>
+function HeroCopy() {
+  return (
+    <div>
+      <p className="inline-flex rounded-full border border-[#18D3D0]/20 bg-[#18D3D0]/8 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-[#18D3D0]">
+        AI Nutrition Onboarding
+      </p>
+
+      <h1 className="mt-5 max-w-[760px] text-[38px] font-black leading-[0.95] tracking-[-0.06em] text-white sm:text-[52px] xl:text-[42px] 2xl:text-[54px]">
+        Let’s build your AI-powered health profile
+      </h1>
+
+      <p className="mt-4 max-w-[700px] text-[16px] font-semibold leading-7 text-white/66">
+        Your information helps our AI generate a personalized nutrition plan
+        that actually works for your body, goals, routine and safety needs.
+      </p>
+    </div>
+  );
+}
+
+function ProfileSectionCard({
+  step,
+  active,
+  form,
+  onFocus,
+  onNext,
+  isLast,
+  onChange,
+}: {
+  step: StepConfig;
+  active: boolean;
+  form: FormState;
+  onFocus: () => void;
+  onNext: () => void;
+  isLast: boolean;
+  onChange: (key: keyof FormState, value: string) => void;
+}) {
+  const Icon = step.icon;
+  const completion = stepCompletion(form, step);
+  const complete = completion === 100;
+  const previewValues = step.fields
+    .slice(0, active ? 0 : 3)
+    .map((field) => `${field.label}: ${form[field.key] || "—"}`);
+
+  return (
+    <div
+      id={`onboarding-${step.key}`}
+      className={`rounded-[24px] border bg-[#061009]/78 transition ${
+        active
+          ? "border-[#93C572]/72 p-5 shadow-[0_0_34px_rgba(147,197,114,0.12)]"
+          : "border-white/10 p-4 hover:border-[#93C572]/35"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onFocus}
+        className="flex w-full items-start justify-between gap-4 text-left"
+      >
+        <div className="flex items-center gap-4">
+          <div
+            className={`grid shrink-0 place-items-center rounded-full border transition ${
+              active ? "h-14 w-14" : "h-12 w-12"
+            }`}
+            style={{
+              color: step.color,
+              borderColor: `${step.color}80`,
+              background: `${step.color}14`,
+            }}
+          >
+            <Icon size={active ? 27 : 23} />
+          </div>
+
+          <div>
+            <p className="text-[18px] font-black text-white sm:text-[20px]">
+              <span style={{ color: step.color }}>{step.number}</span>{" "}
+              {step.title}
+            </p>
+            <p className="mt-1 text-[13px] font-semibold text-white/56">
+              {step.subtitle}
+            </p>
+
+            {!active && previewValues.length ? (
+              <p className="mt-2 line-clamp-1 text-[12px] font-semibold text-white/38">
+                {previewValues.join("  •  ")}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-3">
+          <span
+            className={`hidden items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-black sm:inline-flex ${
+              complete
+                ? "border-[#93C572]/20 bg-[#93C572]/8 text-[#93C572]"
+                : "border-white/10 bg-white/[0.035] text-white/55"
+            }`}
+          >
+            <CheckCircle2 size={15} />
+            {complete ? "Complete" : `${completion}%`}
+          </span>
+
+          <ChevronDown
+            size={20}
+            className={`text-white/72 transition ${active ? "rotate-180" : ""}`}
+          />
+        </div>
+      </button>
+
+      {active ? (
+        <>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+            {step.fields.map((field) => (
+              <ProfileField
+                key={field.key}
+                field={field}
+                value={form[field.key]}
+                onChange={(value) => onChange(field.key, value)}
+              />
             ))}
           </div>
 
-          <p className="mt-4 text-[13px] leading-6 text-white/55">
-            This prevents dashboard activation with demo-like fallback values,
-            missing medical status, or unchecked consent.
-          </p>
-        </div>
-      </div>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[12px] font-semibold leading-5 text-white/48">
+              Fill this section, then continue. You can return to any step from
+              the progress bar above.
+            </p>
+
+            {!isLast ? (
+              <button
+                type="button"
+                onClick={onNext}
+                className="inline-flex h-11 min-w-[132px] items-center justify-center gap-2 rounded-xl bg-[#93C572] px-5 text-[13px] font-black text-[#07110A] transition hover:bg-[#A4D08A]"
+              >
+                Continue
+                <ArrowRight size={16} />
+              </button>
+            ) : (
+              <a
+                href="#generate-plan"
+                className="inline-flex h-11 min-w-[132px] items-center justify-center gap-2 rounded-xl bg-[#93C572] px-5 text-[13px] font-black text-[#07110A] transition hover:bg-[#A4D08A]"
+              >
+                Generate Plan
+                <Sparkles size={16} />
+              </a>
+            )}
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
 
-
-function MedicalGuidanceWarning({
-  title,
-  message,
+function ProfileField({
+  field,
+  value,
+  onChange,
 }: {
-  title: string;
-  message: string;
+  field: FieldConfig;
+  value: string;
+  onChange: (value: string) => void;
 }) {
-  return (
-    <div className="mt-5 rounded-[24px] border border-[#FF6C7D]/35 bg-[#2A070D]/70 p-5 shadow-[0_0_40px_rgba(255,108,125,0.12)]">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start">
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#FF6C7D]/35 bg-[#FF6C7D]/10 text-[#FF6C7D]">
-          <AlertTriangle size={24} />
-        </div>
+  const isSelect = field.type === "select";
 
-        <div>
-          <p className="text-[16px] font-black uppercase tracking-[0.18em] text-[#FF6C7D]">
-            {title}
-          </p>
-          <p className="mt-2 max-w-[980px] text-[15px] font-semibold leading-7 text-white/82">
-            {message}
-          </p>
-          <p className="mt-3 text-[13px] leading-6 text-white/55">
-            No nutrition plan, workout plan, calorie target, macros, or AI coach
-            recommendation will be generated for this profile. Edit the health
-            information only if it was entered incorrectly.
-          </p>
-        </div>
+  return (
+    <label className="group relative min-h-[74px] rounded-[18px] border border-white/10 bg-black/18 px-4 py-3 transition focus-within:border-[#93C572]/45 focus-within:bg-[#93C572]/5">
+      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-white/42">
+        {field.label}
+      </p>
+
+      <div className="mt-2 flex items-center gap-2">
+        {isSelect ? (
+          <>
+            <select
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+              className="h-8 w-full appearance-none bg-transparent pr-8 text-[15px] font-black text-white outline-none"
+            >
+              {(field.options || []).map((option) => (
+                <option key={option} value={option} className="bg-[#061009] text-white">
+                  {option}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={17}
+              className="pointer-events-none absolute bottom-4 right-4 text-white/65"
+            />
+          </>
+        ) : (
+          <input
+            type={field.type || "text"}
+            value={value}
+            placeholder={field.placeholder}
+            onChange={(event) => onChange(event.target.value)}
+            className="h-8 w-full bg-transparent text-[15px] font-black text-white outline-none placeholder:text-white/25"
+          />
+        )}
+
+        {field.suffix ? (
+          <span className="pb-1 text-[12px] font-bold text-white/44">{field.suffix}</span>
+        ) : null}
       </div>
-    </div>
+    </label>
   );
 }
 
-
-function Header() {
+function SupportRow({ onSave }: { onSave: () => void }) {
   return (
-    <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex items-center gap-4">
-        <div>
-          <h2 className="text-[28px] font-black uppercase leading-none tracking-[0.08em] sm:text-[34px] lg:text-[38px] xl:text-[42px]">
-            AI Profile Inputs
-          </h2>
-          <p className="mt-2 text-[14px] font-semibold leading-6 text-[#A3B3A3] xl:text-[15px]">
-            Your profile helps AI create a plan that adapts perfectly to you.
-          </p>
-        </div>
+    <div className="grid gap-4 md:grid-cols-[1fr_0.55fr]">
+      <div className="rounded-[20px] border border-[#18D3D0]/18 bg-[#18D3D0]/6 px-4 py-3">
+        <p className="flex items-center gap-2 text-[15px] font-black text-white">
+          <ShieldCheck size={24} className="text-[#18D3D0]" />
+          Why we ask these questions?
+        </p>
+        <p className="mt-2 text-[13px] font-semibold leading-6 text-white/58">
+          Your inputs help our AI analyze metabolism, lifestyle, preferences
+          and safety before generating a plan.
+        </p>
       </div>
 
-      <button className="inline-flex w-fit items-center gap-2.5 rounded-2xl border border-[#18D3D0]/25 bg-[#18D3D0]/5 px-4 py-3 text-[13px] font-black text-[#A6FF4D]">
-        <CircleHelp size={17} />
-        Profile Guide
+      <button
+        type="button"
+        onClick={onSave}
+        className="inline-flex h-14 items-center justify-center gap-3 rounded-[20px] border border-white/10 bg-white/[0.035] px-4 text-[15px] font-black text-white/82 transition hover:border-[#93C572]/35"
+      >
+        <Save size={20} />
+        Save Profile
       </button>
     </div>
   );
 }
 
-function TopProfilePanel({
+function HumanMeshStage() {
+  const floating = [
+    {
+      label: "Hydration",
+      text: "Analyzing...",
+      icon: Droplets,
+      color: BLUE,
+      className: "left-6 top-16",
+    },
+    {
+      label: "Calories",
+      text: "Calculating...",
+      icon: Flame,
+      color: WARNING,
+      className: "right-6 top-20",
+    },
+    {
+      label: "Metabolism",
+      text: "Analyzing...",
+      icon: Leaf,
+      color: PRIMARY,
+      className: "left-8 bottom-20",
+    },
+    {
+      label: "Muscle Mass",
+      text: "Analyzing...",
+      icon: Dumbbell,
+      color: PURPLE,
+      className: "right-8 bottom-20",
+    },
+  ];
+
+  return (
+    <div className="relative min-h-[620px] overflow-hidden rounded-[30px] border border-[#93C572]/14 bg-[#061009]/52 shadow-[inset_0_0_80px_rgba(147,197,114,0.045)] lg:min-h-[690px] xl:min-h-[760px]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(147,197,114,0.24),transparent_45%),radial-gradient(circle_at_50%_78%,rgba(24,211,208,0.12),transparent_32%)]" />
+
+      <img
+        src="/assets/radial-glow.png"
+        alt=""
+        className="absolute left-1/2 top-[43%] w-[760px] -translate-x-1/2 -translate-y-1/2 opacity-26 mix-blend-screen"
+      />
+
+   
+<img
+  src="/assets/scanner-health-human.png"
+  alt="AI metabolic body scan"
+  className="absolute left-1/2 top-[43%] z-10 h-[1250px] w-auto -translate-x-1/2 -translate-y-1/2 scale-[2.5] object-contain opacity-100 drop-shadow-[0_0_85px_rgba(147,197,114,0.42)]"
+/>
+      <div className="absolute bottom-10 left-1/2 h-9 w-[270px] -translate-x-1/2 rounded-[50%] border border-[#18D3D0]/44 shadow-[0_0_34px_rgba(24,211,208,0.28)]" />
+
+      {floating.map((item) => {
+        const Icon = item.icon;
+
+        return (
+          <div
+            key={item.label}
+            className={`absolute z-20 hidden rounded-[20px] border bg-[#061009]/82 p-4 shadow-[0_0_30px_rgba(0,0,0,0.35)] backdrop-blur-xl xl:block ${item.className}`}
+            style={{ borderColor: `${item.color}45` }}
+          >
+            <Icon size={34} style={{ color: item.color }} />
+            <p className="mt-3 text-[14px] font-black text-white">{item.label}</p>
+            <p className="mt-1 text-[12px] font-semibold text-white/62">{item.text}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function AIInsightPanel({
   completion,
-  completed,
-  total,
-  profile,
-  missingCount,
+  targets,
+  medicalRisk,
 }: {
   completion: number;
-  completed: number;
-  total: number;
-  profile: ProfileData;
-  missingCount: number;
+  targets: PreviewTarget[];
+  medicalRisk: boolean;
 }) {
   return (
-    <div className="grid overflow-hidden rounded-[26px] border border-white/10 bg-[#07110A]/70 lg:grid-cols-[0.9fr_1.15fr] xl:grid-cols-[0.9fr_1.2fr_0.45fr]">
-      <div className="flex items-center gap-5 border-b border-white/10 p-5 lg:border-b-0 lg:border-r xl:p-6">
-        <CircleProgress value={completion} />
+    <aside className="flex flex-col gap-3 xl:self-start">
+      <div className="rounded-[24px] border border-white/10 bg-[#061009]/78 p-4 shadow-[0_0_32px_rgba(147,197,114,0.055)]">
+        <p className="flex items-center gap-3 text-[19px] font-black text-white">
+          <Brain size={24} className="text-[#93C572]" />
+          AI Preview
+        </p>
+        <p className="mt-1 text-[13px] font-semibold text-white/58">
+          Based on your current inputs
+        </p>
 
-        <div className="min-w-0">
-          <h3 className="text-[22px] font-black xl:text-[26px]">
-            Profile Completion
-          </h3>
-
-          <p className="mt-3 max-w-[420px] text-[14px] leading-6 text-white/70 xl:text-[15px]">
-            {missingCount > 0
-              ? "Add the remaining details to improve personalization."
-              : "Your profile is complete. AI has enough context to personalize your plan."}
-          </p>
-
-          <div className="mt-4 h-2.5 w-full max-w-[360px] rounded-full bg-white/15">
-            <div
-              className="h-full rounded-full bg-[#A6FF4D] shadow-[0_0_18px_rgba(166,255,77,.6)]"
-              style={{ width: `${completion}%` }}
-            />
-          </div>
-
-          <p className="mt-3 text-[13px] font-semibold text-white/60">
-            {total - completed} of {total} items pending
-          </p>
+        <div className="mt-3 grid gap-2">
+          {targets.map((target) => (
+            <PreviewMetric key={target.label} target={target} />
+          ))}
         </div>
       </div>
 
-      <div className="relative flex items-center gap-5 p-5 xl:p-6">
-        <Sparkles
-          size={44}
-          className="shrink-0 text-[#A6FF4D] drop-shadow-[0_0_24px_rgba(166,255,77,.55)]"
-        />
+      <ProfileIntelligenceMiniCard />
 
-        <div className="relative z-10 min-w-0">
-          <p className="text-[14px] font-black uppercase tracking-[0.22em] text-[#A6FF4D] xl:text-[15px]">
-            AI Profile Summary
-          </p>
+      <div className="rounded-[22px] border border-[#93C572]/24 bg-[#93C572]/7 px-4 py-3">
+        <p className="text-[15px] font-black text-white">
+          AI is analyzing your profile...
+        </p>
 
-          <p className="mt-2 text-[14px] font-medium leading-6 text-white/65">
-            This summary is built from your saved assessment and generated plan.
-          </p>
+        <p className="mt-2 text-[13px] font-semibold leading-6 text-white/60">
+          Our AI engine is processing your data to create a personalized nutrition plan.
+        </p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <SummaryChip label={`Goal: ${profile.nutrition.primaryGoal}`} />
-            <SummaryChip label={`Diet: ${profile.nutrition.dietPreference}`} />
-            <SummaryChip label={`Activity: ${profile.nutrition.activityLevel}`} />
-            <SummaryChip label={`City: ${profile.missing.city || "Not Added"}`} />
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="text-[14px] font-black text-[#18D3D0]">
-              AI Confidence: {completion + 12 > 100 ? 100 : completion + 12}%
-            </span>
-
-            <div className="h-2 w-[180px] rounded-full bg-white/15">
-              <div
-                className="h-full rounded-full bg-[#18D3D0] shadow-[0_0_16px_rgba(24,211,208,.6)]"
-                style={{
-                  width: `${completion + 12 > 100 ? 100 : completion + 12}%`,
-                }}
-              />
-            </div>
-          </div>
+        <div className="mt-3 h-2.5 rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-[#93C572] shadow-[0_0_22px_rgba(147,197,114,0.32)]"
+            style={{ width: `${completion}%` }}
+          />
         </div>
+
+        <p className="mt-2 text-right text-[13px] font-black text-[#93C572]">
+          {completion}%
+        </p>
+
+        {medicalRisk ? (
+          <p className="mt-3 rounded-2xl border border-[#F5B942]/25 bg-[#2A1A05]/45 px-4 py-3 text-[12px] font-semibold leading-5 text-[#F5B942]">
+            Safety review required before plan generation.
+          </p>
+        ) : null}
       </div>
 
-      <div className="relative hidden items-center justify-center xl:flex">
-        <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(24,211,208,.16),transparent_62%)]" />
-
-        <img
-          src="/assets/meshbody.png"
-          alt=""
-          className="relative z-10 h-[210px] object-contain opacity-90 mix-blend-screen drop-shadow-[0_0_36px_rgba(24,211,208,.9)]"
-        />
-
-        <div className="absolute bottom-7 h-5 w-32 rounded-full border border-[#18D3D0]/50 shadow-[0_0_24px_rgba(24,211,208,.4)]" />
+      <div className="rounded-[20px] border border-white/10 bg-white/[0.035] px-4 py-3">
+        <p className="flex items-center gap-2 text-[14px] font-black text-white">
+          <Lock size={17} className="text-[#F5B942]" />
+          Your data is private and secure
+        </p>
+        <p className="mt-2 text-[12px] font-semibold leading-5 text-white/54">
+          We never share your personal information.
+        </p>
       </div>
-    </div>
+
+      <AIRecommendationsMiniCard medicalRisk={medicalRisk} />
+    </aside>
   );
 }
 
-function CircleProgress({ value }: { value: number }) {
-  const angle = Math.max(0, Math.min(value, 100)) * 3.6;
+function ProfileIntelligenceMiniCard() {
+  const rows = [
+    ["Metabolism", "Analyzing"],
+    ["Meal Pattern", "3 meals/day"],
+    ["Safety Status", "Clear"],
+    ["Plan Duration", "7 days"],
+  ];
 
   return (
-    <div
-      className="grid h-[116px] w-[116px] shrink-0 place-items-center rounded-full shadow-[0_0_30px_rgba(166,255,77,.35)]"
-      style={{
-        background: `conic-gradient(#A6FF4D ${angle}deg, rgba(255,255,255,.13) 0deg)`,
-      }}
-    >
-      <div className="grid h-[88px] w-[88px] place-items-center rounded-full bg-[#07110A]">
-        <div className="text-center">
-          <p className="text-[28px] font-black leading-none">{value}%</p>
-          <p className="mt-1 text-[9px] font-black uppercase tracking-[0.13em] text-[#A6FF4D]">
-            Complete
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+    <div className="rounded-[20px] border border-[#18D3D0]/18 bg-[#18D3D0]/6 px-4 py-3">
+      <p className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#18D3D0]">
+        <Brain size={16} />
+        Profile Intelligence
+      </p>
 
-function SummaryChip({ label }: { label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] font-bold text-white/85">
-      <Sparkles size={12} className="text-[#18D3D0]" />
-      {label}
-    </span>
-  );
-}
-
-type RowData = {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-  field: string;
-};
-
-function ProfileCard({
-  title,
-  icon,
-  rows,
-  draftRows,
-  updatedAt,
-  color,
-  editing,
-  onEdit,
-  onSave,
-  onCancel,
-  onChange,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  rows: RowData[];
-  draftRows: Record<string, string>;
-  updatedAt: string;
-  color: string;
-  editing: boolean;
-  onEdit: () => void;
-  onSave: () => void;
-  onCancel: () => void;
-  onChange: (field: string, value: string) => void;
-}) {
-  return (
-    <div
-      className="rounded-[24px] border bg-[#07110A]/65 p-4 shadow-[inset_0_0_35px_rgba(255,255,255,.025)] xl:p-5"
-      style={{ borderColor: `${color}55` }}
-    >
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <span style={{ color }}>{icon}</span>
-          <h3
-            className="truncate text-[15px] font-black uppercase tracking-[0.08em] xl:text-[16px]"
-            style={{ color }}
-          >
-            {title}
-          </h3>
-        </div>
-
-        {editing ? (
-          <div className="flex gap-2">
-            <button
-              onClick={onSave}
-              className="rounded-xl border border-[#A6FF4D]/50 p-2 text-[#A6FF4D]"
-            >
-              <Save size={16} />
-            </button>
-            <button
-              onClick={onCancel}
-              className="rounded-xl border border-white/15 p-2 text-white/70"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={onEdit}
-            className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[12px] font-black"
-            style={{ borderColor: `${color}70`, color }}
-          >
-            <Edit3 size={13} />
-            Edit
-          </button>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        {rows.map((row) => (
-          <div key={row.label} className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 text-[13px] font-medium text-white/68">
-              <span style={{ color }}>{row.icon}</span>
-              {row.label}
-            </div>
-
-            {editing ? (
-              <input
-                value={draftRows[row.field] || ""}
-                onChange={(e) => onChange(row.field, e.target.value)}
-                className="w-[120px] rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-right text-[12px] font-black text-white outline-none focus:border-[#A6FF4D]/60"
-              />
-            ) : (
-              <p className="text-right text-[13px] font-black text-white">
-                {row.value}
-              </p>
-            )}
+      <div className="mt-3 grid gap-2 text-[12px] font-semibold text-white/64">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between gap-3">
+            <span>{label}</span>
+            <span className="text-right font-black text-[#93C572]">{value}</span>
           </div>
         ))}
       </div>
+    </div>
+  );
+}
 
-      <div className="mt-5 border-t border-white/10 pt-3">
-        <p className="flex items-center gap-2 text-[11px] font-medium text-white/45">
-          <Clock3 size={12} />
-          Last updated: {updatedAt}
+function AIRecommendationsMiniCard({ medicalRisk }: { medicalRisk: boolean }) {
+  const recommendations = medicalRisk
+    ? ["Safety review needed", "Use wellness guidance only", "Consult a professional"]
+    : ["High-protein plan focus", "Hydration target active", "Sleep goal: 7+ hours", "Fat-loss pacing optimized"];
+
+  return (
+    <div className="rounded-[20px] border border-[#93C572]/18 bg-[#93C572]/6 px-4 py-3">
+      <p className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#93C572]">
+        <Sparkles size={16} />
+        AI Recommendations
+      </p>
+
+      <div className="mt-3 grid gap-2">
+        {recommendations.map((item) => (
+          <div key={item} className="flex items-center gap-2 text-[12px] font-semibold text-white/62">
+            <CheckCircle2 size={14} className="shrink-0 text-[#93C572]" />
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PreviewMetric({ target }: { target: PreviewTarget }) {
+  const Icon = target.icon;
+
+  return (
+    <div className="flex min-h-[78px] items-center gap-3 rounded-[18px] border border-white/10 bg-black/20 px-4 py-3">
+      <Icon size={30} style={{ color: target.color }} />
+      <div className="min-w-0">
+        <p className="text-[13px] font-semibold text-white/68">{target.label}</p>
+        <p className="mt-1 text-[19px] font-black leading-none text-white 2xl:text-[22px]">
+          {target.value}
+        </p>
+        <p className="mt-1 text-[12px] font-semibold text-white/45">
+          {target.sub}
         </p>
       </div>
     </div>
   );
 }
 
-function MissingDetails({
-  missingCount,
-  missing,
-  onChange,
-}: {
-  missingCount: number;
-  missing: ProfileData["missing"];
-  onChange: (field: keyof ProfileData["missing"], value: string) => void;
-}) {
+function NextStepsStrip() {
+  const items = [
+    { title: "AI Analysis", text: "We analyze your data using advanced AI algorithms.", icon: Brain },
+    { title: "Personalized Plan", text: "Get your custom nutrition and lifestyle plan.", icon: ShieldCheck },
+    { title: "Daily Guidance", text: "Receive daily tips, meal suggestions and AI coaching.", icon: Heart },
+    { title: "Track & Improve", text: "Track progress and optimize results over time.", icon: Activity },
+  ];
+
   return (
-    <div className="mt-5 grid items-center gap-4 rounded-[26px] border border-white/10 bg-[#07110A]/70 p-5 xl:grid-cols-[0.7fr_1.25fr_0.3fr]">
-      <div>
-        <p className="text-[18px] font-black uppercase tracking-[0.14em] text-[#A6FF4D] xl:text-[20px]">
-          {missingCount > 0
-            ? `AI Needs ${missingCount} More Details`
-            : "Profile Complete"}
+    <div className="rounded-[24px] border border-white/10 bg-[#061009]/70 px-5 py-6 xl:col-span-3">
+      <div className="grid items-center gap-5 lg:grid-cols-[0.35fr_1fr_1fr_1fr_1fr_0.78fr]">
+        <p className="text-[20px] font-black leading-tight text-[#93C572]">
+          What
+          <br />
+          happens
+          <br />
+          next?
         </p>
 
-        <p className="mt-3 text-[14px] leading-6 text-white/65">
-          These details help AI fine tune your nutrition and lifestyle plan.
-        </p>
-      </div>
+        {items.map((item, index) => {
+          const Icon = item.icon;
+          return (
+            <div key={item.title} className="flex items-center gap-4">
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[#93C572]/18 bg-[#93C572]/8 text-[#93C572]">
+                <Icon size={23} />
+              </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <MissingInput
-          label="What’s your city?"
-          value={missing.city}
-          placeholder="Select your city"
-          color="#18D3D0"
-          onChange={(value) => onChange("city", value)}
-        />
+              <div>
+                <p className="text-[15px] font-black text-white">{item.title}</p>
+                <p className="mt-1 text-[12px] font-semibold leading-5 text-white/55">
+                  {item.text}
+                </p>
+              </div>
 
-        <MissingInput
-          label="Any medical conditions?"
-          value={missing.medical}
-          placeholder="Type or select"
-          color="#A875FF"
-          onChange={(value) => onChange("medical", value)}
-        />
+              {index < items.length - 1 ? (
+                <ArrowRight size={22} className="hidden text-[#93C572] xl:block" />
+              ) : null}
+            </div>
+          );
+        })}
 
-        <MissingInput
-          label="What’s your blood group?"
-          value={missing.bloodGroup}
-          placeholder="Select blood group"
-          color="#6C7BFF"
-          onChange={(value) => onChange("bloodGroup", value)}
-        />
-      </div>
-
-      <div className="relative hidden h-24 xl:block">
-        <div className="absolute inset-0 rotate-[-18deg] rounded-full border border-[#18D3D0]/25" />
-        <div className="absolute inset-3 rotate-[28deg] rounded-full border border-[#A6FF4D]/20" />
-        <span className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#18D3D0] shadow-[0_0_25px_rgba(24,211,208,.9)]" />
-      </div>
-    </div>
-  );
-}
-
-function MissingInput({
-  label,
-  value,
-  placeholder,
-  color,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  placeholder: string;
-  color: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="rounded-2xl border border-white/10 bg-black/15 p-4">
-      <div className="mb-3 flex items-center gap-2 text-[13px] font-black text-white">
-        <MapPin size={15} style={{ color }} />
-        {label}
-      </div>
-
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-white/10 bg-[#020604]/65 px-3 py-2.5 text-[12px] font-bold text-white outline-none placeholder:text-white/45 focus:border-[#18D3D0]/60"
-      />
-    </label>
-  );
-}
-
-function PlanDurationSelector({
-  selectedDays,
-  onSelectDays,
-}: {
-  selectedDays: number;
-  onSelectDays: (days: number) => void;
-}) {
-  return (
-    <div className="mt-5 rounded-[26px] border border-white/10 bg-[#07110A]/70 p-5">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-[18px] font-black uppercase tracking-[0.14em] text-[#A6FF4D] xl:text-[20px]">
-            Plan Duration
+        <div className="hidden items-center justify-center gap-3 rounded-[20px] border border-white/10 bg-white/[0.03] p-4 xl:flex">
+          <img
+            src="/assets/food-insight-hologram.png"
+            alt=""
+            className="h-24 w-24 object-contain"
+          />
+          <p className="text-[12px] font-semibold leading-5 text-white/65">
+            Your future self will thank you today!
           </p>
-          <p className="mt-2 text-[14px] leading-6 text-white/65">
-            Choose how many days AI should generate. The backend should return a different meal set for each day.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GeneratePanel({
+  selectedDays,
+  onDaysChange,
+  consentAccepted,
+  onConsentChange,
+  onGenerate,
+  isGenerating,
+  message,
+  medicalRisk,
+}: {
+  selectedDays: 1 | 7 | 15 | 30;
+  onDaysChange: (days: 1 | 7 | 15 | 30) => void;
+  consentAccepted: boolean;
+  onConsentChange: (value: boolean) => void;
+  onGenerate: () => void;
+  isGenerating: boolean;
+  message: string;
+  medicalRisk: boolean;
+}) {
+  return (
+    <div id="generate-plan" className="rounded-[24px] border border-white/12 bg-black/22 px-5 py-5 xl:col-span-3">
+      <div className="grid gap-4 lg:grid-cols-[0.78fr_0.64fr_0.7fr] lg:items-center">
+        <div>
+          <p className="text-[30px] font-black tracking-[-0.05em] text-white">
+            Your profile is ready.
+          </p>
+          <p className="mt-2 text-[17px] font-semibold text-white/62">
+            Generate your personalized AI nutrition plan.
           </p>
         </div>
 
-        <div className="grid grid-cols-4 gap-3 sm:w-[360px]">
-          {planDurations.map((days) => (
+        <div className="grid grid-cols-4 gap-2">
+          {[1, 7, 15, 30].map((days) => (
             <button
               key={days}
               type="button"
-              onClick={() => onSelectDays(days)}
-              className={`rounded-2xl border px-4 py-3 text-[13px] font-black transition ${
+              onClick={() => onDaysChange(days as 1 | 7 | 15 | 30)}
+              className={`rounded-2xl border px-3 py-3 text-[13px] font-black transition ${
                 selectedDays === days
-                  ? "border-[#A6FF4D]/60 bg-[#A6FF4D] text-black shadow-[0_0_24px_rgba(166,255,77,.22)]"
-                  : "border-white/10 bg-white/[0.03] text-white hover:border-[#A6FF4D]/40"
+                  ? "border-[#93C572] bg-[#93C572] text-[#07110A]"
+                  : "border-white/10 bg-white/[0.04] text-white/70 hover:border-[#93C572]/40"
               }`}
             >
               {days}D
             </button>
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
 
-function FinalCTA({
-  onGenerate,
-  isGenerating,
-  isNewUser,
-  selectedDays,
-  safetyBlocked,
-  safetyMessage,
-  profileIssues,
-  consentAccepted,
-  onConsentChange,
-  onFillSafeTestProfile,
-}: {
-  onGenerate: () => void;
-  isGenerating: boolean;
-  isNewUser: boolean;
-  selectedDays: number;
-  safetyBlocked: boolean;
-  safetyMessage: string;
-  profileIssues: ProfileIssue[];
-  consentAccepted: boolean;
-  onConsentChange: (accepted: boolean) => void;
-  onFillSafeTestProfile: () => void;
-}) {
-  const hasIssues = profileIssues.length > 0;
-  const blockerCount = profileIssues.length + (safetyBlocked ? 1 : 0);
-
-  const buttonLabel = isGenerating
-    ? `Generating ${selectedDays}-Day Plan...`
-    : safetyBlocked
-      ? "Review Medical Guidance"
-      : hasIssues
-        ? `Review ${blockerCount} Required ${blockerCount === 1 ? "Item" : "Items"}`
-        : isNewUser
-          ? `Generate First ${selectedDays}-Day Plan`
-          : `Generate ${selectedDays}-Day AI Nutrition Plan`;
-
-  return (
-    <div className="mt-5 grid items-center gap-4 rounded-[26px] border border-[#A6FF4D]/30 bg-[#07110A]/80 p-5 xl:grid-cols-[0.14fr_0.9fr_1.1fr]">
-      <div className="grid h-20 w-20 place-items-center rounded-full border border-[#A6FF4D]/25 bg-[#A6FF4D]/10 text-[#A6FF4D] shadow-[0_0_32px_rgba(166,255,77,.24)]">
-        <Target size={42} />
+        <button
+          type="button"
+          onClick={onGenerate}
+          disabled={isGenerating || medicalRisk}
+          className="inline-flex h-16 w-full max-w-[380px] items-center justify-center gap-3 justify-self-end rounded-2xl bg-[#93C572] px-6 text-[18px] font-black text-[#07110A] shadow-[0_0_40px_rgba(147,197,114,0.28)] transition hover:bg-[#A4D08A] disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          {isGenerating ? "Generating..." : "Generate My Plan"}
+          <Sparkles size={20} />
+        </button>
       </div>
 
-      <div>
-        <h3 className="text-[24px] font-black tracking-[-0.04em] xl:text-[28px]">
-          Ready to generate your AI Nutrition Plan?
-        </h3>
+      <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-[12px] font-semibold leading-5 text-white/64">
+        <input
+          type="checkbox"
+          checked={consentAccepted}
+          onChange={(event) => onConsentChange(event.target.checked)}
+          className="mt-1 accent-[#93C572]"
+        />
+        <span>
+          I understand AI Nutrition OS provides general wellness guidance only
+          and does not provide medical advice, diagnosis, treatment, emergency
+          care, or disease management.
+        </span>
+      </label>
 
-        <p className="mt-2 text-[14px] font-medium leading-6 text-white/65">
-          AI will use your current profile values to build a personalized,
-          safety-aware {selectedDays}-day nutrition plan.
+      {message ? (
+        <p
+          className={`mt-4 rounded-2xl border px-4 py-3 text-[13px] font-bold ${
+            message.toLowerCase().includes("success") || message.toLowerCase().includes("saved")
+              ? "border-[#93C572]/25 bg-[#93C572]/8 text-[#93C572]"
+              : "border-[#F5B942]/25 bg-[#2A1A05]/50 text-[#F5B942]"
+          }`}
+        >
+          {message}
         </p>
-      </div>
+      ) : null}
 
-      <div className="space-y-3 xl:col-span-3">
-        {(hasIssues || safetyBlocked) ? (
-          <div className="rounded-2xl border border-[#FFB347]/25 bg-[#2A1A05]/45 px-4 py-3 text-[12px] font-semibold leading-6 text-[#FFDF9E]">
-            <p className="font-black uppercase tracking-[0.14em] text-[#FFB347]">
-              Why generation cannot continue yet
-            </p>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
-              {safetyBlocked ? (
-                <li>{safetyMessage || "Medical guidance is required for this profile."}</li>
-              ) : null}
-              {profileIssues.map((issue) => (
-                <li key={issue.id}>
-                  <span className="font-black">{issue.label}:</span> {issue.helper}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-[12px] font-semibold leading-5 text-white/70">
-          <input
-            type="checkbox"
-            checked={consentAccepted}
-            onChange={(event) => onConsentChange(event.target.checked)}
-            className="mt-1 h-4 w-4 accent-[#A6FF4D]"
-          />
-          <span>
-            I understand AI Nutrition OS provides general wellness guidance only,
-            not medical advice, diagnosis, treatment, emergency care, or
-            professional dietary counselling. I consent to using my profile inputs
-            to generate a wellness plan.
-          </span>
-        </label>
-
-        <div className="flex flex-col gap-3 sm:flex-row xl:justify-end">
-          {import.meta.env.DEV ? (
-            <button
-              type="button"
-              onClick={onFillSafeTestProfile}
-              className="inline-flex items-center justify-center gap-3 rounded-2xl border border-[#18D3D0]/30 bg-[#18D3D0]/10 px-5 py-3.5 text-[14px] font-black text-[#18D3D0] transition hover:scale-[1.01]"
-            >
-              Fill Safe Test Profile
-              <Sparkles size={17} />
-            </button>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={onGenerate}
-            disabled={isGenerating}
-            className={`inline-flex items-center justify-center gap-3 rounded-2xl px-5 py-3.5 text-black shadow-[0_0_34px_rgba(166,255,77,.3)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60 ${
-              hasIssues || safetyBlocked || !consentAccepted
-                ? "bg-[#FFB347]"
-                : "bg-[#A6FF4D]"
-            }`}
-          >
-            <span className="text-[14px] font-black">{buttonLabel}</span>
-            <Sparkles size={17} />
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-black text-[16px] text-[#A6FF4D]">
-              →
-            </span>
-          </button>
-
-          <Link
-            to="/scanner"
-            className="inline-flex items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/[0.03] px-5 py-3.5 text-[14px] font-black text-white"
-          >
-            <ScanLine size={18} />
-            Open Food Scanner
-          </Link>
-        </div>
-      </div>
+      <p className="mt-3 flex items-center justify-center gap-2 text-[12px] font-semibold text-white/50">
+        <Lock size={14} />
+        100% Secure • Private • Only for you
+      </p>
     </div>
   );
 }
 
-function BackgroundFX() {
+function ProgressRing({
+  value,
+  size,
+  stroke,
+  color,
+}: {
+  value: number;
+  size: number;
+  stroke: number;
+  color: string;
+}) {
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const safeValue = Math.min(Math.max(value, 0), 100);
+  const offset = circumference - (safeValue / 100) * circumference;
+
   return (
-    <>
-      <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_25%_45%,rgba(24,211,208,0.08),transparent_32%),radial-gradient(circle_at_75%_70%,rgba(166,255,77,0.1),transparent_34%)]" />
-      <div className="pointer-events-none absolute inset-0 rounded-[30px] opacity-[0.13] [background-image:linear-gradient(rgba(166,255,77,.11)_1px,transparent_1px),linear-gradient(90deg,rgba(166,255,77,.11)_1px,transparent_1px)] [background-size:78px_78px]" />
-    </>
+    <div className="relative grid place-items-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="rgba(255,255,255,0.12)"
+          strokeWidth={stroke}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color}
+          strokeWidth={stroke}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </svg>
+
+      <span className="absolute text-[14px] font-black text-white">{safeValue}%</span>
+    </div>
   );
 }
